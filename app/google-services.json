@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "733237118232",
+    "project_id": "crashlytic-f28b8",
+    "storage_bucket": "crashlytic-f28b8.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:733237118232:android:79e82d7b969ee42f360a6d",
+        "android_client_info": {
+          "package_name": "com.tomst.lolly"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "733237118232-qatcm4m6ftu72mbfco7216kukqp3re6g.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBCSwsBtKDoMYNeBzj5Tmfu7XHWONjQiUE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "733237118232-qatcm4m6ftu72mbfco7216kukqp3re6g.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,463 @@
+package com.tomst.lolly.ui.home;
+
+import android.content.ComponentName;
+import android.content.Context;
+
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
+import android.hardware.usb.UsbManager;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.IBinder;
+import android.os.Looper;
+import android.os.Message;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
+import android.os.Handler;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+
+import com.ftdi.j2xx.D2xxManager;
+import com.ftdi.j2xx.FT_Device;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.tomst.lolly.LollyService;
+import com.tomst.lolly.R;
+import com.tomst.lolly.core.BoundServiceListener;
+import com.tomst.lolly.core.CSVReader;
+import com.tomst.lolly.core.Constants;
+import com.tomst.lolly.core.DmdViewModel;
+import com.tomst.lolly.core.FileOperation;
+import com.tomst.lolly.core.OnProListener;
+import com.tomst.lolly.core.TDevState;
+import com.tomst.lolly.core.TInfo;
+import com.tomst.lolly.core.TMSReader;
+import com.tomst.lolly.core.TMereni;
+import com.tomst.lolly.core.TMeteo;
+import com.tomst.lolly.core.shared;
+import com.tomst.lolly.databinding.FragmentHomeBinding;
+import com.tomst.lolly.core.uHer;
+import com.tomst.lolly.core.PermissionManager;
+
+import java.io.File;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+
+public class HomeFragment extends Fragment {
+    static final byte MIN_ADANUMBER = 5;  // pozaduju, aby mel adapter minimalne 5 znaku
+    private final String FILEPATH= Constants.FILEDIR ; //"/storage/emulated/0/Documents/";
+    private FragmentHomeBinding binding;
+    private long MaxPos;
+    //private Context DeviceUARTContext;
+
+    private CSVReader csv;
+    // private TMSReader ftTMS;
+
+    private int heartIdx = 0;
+    private char cHeart = '-';
+    private int DevCount =-1;
+    private boolean uart_configured = false;
+
+    private int currentIndex = -1;
+
+    private final int openIndex = 0;
+
+    private boolean bReadThreadGoing=false;
+
+    public com.tomst.lolly.core.uHer fHer;
+
+    private Handler progressBarHandler = new Handler(Looper.getMainLooper());
+
+    protected Handler datahandler = new Handler(Looper.getMainLooper()) {
+        @RequiresApi(api = Build.VERSION_CODES.O)
+        @Override
+        public void handleMessage(Message msg) {
+            TMereni mer = (TMereni) msg.obj;
+            dmd.AddMereni(mer);
+            csv.AddMerToCsv(mer);
+            csv.AppendStat(mer);
+        }
+    };
+
+    private int fAddr;
+    private int progressBarStatus=0;
+
+    private  DmdViewModel dmd;
+
+    private final int PERMISSION_REQUEST_CODE = 698;
+    private final int NOTIFICATION_ID = 423;
+    private PermissionManager permissionManager;
+
+    private boolean bound = false;
+    private LollyService odometer;
+
+
+    @Override
+    public void onCreate(Bundle savedInstanceState){
+        super.onCreate(savedInstanceState);
+    }
+
+    private ServiceConnection connection = new ServiceConnection() {
+       @Override
+       public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+           LollyService.LollyBinder odometerBinder =
+                   (LollyService.LollyBinder) iBinder;
+           odometer = odometerBinder.getOdometer();
+           odometer.SetHandler(handler);
+           odometer.SetDataHandler(datahandler);   // do tohoto handleru posilam naparsovane data
+           odometer.SetContext(getContext());  // az tady muze startovat hardware
+           odometer.startBindService();
+           bound = true;
+       }
+
+
+       @Override
+       public void onServiceDisconnected(ComponentName componentName) {
+           bound = false;
+       }
+    };
+
+     @Override
+     public void onResume() {
+        super.onResume();
+
+        if (odometer != null)
+            odometer.SetServiceState(TDevState.tStart);
+        //ConnectDevice();
+     };
+
+     @Override
+     public void onStart(){
+        Constants.showMicro = true;
+        super.onStart();
+        /*
+        if (ContextCompat.checkSelfPermission(getContext(),
+                LollyService.PERMISSION_STRING)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(getActivity(),
+                    new String[]{LollyService.PERMISSION_STRING},
+                    PERMISSION_REQUEST_CODE);
+        } else {
+            Intent intent = new Intent(getContext(), LollyService.class);
+            getActivity().startService(intent);
+            getContext().bindService(intent, connection, Context.BIND_AUTO_CREATE);
+        }
+        */
+
+        Intent intent = new Intent(getContext(), LollyService.class);
+        //getActivity().startService(intent);
+        getContext().bindService(intent, connection, Context.BIND_AUTO_CREATE);
+     }
+
+
+     public void LogMsg(String msg)
+    {
+        binding.mShowCount.append(msg+"\n");
+    }
+
+     private void switchToGraphFragment(){
+        BottomNavigationView bottomNavigationView;
+        bottomNavigationView = (BottomNavigationView) getActivity().findViewById(R.id.nav_view);
+        View view = bottomNavigationView.findViewById(R.id.navigation_graph);
+        view.performClick();
+     }
+
+     private String FullName(String AFileName){
+        File[] rootDirectories = FileOperation.getAllStorages(getContext());
+        //filePath = FILEPATH;
+        return FILEPATH+AFileName;
+     }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private boolean FileExists(String Serial, LocalDateTime localDateTime, int idx){
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy_MM_dd").withZone(ZoneId.of("UTC"));
+        String locFile = FILEPATH+ "\\data_"+Serial+"_"+localDateTime.format(formatter)+"_"+ Integer.valueOf(idx)+".csv";
+        File file = new File(getContext().getFilesDir(),locFile);
+        return (file.exists());
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private String CompileFileName(String Serial){
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy_MM_dd").withZone(ZoneId.of("UTC"));
+        LocalDateTime localDateTime = LocalDateTime.now();
+        int idx=0;
+        boolean bex = false;
+        while ( (bex = FileExists(Serial,localDateTime,idx)) == true){
+            idx++;
+        }
+
+        String result = "data_"+Serial+"_"+localDateTime.format(formatter)+"_"+ Integer.valueOf(idx)+".csv";
+        return result;
+    }
+
+    private void setMeteoImage(ImageView img, TMeteo met)
+    {
+        switch (met){
+            case mBasic:
+                img.setImageResource(R.drawable.basic);
+                break;
+
+            case mMeteo:
+                img.setImageResource(R.drawable.meteo);
+                break;
+
+            case mSmart:
+                img.setImageResource(R.drawable.smart);
+                break;
+
+            case mIntensive:
+                img.setImageResource(R.drawable.a5);
+                break;
+
+            case mExperiment:
+                img.setImageResource(R.drawable.a1);
+                break;
+
+            default:
+                img.setImageResource(R.drawable.shape_circle);
+                break;
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private String FormatInstant(Instant value){
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(Constants.DEVICE_FORMAT)
+                .withZone(ZoneId.systemDefault());
+
+        String result = formatter.format(value);
+        return(result);
+    }
+
+    protected Handler handler = new Handler(Looper.getMainLooper()) {
+        @RequiresApi(api = Build.VERSION_CODES.O)
+        @Override
+        public void handleMessage(Message msg) {
+            if (binding == null) {
+                Log.d(Constants.TAG, "binding is null, clean better !");
+                return;
+            }
+
+            TInfo info = (TInfo) msg.obj;
+            Log.d(Constants.TAG,String.valueOf(info.idx)+' '+info.msg);
+
+            // tady rozebiram vystupy ze stavu v threadu
+            switch(info.stat){
+
+                case tNoHardware:
+                    binding.proMessage.setText("NO HARDWARE !!!");
+                    break;
+
+                case tWaitForAdapter:
+                    // if (ftTMS.AdapterNumber.length()>MIN_ADANUMBER) ;
+                    if (info.msg.length()>MIN_ADANUMBER); // tady bude zobrazeni cisla adapteru
+                    break;
+
+                case tHead:
+                    //binding.devser.setText(ftTMS.SerialNumber);
+                    //binding.devser.setText(info.msg); // zapis hw.fw firmware
+                    break;
+
+                case tSerial:
+                    //String AFileName  = CompileFileName(ftTMS.SerialNumber);
+                    binding.devser.setText(info.msg);  // cislo lizatka
+                    String AFileName  = CompileFileName(info.msg);  // cislo lizatka
+                    AFileName = FullName(AFileName);
+
+                    //String AFileName = FullName("test.csv");
+                    csv = new CSVReader(getContext());
+                    csv.SetTxf(true);
+                    csv.CreateCsvFile(AFileName);
+                    break;
+
+                case tInfo:
+
+                    binding.devt1.setText(String.valueOf(info.t1));
+                    binding.devt2.setText(String.valueOf(info.t2));
+                    binding.devt3.setText(String.valueOf(info.t3));
+
+                    break;
+
+                case tCapacity:
+                    // kapacita je v %
+                    int capUsed = Integer.parseInt(info.msg);
+                    binding.devMemory.setProgress(capUsed);
+                    break;
+
+                case tGetTime:
+                    String devTime = info.msg; // cas v lizatku
+                    binding.devTime.setText(devTime);
+                    break;
+
+                case tCompareTime:
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern(Constants.DEVICE_FORMAT).withZone(ZoneId.systemDefault());
+                    LocalDateTime localDateTime = LocalDateTime.now();
+                    String phTime = localDateTime.format(formatter);
+                    binding.phoneTime.setText(phTime);       // cas v telefonu
+
+                    //String deltas = String.valueOf (ftTMS.delta /1000.0);
+                    float delta = Float.valueOf(info.msg);
+                    String deltas = String.format("%.1f", delta/1000.0);
+                    binding.diffTime.setText(deltas);
+                   break;
+
+                case tReadMeteo:
+                    // popiska modu
+                    ImageView i = (ImageView)  getActivity().findViewById(R.id.devImage);
+                    //setMeteoImage(i,ftTMS.meteo);
+                    //setMeteoImage(i,info.meteo);
+                    //binding.devMode.setText(info.msg);
+                    break;
+
+                case tProgress:
+                    // progress bar, slouceno s infem.
+                    if (info.idx < 0)
+                        binding.proBar.setMax(-info.idx);
+                    else
+                        binding.proBar.setProgress(info.idx);
+
+                    //DateTimeFormatter buttonFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd"); //DateTimeFormatter.ofPattern(Constants.BUTTON_FORMAT);
+                    if (info.currDay != null) {
+                        DateTimeFormatter buttonFormat = DateTimeFormatter.ofPattern("YY-MM-dd").withZone(ZoneId.of("UTC"));
+                        String sFmt = buttonFormat.format(info.currDay);
+                        String s = String.format("%s remain:%d days",sFmt, info.remainDays);
+                        binding.tvStatus.setText(s);
+                    }
+                    //binding.tvStatus.setText(info.msg);
+                    break;
+
+                case tLollyService:
+                    binding.proMessage.setText("LollyService.serviceHandler");
+                    break;
+
+
+                case tRemainDays:
+                    break;
+
+                case tFinishedData:
+                    csv.CloseExternalCsv();
+                    // prepni se do Grafu
+                    dmd.sendMessageToGraph("TMD");
+                    switchToGraphFragment();
+                   break;
+
+                default:
+                   break;
+            }
+        }
+    };
+
+
+
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                             ViewGroup container, Bundle savedInstanceState) {
+
+        HomeViewModel homeViewModel = new ViewModelProvider(this).get(HomeViewModel.class);
+
+        // sdileny datovy model
+        dmd = new ViewModelProvider(getActivity()).get(DmdViewModel.class);
+        dmd.ClearMereni();
+
+        binding = FragmentHomeBinding.inflate(inflater, container, false);
+        View root = binding.getRoot();
+
+        binding.proBar.setProgress(0); // vycisti progress bar
+
+        final TextView textView = binding.mShowCount;
+        homeViewModel.getText().observe(getViewLifecycleOwner(), textView::setText);
+
+        // Opravneni - jak je spravne navrstvit ...
+        permissionManager = new PermissionManager(getActivity());
+        Context mContext = getContext();
+
+        // testovaci crash button
+        Button crashButton = binding.btnTestCrash;
+        crashButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View view) {
+                    throw new RuntimeException("Test Crash"); // Force a crash
+            }
+        });
+
+
+
+        /*
+        ftTMS = new TMSReader(mContext);
+        ftTMS.ConnectDevice();
+        ftTMS.SetHandler(handler);
+        ftTMS.SetDataHandler(datahandler);
+        ftTMS.SetBarListener(new OnProListener() {
+            @Override
+            public void OnProEvent(long Pos) {
+                if (binding == null)
+                    return;
+
+                if (Pos < 0) {
+                    binding.proBar.setMax((int) -Pos); // posledni adresa
+                    MaxPos = -Pos;
+
+                } else
+                {
+                    binding.proBar.setProgress((int) Pos);
+                    int j = (int)(Pos/(double) MaxPos * 100);
+                    String s = String.format("%d %%",j);
+                    binding.tvStatus.setText(s);
+                    HandleHeartbeat();  // otoci vrtuli
+                }
+            }
+        });
+        ftTMS.start();
+        binding.mShowCount.setText("downloading");
+        dmd.sendMessageToGraph("TMD"); // observer v GraphFragment vi, ze data byla vyctena pomoci TMD
+        */
+
+        return root;
+    }
+
+    // otoc vrtuli
+    private void HandleHeartbeat(){
+       switch (heartIdx) {
+           case 0:
+               heartIdx++;
+               binding.tvHeartbeat.setText("\\");
+               break;
+           case 1:
+               heartIdx++;
+               binding.tvHeartbeat.setText("|");
+               break;
+           case 2:
+               heartIdx++;
+               binding.tvHeartbeat.setText("/");
+               break;
+           case 3:
+               heartIdx=0;
+               binding.tvHeartbeat.setText("-");
+               break;
+           default:
+               heartIdx = 0;
+               binding.tvHeartbeat.setText("\\");
+               break;
+       }
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        //odometer.SetRunning(false);
+        binding = null;
+    }
+}
