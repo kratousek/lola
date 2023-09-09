@@ -109,14 +109,13 @@
                             app:tint="@color/grey_40"
                             />
 
-                        <TextView
+                        <Spinner
+                            android:id="@+id/spiDownload"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Read data: Whole FLASH"
                             android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
-                            android:textColor="@color/grey_90"
-                             />
+                            android:textColor="@color/grey_80" />
 
                         <View
                             android:layout_width="@dimen/spacing_large"
@@ -136,81 +135,13 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:visibility="gone">
-
-                        <LinearLayout
-                            android:id="@+id/lyt_sub"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:paddingHorizontal="@dimen/spacing_xlarge"
-                            android:paddingVertical="@dimen/spacing_medium">
-
-                            <RadioGroup
-                                android:id="@+id/radio_check"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:orientation="vertical"
-                                android:paddingHorizontal="2dp">
-
-                                <com.google.android.material.radiobutton.MaterialRadioButton
-                                    android:id="@+id/read_all"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:layout_weight="1"
-                                    android:checked="false"
-                                    android:text="All"
-                                    app:buttonTint="@color/colorPrimary" />
-
-                                <com.google.android.material.radiobutton.MaterialRadioButton
-                                    android:id="@+id/read_bookmark"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:layout_weight="1"
-                                    android:checked="false"
-                                    android:text="from bookmark"
-                                    app:buttonTint="@color/colorPrimary" />
-
-                                <com.google.android.material.radiobutton.MaterialRadioButton
-                                    android:id="@+id/read_date"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:layout_weight="1"
-                                    android:checked="false"
-                                    android:text="from date"
-                                    app:buttonTint="@color/colorPrimary"
-                                    />
-                            </RadioGroup>
-
-                            <Button
-                                android:id="@+id/dateFrom"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="Pick date" />
-
-                        </LinearLayout>
+                        android:visibility="visible">
 
                         <View
                             android:layout_width="match_parent"
                             android:layout_height="1dp"
                             android:background="@color/grey_10" />
 
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="end"
-                            android:orientation="horizontal">
-
-                            <Button
-                                android:id="@+id/bt_hide_info"
-                                android:background="@android:color/transparent"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:textColor="#ff0000"
-                                android:text="HIDE"
-                                app:srcCompat="@android:drawable/editbox_background_normal" />
-                        </LinearLayout>
                     </LinearLayout>
                 </LinearLayout>
 
@@ -266,7 +197,7 @@
                                 android:layout_width="@dimen/spacing_small" android:layout_height="wrap_content" />
 
                             <Spinner
-                                android:id="@+id/spinner"
+                                android:id="@+id/spiInterval"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"

@@ -31,13 +31,16 @@ import com.tomst.lolly.utils.ViewAnimation;
 public class OptionsFragment extends Fragment implements AdapterView.OnItemSelectedListener {
 
 
+    @Override
     public void onItemSelected(AdapterView<?> parent, View view,
                                int pos, long id)
     {
+        switch (parent.getId()) {
+
+        }
+
         String line = String.format("%s time: %s",modes_desc[pos],parent.getItemAtPosition(pos).toString());
         Toast.makeText(getActivity(), line , Toast.LENGTH_LONG).show();
-        // Toast.makeText(getActivity(), "The planet is " +
-        //   parent.getItemAtPosition(pos).toString(), Toast.LENGTH_LONG).show();
     }
 
     @Override
@@ -48,7 +51,7 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
     private NestedScrollView nested_scroll_view;
     private ImageButton bt_toggle_info = null;  //  (ImageButton) findViewById(R.id.bt_toggle_info);
     private Button bt_hide_info = null;         //(Button) findViewById(R.id.bt_hide_info);
-    private String[] modes_desc ;
+    private String[] modes_desc,down_desc ;
 
     private View root = null;
     private FragmentOptionsBinding binding;
@@ -146,21 +149,28 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
         SharedPreferences.Editor editor = sharedPref.edit();
 
         // jaky je stav radiobuttonu ?
-        boolean b = binding.readAll.isChecked();
+//        boolean b = binding.readAll.isChecked();
         //editor.putBoolean(getString(R.string.ReadAll),b);
         //editor.putBoolean(getString(R.string.ReadFromBookmark),b);
         //editor.putBoolean(getString(R.string.ReadFromDate),b);
-        editor.putBoolean("read_all",binding.readAll.isChecked());
-        editor.putBoolean("read_bookmark",binding.readBookmark.isChecked());
-        editor.putBoolean("read_date",binding.readDate.isChecked());
+//        editor.putBoolean("read_all",binding.readAll.isChecked());
+//        editor.putBoolean("read_bookmark",binding.readBookmark.isChecked());
+//        editor.putBoolean("read_date",binding.readDate.isChecked());
 
-        // mod vycitani
-        int spi = (int) binding.spinner.getSelectedItemId();
-        editor.putInt("mode",spi);
+
+
+        // odkud vycitam
+        int spiDownload = (int) binding.spiDownload.getSelectedItemId();
+        editor.putInt("readFrom",spiDownload);
+
+
+        // interval mezi merenima
+        int spiInterval = (int) binding.spiInterval.getSelectedItemId();
+        editor.putInt("mode",spiInterval);
 
         // nastav zatrzitka
-        b = binding.bookmark.isChecked();
-        editor.putBoolean("bookmark",b);
+//        b = binding.bookmark.isChecked();
+//        editor.putBoolean("bookmark",b);
 
         editor.putBoolean("bookmark",binding.bookmark.isChecked());
         editor.putBoolean("showgraph",binding.showgraph.isChecked());
@@ -181,15 +191,17 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
         boolean r1 = sharedPref.getBoolean("read_all",false);  // false je default, kdyz neexistuje
         boolean r2 = sharedPref.getBoolean("read_bookmark",false);  // false je default, kdyz neexistuje
         boolean r3 = sharedPref.getBoolean("read_date",false);  // false je default, kdyz neexistuje
+        //if (r1) binding.readAll.setChecked(true);
+        //if (r2) binding.readBookmark.setChecked(true);
+        //if (r3) binding.readDate.setChecked(true);
 
         // jak budu vycitat
-        if (r1) binding.readAll.setChecked(true);
-        if (r2) binding.readBookmark.setChecked(true);
-        if (r3) binding.readDate.setChecked(true);
+        int rx = sharedPref.getInt("readFrom",-1);
+        binding.spiDownload.setSelection(rx);
 
         // nastaveni modu
         int i = sharedPref.getInt("mode",-1);
-        binding.spinner.setSelection(i);
+        binding.spiInterval.setSelection(i);
 
         // nastav checkboxy
         boolean b = sharedPref.getBoolean("bookmark",false);
@@ -210,29 +222,30 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
         binding = FragmentOptionsBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
-
-
-        Spinner spinner = (Spinner) root.findViewById(R.id.spinner);
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
-                this.getContext(), R.array.modes_array, android.R.layout.simple_spinner_item);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-
-        // Apply the adapter to the spinner
-        spinner.setAdapter(adapter);
-        spinner.setOnItemSelectedListener(this);
         Resources res = getResources();
+
+        // odkud vycitam
+        Spinner spiDownload = (Spinner) root.findViewById(R.id.spiDownload);
+        ArrayAdapter<CharSequence> adaDownload = ArrayAdapter.createFromResource(
+                this.getContext(), R.array.download_array, android.R.layout.simple_spinner_item);
+        adaDownload.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        adaDownload.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spiDownload.setAdapter(adaDownload); // Apply the adapter to the spinner
+        spiDownload.setOnItemSelectedListener(this);
+        down_desc = res.getStringArray(R.array.download_array);
+
+        // vzdalenost mezi merenimi
+        Spinner spiInterval = (Spinner) root.findViewById(R.id.spiInterval);
+        ArrayAdapter<CharSequence> adaInterval = ArrayAdapter.createFromResource(
+                this.getContext(), R.array.modes_array, android.R.layout.simple_spinner_item);
+        adaInterval.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spiInterval.setAdapter(adaInterval); // Apply the adapter to the spinner
+        spiInterval.setOnItemSelectedListener(this);
+        //Resources res = getResources();
         modes_desc = res.getStringArray(R.array.modes_desc);
 
         bt_toggle_info = (ImageButton) root.findViewById(R.id.bt_toggle_info);
-        bt_hide_info = (Button) root.findViewById(R.id.bt_hide_info);
         bt_toggle_info.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                toggleSectionInfo(bt_toggle_info);
-            }
-        });
-
-        bt_hide_info.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 toggleSectionInfo(bt_toggle_info);
