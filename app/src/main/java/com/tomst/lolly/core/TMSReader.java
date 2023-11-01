@@ -1,7 +1,5 @@
 package com.tomst.lolly.core;
 
-import static java.security.AccessController.getContext;
-
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.IntentFilter;
@@ -54,6 +52,7 @@ public class TMSReader extends Thread {
     public String SerialNumber;
     public String AdapterNumber;
     public RFirmware rfir;
+    public boolean Writebookmark;
 
 
     private static volatile TDevState devState;
@@ -919,6 +918,8 @@ public class TMSReader extends Thread {
         pars.SetHandler(datahandler);
         pars.SetDeviceType(rfir.DeviceType);
 
+
+
         if (ftDev == null)
         {
             Log.e("j2xx","SendMessage : d2xx device doesnt exist");
@@ -930,6 +931,9 @@ public class TMSReader extends Thread {
             Log.e("j2xx", "SendMessage: device not open");
             return false;
         }
+
+        // pointer na bookmark
+
 
         // pointer na nulu
         String respond = fHer.doCommand("S=$000000");
@@ -951,6 +955,7 @@ public class TMSReader extends Thread {
                 ss = parser.dpacket(respond);
                 Log.i(TAG,respond);
             };
+
             // jakou mam aktualne adresu
             respond = fHer.doCommand("S");
 

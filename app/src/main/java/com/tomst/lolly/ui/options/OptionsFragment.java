@@ -28,6 +28,7 @@ import com.tomst.lolly.databinding.FragmentOptionsBinding;
 import com.tomst.lolly.utils.Tools;
 import com.tomst.lolly.utils.ViewAnimation;
 
+
 public class OptionsFragment extends Fragment implements AdapterView.OnItemSelectedListener {
 
 
@@ -35,12 +36,43 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
     public void onItemSelected(AdapterView<?> parent, View view,
                                int pos, long id)
     {
-        switch (parent.getId()) {
+        /*
+        int i = R.id.spiDownload;
+        int j = parent.getId();
 
+        if (i==R.id.spiDownload) {
+            String line = String.format("%s time: %s", modes_desc[pos], parent.getItemAtPosition(pos).toString());
+        }
+         */
+
+        switch (parent.getId()){
+            case R.id.spiDownload :
+                break;
+
+            case R.id.spiInterval:
+                break;
+
+            default:
+                Toast.makeText(getActivity(),"Spinner without onItemSelected ",Toast.LENGTH_LONG).show();
         }
 
-        String line = String.format("%s time: %s",modes_desc[pos],parent.getItemAtPosition(pos).toString());
+        /*
+        switch (j){
+            case
+        }
+         */
+
+        /*
+        switch (parent.getId()) {
+            case R.id.spiDownload:
+                String line = String.format("%s time: %s",modes_desc[pos],parent.getItemAtPosition(pos).toString());
+                break;
+
+            case R.id.spiInterval:
+                break;
+        }
         Toast.makeText(getActivity(), line , Toast.LENGTH_LONG).show();
+         */
     }
 
     @Override
@@ -128,6 +160,7 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
         }
     }
 
+    /*
     private void toggleSectionInfo(View view) {
         boolean show = toggleArrow(view);
         if (show) {
@@ -141,6 +174,7 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
             ViewAnimation.collapse(lyt_expand_info);
         }
     }
+     */
 
 
     private void SaveForm(){
@@ -156,8 +190,6 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
 //        editor.putBoolean("read_all",binding.readAll.isChecked());
 //        editor.putBoolean("read_bookmark",binding.readBookmark.isChecked());
 //        editor.putBoolean("read_date",binding.readDate.isChecked());
-
-
 
         // odkud vycitam
         int spiDownload = (int) binding.spiDownload.getSelectedItemId();
@@ -179,7 +211,12 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
         editor.putBoolean("settime",binding.settime.isChecked());
 
         // nastav carku-tecku
-        editor.putString("decimalseparator",binding.decimalseparator.toString());
+        String s = String.valueOf(binding.Deci.getText());
+        editor.putString("decimalseparator",s);
+
+        //editor.putString("decimalseparator",",");
+        //editor.putString("decimalseparator",",");
+
         editor.apply();
     }
 
@@ -212,7 +249,7 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
         binding.settime.setChecked(sharedPref.getBoolean("settime",false));
 
         String s = sharedPref.getString("decimalseparator",",");  // desetinny oddelovac
-        binding.decimalseparator.setText(s);
+        binding.Deci.setText(s);
     }
 
     @Override
@@ -244,6 +281,7 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
         //Resources res = getResources();
         modes_desc = res.getStringArray(R.array.modes_desc);
 
+        /*
         bt_toggle_info = (ImageButton) root.findViewById(R.id.bt_toggle_info);
         bt_toggle_info.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -251,6 +289,7 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
                 toggleSectionInfo(bt_toggle_info);
             }
         });
+         */
 
         // nested scrollview
         nested_scroll_view = (NestedScrollView) root.findViewById(R.id.nested_scroll_view);

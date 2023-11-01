@@ -39,7 +39,6 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:background="@android:color/white"
                         android:gravity="center_vertical"
                         android:minHeight="?attr/actionBarSize"
                         android:orientation="horizontal">
@@ -57,7 +56,7 @@
                             android:layout_weight="1"
                             android:text="Save all settings below "
                             android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
-                            android:textColor="@color/grey_90" />
+                            android:textColor="?android:textColorPrimary" />
 
                         <View
                             android:layout_width="@dimen/spacing_large"
@@ -96,7 +95,6 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:background="@android:color/white"
                         android:gravity="center_vertical"
                         android:minHeight="?attr/actionBarSize"
                         android:orientation="horizontal">
@@ -115,18 +113,13 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
-                            android:textColor="@color/grey_80" />
+                            android:textColor="?android:textColorPrimary" />
 
                         <View
                             android:layout_width="@dimen/spacing_large"
                             android:layout_height="wrap_content" />
 
-                        <ImageButton
-                            android:id="@+id/bt_toggle_info"
-                            android:layout_width="?attr/actionBarSize"
-                            android:layout_height="?attr/actionBarSize"
-                            android:background="?attr/selectableItemBackgroundBorderless"
-                            app:srcCompat="@drawable/ic_expand_arrow" />
+
 
                     </LinearLayout>
 
@@ -149,16 +142,6 @@
 
 
             <!-- sekce s checkboxama !-->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/spacing_middle"
-                android:layout_marginLeft="@dimen/spacing_large"
-                android:layout_marginStart="@dimen/spacing_large"
-                android:layout_marginTop="@dimen/spacing_large"
-                android:text="Setup interval between measurements"
-                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-                android:textColor="@color/grey_40" />
 
 
                 <androidx.cardview.widget.CardView
@@ -202,7 +185,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
-                                android:textColor="@color/grey_80" />
+                                android:textColor="?android:textColorPrimary" />
 
                         </LinearLayout>
 
@@ -234,7 +217,7 @@
                             android:layout_marginBottom="@dimen/spacing_middle"
                             android:text="Additional settings"
                             android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-                            android:textColor="@color/grey_40" />
+                            android:textColor="?android:textColorPrimary" />
 
 
                         <LinearLayout
@@ -264,7 +247,8 @@
                                 android:layout_weight="1"
                                 android:text="Create bookmark"
                                 android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
-                                android:textColor="@color/grey_80" />
+                                android:textColor="?android:textColorPrimary"
+                                />
 
                             <View
                                 android:layout_width="@dimen/spacing_middle"
@@ -275,7 +259,8 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:checked="true"
-                                app:thumbTint="@color/colorPrimary" />
+                                app:thumbTint="?android:textColorPrimary"
+                                />
                             <View
                                 android:layout_width="@dimen/spacing_middle"
                                 android:layout_height="wrap_content" />
@@ -309,7 +294,8 @@
                                 android:layout_weight="1"
                                 android:text="show graph after reading data"
                                 android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
-                                android:textColor="@color/grey_80" />
+                                android:textColor="?android:textColorPrimary"/>
+
 
                             <View
                                 android:layout_width="@dimen/spacing_middle"
@@ -320,7 +306,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:checked="true"
-                                app:thumbTint="@color/colorPrimary" />
+                                app:thumbTint="?android:textColorPrimary" />
                             <View
                                 android:layout_width="@dimen/spacing_middle"
                                 android:layout_height="wrap_content" />
@@ -355,7 +341,7 @@
                                 android:layout_weight="1"
                                 android:text="No led light"
                                 android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
-                                android:textColor="@color/grey_90" />
+                                android:textColor="?android:textColorPrimary" />
                             <View
                                 android:layout_width="@dimen/spacing_middle"
                                 android:layout_height="wrap_content" />
@@ -365,7 +351,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:checked="true"
-                                app:thumbTint="@color/colorPrimary" />
+                                app:thumbTint="?android:textColorPrimary" />
 
                             <View
                                 android:layout_width="@dimen/spacing_middle"
@@ -401,7 +387,7 @@
                                 android:layout_weight="1"
                                 android:text="Show micrometers (only dendrometer)"
                                 android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
-                                android:textColor="@color/grey_90" />
+                                android:textColor="?android:textColorPrimary" />
                             <View
                                 android:layout_width="@dimen/spacing_middle"
                                 android:layout_height="wrap_content" />
@@ -411,7 +397,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:checked="false"
-                                app:thumbTint="@color/colorPrimary" />
+                                app:thumbTint="?android:textColorPrimary" />
 
                             <View
                                 android:layout_width="@dimen/spacing_middle"
@@ -447,7 +433,7 @@
                                 android:layout_weight="1"
                                 android:text="Set time"
                                 android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
-                                android:textColor="@color/grey_90" />
+                                android:textColor="?android:textColorPrimary" />
                             <View
                                 android:layout_width="@dimen/spacing_middle"
                                 android:layout_height="wrap_content" />
@@ -457,7 +443,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:checked="true"
-                                app:thumbTint="@color/colorPrimary" />
+                                app:thumbTint="?android:textColorPrimary" />
 
                             <View
                                 android:layout_width="@dimen/spacing_middle"
@@ -492,70 +478,26 @@
                                 android:layout_weight="1"
                                 android:text="Decimal separator"
                                 android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
-                                android:textColor="@color/grey_90" />
+                                android:textColor="?android:textColorPrimary" />
                             <View
                                 android:layout_width="@dimen/spacing_middle"
                                 android:layout_height="wrap_content" />
 
                             <EditText
-                                android:id="@+id/decimalseparator"
+                                android:id="@+id/Deci"
                                 android:layout_width="1dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:ems="10"
                                 android:inputType="text"
-                                android:text="xxxxx" />
+                                android:text="text" />
 
                             <View
                                 android:layout_width="@dimen/spacing_large"
                                 android:layout_height="wrap_content" />
 
-
-
                         </LinearLayout>
 
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:background="?attr/selectableItemBackground"
-                            android:clickable="true"
-                            android:gravity="center_vertical"
-                            android:minHeight="@dimen/spacing_xxlarge"
-                            android:orientation="horizontal"
-                            android:paddingLeft="@dimen/spacing_medium"
-                            android:paddingRight="@dimen/spacing_medium">
 
-                            <ImageButton
-                                android:layout_width="@dimen/spacing_xmlarge"
-                                android:layout_height="@dimen/spacing_xmlarge"
-                                android:background="@android:color/transparent"
-                                app:srcCompat="@drawable/ic_all_inbox"
-                                app:tint="@color/grey_100" />
-
-                            <View
-                                android:layout_width="@dimen/spacing_small"
-                                android:layout_height="wrap_content" />
-
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="Decimal separator"
-                                android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
-                                android:textColor="@color/grey_90" />
-                            <View
-                                android:layout_width="@dimen/spacing_middle"
-                                android:layout_height="wrap_content" />
-
-
-
-                            <View
-                                android:layout_width="@dimen/spacing_large"
-                                android:layout_height="wrap_content" />
-
-
-
-                        </LinearLayout>
 
 
 

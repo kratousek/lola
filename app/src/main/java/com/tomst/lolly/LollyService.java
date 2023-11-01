@@ -3,6 +3,7 @@ package com.tomst.lolly;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -151,10 +152,20 @@ public class LollyService extends Service {
             throw new UnsupportedOperationException("startBindService.mContext is null / (set app context !)");
         }
 
+        //Context context = getContext();
+        SharedPreferences sharedPref = mContext.getSharedPreferences(getString(R.string.save_options), mContext.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+
+
         ftTMS = new TMSReader(mContext);
         ftTMS.ConnectDevice();
         ftTMS.SetHandler(handler);
         ftTMS.SetDataHandler(this.dataHandler);
+
+        // setup properties before running
+        ftTMS.Writebookmark =  sharedPref.getBoolean("bookmark",false);
+        
+
         ftTMS.SetRunning(true); // povol provoz v mLoop
         //ftTMS.start();
 
