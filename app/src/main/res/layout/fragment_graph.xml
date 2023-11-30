@@ -37,7 +37,7 @@
                     android:layout_height="match_parent"
                     android:layout_weight="9"
                     android:buttonTint="@color/vT2"
-                    android:text="T2" />
+                    android:text="T2"/>
 
                 <CheckBox
                     android:id="@+id/vT3"
@@ -47,7 +47,7 @@
                     android:layout_height="match_parent"
                     android:layout_weight="9"
                     android:buttonTint="@color/vT3"
-                    android:text="T3" />
+                    android:text="T3"/>
 
                 <CheckBox
                     android:id="@+id/vHum"
@@ -58,7 +58,27 @@
                     android:layout_weight="9"
                     android:buttonTint="@color/vHum"
                     android:text="Hum/AD"/>
+        </LinearLayout>
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/add_layer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Add Layer"
+                    android:textAlignment="center"/>
+
+                <Button
+                    android:id="@+id/export"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="150dp"
+                    android:text="Export"
+                    android:textAlignment="center"/>
         </LinearLayout>
 
         <ProgressBar
