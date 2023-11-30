@@ -6,7 +6,11 @@ buildscript {
     }
 
     dependencies {
+<<<<<<< HEAD
         classpath 'com.android.tools.build:gradle:8.0.1'
+=======
+        classpath 'com.android.tools.build:gradle:8.1.4'
+>>>>>>> d8c2d14 (Updated build.gradle again because something changed?)
 
         // Make sure that you have the Google services Gradle plugin dependency
         classpath 'com.google.gms:google-services:4.3.15'
@@ -20,8 +24,13 @@ buildscript {
 
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 plugins {
+<<<<<<< HEAD
     id 'com.android.application' version '8.0.1' apply false
     id 'com.android.library' version '8.0.1' apply false
     id("com.google.gms.google-services") version "4.4.0" apply false
+=======
+    id 'com.android.application' version '8.1.4' apply false
+    id 'com.android.library' version '8.1.4' apply false
+>>>>>>> d8c2d14 (Updated build.gradle again because something changed?)
 }
 
