@@ -1079,9 +1079,12 @@ public class TMSReader extends Thread {
     private Instant parseDateTime(String line){
         // @C=2023/03/30,16:28:52+04
         // @C=2023/03/31,08:32:35+04
-        String date = between(line,"=","+");
+
+        // must check for both + and -, both sides of UTC
+        String date = between(line, "=", line.contains("+") ? "+" : "-");
+        String zdt = aft(line, line.contains("+") ? "\\+" : "\\-");
+
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd,HH:mm:ss");
-        String zdt = aft(line,"\\+");
         zdt = zdt.replaceAll("(\\r|\\n)", "");
         int sec = Integer.parseInt(zdt) * 900;  // 3600 / 4
         ZoneOffset zx = ZoneOffset.ofTotalSeconds(sec);
