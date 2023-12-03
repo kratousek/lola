@@ -13,6 +13,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.StatFs;
 import android.util.Log;
+import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -180,6 +181,25 @@ public class ListFragment extends Fragment {
         // set the adapter
         mListView.setAdapter(friendsAdapter);
 
+        // add listener for loading selected datasets to graph fragment
+        Button select_sets_btn = binding.selectSets;
+        select_sets_btn.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                SparseBooleanArray checked_items =
+                        mListView.getCheckedItemPositions();
+
+//                for (int i = 0; i < checked_items.size(); i += 1)
+//                {
+//                    Log.d(
+//                        "FILES",
+//                        fFriends.get(checked_items.keyAt(i)).getFull()
+//                    );
+//                }
+            }
+        });
 
 //        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 //            @Override
