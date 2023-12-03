@@ -18,6 +18,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.MimeTypeMap;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -92,9 +93,9 @@ public class ListFragment extends Fragment {
         //View rootView = binding.getRoot();
         rootView = binding.getRoot();
 
-        Button btn = binding.buttonZipall;
-        btn.setText("Upload Zip");
-        btn.setOnClickListener(new View.OnClickListener() {
+        Button zip_btn = binding.buttonZipall;
+        zip_btn.setText("Upload Zip");
+        zip_btn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 //Log.d("BUTTONS", "User tapped the Supabutton");
                 ZipFiles zipFiles = new ZipFiles();
@@ -155,23 +156,39 @@ public class ListFragment extends Fragment {
         return rootView;
     }
 
-    private void loadAllFiles(){
+    private void loadAllFiles()
+    {
         ListView mListView = (ListView) rootView.findViewById(R.id.listView);
 
-        // 2. vytvoreni adapteru
-        final FileViewerAdapter friendsAdapter = new FileViewerAdapter(getContext(), fFriends);
+        // get file names and collect file names
+        String[] friendNames = new String[fFriends.size()];
+        for (int i = 0; i < fFriends.size(); i += 1)
+        {
+            friendNames[i] = fFriends.get(i).getName();
+        }
 
-        // 3. Set the adapter
+        // create adapter for list view
+        ArrayAdapter<String> friendsAdapter =
+                new ArrayAdapter<String>(
+                        getContext(),
+                        android.R.layout.simple_list_item_multiple_choice,
+                        friendNames
+                );
+
+        // set list view mode for multiple selections
+        mListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+        // set the adapter
         mListView.setAdapter(friendsAdapter);
 
-        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                //Toast.makeText(getContext(), friendsAdapter.getShortName(position) + " is a friend", Toast.LENGTH_SHORT).show();
-                dmd.sendMessageToGraph(friendsAdapter.getFullName(position));
-                switchToGraphFragment();
-            }
-        });
+
+//        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//            @Override
+//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+//                //Toast.makeText(getContext(), friendsAdapter.getShortName(position) + " is a friend", Toast.LENGTH_SHORT).show();
+//                dmd.sendMessageToGraph(friendsAdapter.getFullName(position));
+//                switchToGraphFragment();
+//            }
+//        });
     }
 
     private void switchToGraphFragment(){
