@@ -169,15 +169,20 @@ public class GraphFragment extends Fragment
 
     // nahraje data pridane TMD adapterem ve fragmentu HomeFragment
     @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
+    public void onCreate(@Nullable Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
     }
 
-    public View onCreateView(@NonNull LayoutInflater inflater,
-                             ViewGroup container, Bundle savedInstanceState) {
-
-        GraphViewModel readerViewModel =  new ViewModelProvider(this).get(GraphViewModel.class);
-        binding = FragmentGraphBinding.inflate(inflater, container, false);
+    public View onCreateView(
+            @NonNull LayoutInflater inflater,
+            ViewGroup container, Bundle savedInstanceState
+    ) {
+        GraphViewModel readerViewModel =
+                new ViewModelProvider(this).get(GraphViewModel.class);
+        binding = FragmentGraphBinding.inflate(
+                inflater, container, false
+        );
         View root = binding.getRoot();
 
         dmd = new ViewModelProvider(getActivity()).get(DmdViewModel.class);
@@ -195,10 +200,14 @@ public class GraphFragment extends Fragment
                     }
                     else
                     {
-                        Log.d(
-                            "GRAPHING",
-                            "File names: " + msg
-                        );
+                        String[] filenames = msg.split(";");
+                        for (String filename : filenames)
+                        {
+                            Log.d(
+                                    "FILES",
+                                    "File names: " + filename
+                            );
+                        }
                     }
 
                     dmd.getMessageContainerGraph()
@@ -207,24 +216,26 @@ public class GraphFragment extends Fragment
 
         CheckBox cbT1 = binding.vT1;
         cbT1.setChecked(true);
-        cbT1.setOnClickListener(view -> {
+        cbT1.setOnClickListener(view ->
+        {
            DoBtnClick(view);
         });
-
-
         CheckBox cbT2 = binding.vT2;
         cbT2.setChecked(true);
-        cbT2.setOnClickListener(view -> {
+        cbT2.setOnClickListener(view ->
+        {
             DoBtnClick(view);
         });
         CheckBox cbT3 = binding.vT3;
         cbT3.setChecked(true);
-        cbT3.setOnClickListener(view -> {
+        cbT3.setOnClickListener(view ->
+        {
             DoBtnClick(view);
         });
         CheckBox cbHum = binding.vHum;
         cbHum.setChecked(true);
-        cbHum.setOnClickListener(view -> {
+        cbHum.setOnClickListener(view ->
+        {
             DoBtnClick(view);
         });
 
@@ -245,7 +256,7 @@ public class GraphFragment extends Fragment
         chart.setViewPortOffsets(0f, 0f, 0f, 0f);
         // if disabled, scaling can be done on x- and y-axis separately
         chart.setPinchZoom(false);
-         // get the legend (only possible after setting data)
+        // get the legend (only possible after setting data)
         Legend l = chart.getLegend();
         /*
         l.setWordWrapEnabled(true);
@@ -295,10 +306,11 @@ public class GraphFragment extends Fragment
         return root;
     }
 
-    private LineDataSet SetLine(ArrayList<Entry> vT, TPhysValue val){
-
+    private LineDataSet SetLine(ArrayList<Entry> vT, TPhysValue val)
+    {
         //LineData d = new LineData();
-        LineDataSet set= new LineDataSet(vT, "DataSet " + (val.ordinal() + 1));
+        LineDataSet set =
+                new LineDataSet(vT, "DataSet " + (val.ordinal() + 1));
 
         set.setLineWidth(2f);
         set.setDrawValues(false);
@@ -307,23 +319,25 @@ public class GraphFragment extends Fragment
         set.setDrawFilled(false);
         set.setLabel(val.valToString(val));
 
-
         set.setAxisDependency(YAxis.AxisDependency.LEFT);
 
-        switch (val){
+        switch (val)
+        {
             case vT1:
                 //set.setColor(Color.BLUE);
                 set.setColor(Color.rgb(68, 102, 163));
-
                 break;
+
             case vT2:
                 //set.setColor(Color.MAGENTA);
                 set.setColor(Color.rgb(243, 156, 53));
                 break;
+
             case vT3:
                 //set.setColor(Color.GREEN);
                 set.setColor(Color.rgb(0, 128, 0));
                 break;
+
             case vHum:
             case vAD:
             case vMicro:
@@ -331,20 +345,21 @@ public class GraphFragment extends Fragment
                 set.setColor(Color.rgb(128, 0, 0));
                 set.setAxisDependency(YAxis.AxisDependency.RIGHT);
                 break;
+
             default:
                 throw new UnsupportedOperationException("Not yet implemented");
         }
 
-
         return set;
     }
 
-    protected float getRandom(float range, float start) {
+    protected float getRandom(float range, float start)
+    {
         return (float) (Math.random() * range) + start;
     }
 
-    private BarData generateBarData() {
-
+    private BarData generateBarData()
+    {
         ArrayList<BarEntry> entries1 = new ArrayList<>();
         ArrayList<BarEntry> entries2 = new ArrayList<>();
 
@@ -352,7 +367,12 @@ public class GraphFragment extends Fragment
             entries1.add(new BarEntry(0, getRandom(25, 25)));
 
             // stacked
-            entries2.add(new BarEntry(0, new float[]{getRandom(13, 12), getRandom(13, 12)}));
+            entries2.add(new BarEntry(
+                    0,
+                    new float[] {
+                            getRandom(13, 12),
+                            getRandom(13, 12)
+                    }));
         }
 
         BarDataSet set1 = new BarDataSet(entries1, "Bar 1");
@@ -363,11 +383,13 @@ public class GraphFragment extends Fragment
 
         BarDataSet set2 = new BarDataSet(entries2, "");
         set2.setStackLabels(new String[]{"Stack 1", "Stack 2"});
-        set2.setColors(Color.rgb(61, 165, 255), Color.rgb(23, 197, 255));
+        set2.setColors(
+                Color.rgb(61, 165, 255),
+                Color.rgb(23, 197, 255)
+        );
         set2.setValueTextColor(Color.rgb(61, 165, 255));
         set2.setValueTextSize(10f);
         set2.setAxisDependency(YAxis.AxisDependency.LEFT);
-
 
         float groupSpace = 0.06f;
         float barSpace = 0.02f; // x2 dataset
@@ -384,7 +406,8 @@ public class GraphFragment extends Fragment
     }
 
 
-    private void LoadDmdData(){
+    private void LoadDmdData()
+    {
         LineDataSet d = null;
 
         // **** linearni graf
@@ -400,8 +423,7 @@ public class GraphFragment extends Fragment
         LineData lines = new LineData(dataSets);
         combinedData.setData(lines);
 
-        //
-       // combinedData.setData(generateBarData());
+        // combinedData.setData(generateBarData());
         chart.setData(combinedData);
         chart.getAxisLeft().setEnabled(true);
         chart.getAxisRight().setEnabled(true);
@@ -411,7 +433,8 @@ public class GraphFragment extends Fragment
 
 
     @Override
-    public void onDestroyView() {
+    public void onDestroyView()
+    {
         super.onDestroyView();
         binding = null;
     }
