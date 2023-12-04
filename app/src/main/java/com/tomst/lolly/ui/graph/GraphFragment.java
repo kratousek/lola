@@ -1,5 +1,6 @@
 package com.tomst.lolly.ui.graph;
 
+
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
@@ -44,10 +45,10 @@ import com.tomst.lolly.databinding.FragmentGraphBinding;
 import com.tomst.lolly.core.DmdViewModel;
 
 
-public class GraphFragment extends Fragment  {
-
+public class GraphFragment extends Fragment
+{
     private final int barCount = 12;
-    private String CsvFileName;
+    private String csv_filenames;
     private CombinedChart chart;
     private CombinedData combinedData;
 
@@ -75,9 +76,11 @@ public class GraphFragment extends Fragment  {
 
     private Integer fIdx=0;
 
-    protected Handler handler = new Handler(Looper.getMainLooper()) {
+    protected Handler handler = new Handler(Looper.getMainLooper())
+    {
         @Override
-        public void handleMessage(Message msg) {
+        public void handleMessage(Message msg)
+        {
             TMereni mer = (TMereni) msg.obj;
             //Log.d(TAG,String.valueOf(mer.idx));
             dmd.AddMereni(mer);
@@ -86,13 +89,15 @@ public class GraphFragment extends Fragment  {
     };
 
     @Override
-    public void onDestroy() {
+    public void onDestroy()
+    {
         super.onDestroy();
         //dmd.sendMessageToGraph("");
     }
 
     @Override
-    public void onStop() {
+    public void onStop()
+    {
         dmd.sendMessageToGraph("");
         dmd.ClearMereni();
 
@@ -100,35 +105,45 @@ public class GraphFragment extends Fragment  {
     }
 
 
-    private void LoadCsvFile(String AFileName){
-        if (AFileName == "")
+    private void LoadCsvFile(String filename)
+    {
+        if (filename == "")
+        {
             return;
+        }
 
-        CsvFileName = AFileName;
-        // sem se dostanu po prepnuti na formu grafu
-        Log.d(Constants.TAG,"Message from ListFragment: "+AFileName);
+        Log.d(Constants.TAG, "Received " + filename);
+        csv_filenames += new String(filename + ";");
         csv = new CSVReader(getContext());
         csv.SetHandler(handler);
-        csv.SetTxf(false); // ano zapisuju Tomasuv zkraceny soubor
-        csv.setFileName(AFileName);
-        csv.SetBarListener(new OnProListener() {
-            @Override
-            public void OnProEvent(long Pos) {
-                if  (binding == null)
-                    return;
+        csv.SetTxf(false);
+        csv.setFileName(filename);
 
-                if (Pos<0) {
+        csv.SetBarListener(new OnProListener()
+        {
+            @Override
+            public void OnProEvent(long Pos)
+            {
+                if  (binding == null)
+                {
+                    return;
+                }
+
+                if (Pos < 0)
+                {
                     fIdx = 0;
                     vT1.clear();
                     binding.proBar.setMax((int) -Pos);
                 }
                 else
+                {
                     binding.proBar.setProgress((int) Pos);
+                }
             }
         });
 
-        // konec vycitani
-        csv.SetFinListener(new OnProListener() {
+        csv.SetFinListener(new OnProListener()
+        {
             @Override
             public void OnProEvent(long Pos) {
                 binding.proBar.setProgress(0);
@@ -136,7 +151,8 @@ public class GraphFragment extends Fragment  {
                 LoadDmdData();
             }
         });
-        csv.start(); // pustim thread
+
+        csv.start(); // start thread to read contents
     }
 
 
@@ -167,14 +183,27 @@ public class GraphFragment extends Fragment  {
         dmd = new ViewModelProvider(getActivity()).get(DmdViewModel.class);
 
         // sem me dostane observer nastaveny v prohlizecce souboru
-        dmd.getMessageContainerGraph().observe(getViewLifecycleOwner(), AFileName -> {
-            if (AFileName.equals("TMD"))
-               LoadDmdData();  // vytahne data z dmd, ktere sem poslal TMD adapter
-            else
-               LoadCsvFile(AFileName);
+        // observer message for TMD adapter
+        dmd.getMessageContainerGraph()
+                .observe(getViewLifecycleOwner(), msg ->
+                {
+                    if (msg.equals("TMD"))
+                    {
+                        // vytahne data z dmd, ktere sem poslal TMD adapter
+                        // pulls data from dendrometer
+                        LoadDmdData();
+                    }
+                    else
+                    {
+                        Log.d(
+                            "GRAPHING",
+                            "File names: " + msg
+                        );
+                    }
 
-           dmd.getMessageContainerGraph().removeObservers(getViewLifecycleOwner());
-        });
+                    dmd.getMessageContainerGraph()
+                            .removeObservers(getViewLifecycleOwner());
+                });
 
         CheckBox cbT1 = binding.vT1;
         cbT1.setChecked(true);
@@ -188,19 +217,16 @@ public class GraphFragment extends Fragment  {
         cbT2.setOnClickListener(view -> {
             DoBtnClick(view);
         });
-
         CheckBox cbT3 = binding.vT3;
         cbT3.setChecked(true);
         cbT3.setOnClickListener(view -> {
             DoBtnClick(view);
         });
-
         CheckBox cbHum = binding.vHum;
         cbHum.setChecked(true);
         cbHum.setOnClickListener(view -> {
             DoBtnClick(view);
         });
-
 
         getActivity().setTitle("Lolly 4");
         chart = binding.chart1;
@@ -215,12 +241,10 @@ public class GraphFragment extends Fragment  {
         chart.setHighlightPerDragEnabled(true);
 
         // set an alternative background color
-       // chart.setBackgroundColor(Color.WHITE);
+        // chart.setBackgroundColor(Color.WHITE);
         chart.setViewPortOffsets(0f, 0f, 0f, 0f);
-
         // if disabled, scaling can be done on x- and y-axis separately
         chart.setPinchZoom(false);
-
          // get the legend (only possible after setting data)
         Legend l = chart.getLegend();
         /*
@@ -231,7 +255,6 @@ public class GraphFragment extends Fragment  {
         l.setDrawInside(false);
         l.setEnabled(false);
         */
-
         l.setForm(Legend.LegendForm.LINE);
         //l.setTypeface(tfLight);
         l.setTextSize(11f);
@@ -240,7 +263,6 @@ public class GraphFragment extends Fragment  {
         l.setHorizontalAlignment(Legend.LegendHorizontalAlignment.LEFT);
         l.setOrientation(Legend.LegendOrientation.HORIZONTAL);
         l.setDrawInside(true);
-
 
         // osa humidit
         YAxis rightAxis = chart.getAxisRight();

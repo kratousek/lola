@@ -51,6 +51,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -159,27 +160,68 @@ public class ListFragment extends Fragment {
 
     private void loadAllFiles()
     {
+//        ListView mListView = (ListView) rootView.findViewById(R.id.listView);
+//
+//        // get file names and collect file names
+//        String[] friendNames = new String[fFriends.size()];
+//        for (int i = 0; i < fFriends.size(); i += 1)
+//        {
+//            friendNames[i] = fFriends.get(i).getName();
+//        }
+//
+//        // create adapter for list view
+//        ArrayAdapter<String> friendsAdapter =
+//                new ArrayAdapter<String>(
+//                        getContext(),
+//                        android.R.layout.simple_list_item_multiple_choice,
+//                        friendNames
+//                );
+//
+//        // set list view mode for multiple selections
+//        mListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+//        // set the adapter
+//        mListView.setAdapter(friendsAdapter);
+//
+//        // add listener for loading selected datasets to graph fragment
+//        Button select_sets_btn = binding.selectSets;
+//        select_sets_btn.setOnClickListener(new View.OnClickListener()
+//        {
+//            @Override
+//            public void onClick(View view)
+//            {
+//                SparseBooleanArray checked_items =
+//                        mListView.getCheckedItemPositions();
+//
+////                for (int i = 0; i < checked_items.size(); i += 1)
+////                {
+////                    Log.d(
+////                        "FILES",
+////                        fFriends.get(checked_items.keyAt(i)).getFull()
+////                    );
+////                }
+//            }
+//        });
+
+        // will most likely not exceed number of datasets on device
+        ArrayList<String> filenames = new ArrayList<String>();
         ListView mListView = (ListView) rootView.findViewById(R.id.listView);
-
-        // get file names and collect file names
-        String[] friendNames = new String[fFriends.size()];
-        for (int i = 0; i < fFriends.size(); i += 1)
-        {
-            friendNames[i] = fFriends.get(i).getName();
-        }
-
-        // create adapter for list view
-        ArrayAdapter<String> friendsAdapter =
-                new ArrayAdapter<String>(
-                        getContext(),
-                        android.R.layout.simple_list_item_multiple_choice,
-                        friendNames
-                );
-
-        // set list view mode for multiple selections
-        mListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
-        // set the adapter
+        FileViewerAdapter friendsAdapter = new FileViewerAdapter(
+                getContext(), fFriends
+        );
         mListView.setAdapter(friendsAdapter);
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener()
+        {
+            @Override
+            public void onItemClick(
+                    AdapterView<?> parent,
+                    View view,
+                    int position,
+                    long id
+            ) {
+                //Toast.makeText(getContext(), friendsAdapter.getShortName(position) + " is a friend", Toast.LENGTH_SHORT).show();
+                filenames.add(friendsAdapter.getFullName(position));
+            }
+        });
 
         // add listener for loading selected datasets to graph fragment
         Button select_sets_btn = binding.selectSets;
@@ -188,27 +230,10 @@ public class ListFragment extends Fragment {
             @Override
             public void onClick(View view)
             {
-                SparseBooleanArray checked_items =
-                        mListView.getCheckedItemPositions();
-
-//                for (int i = 0; i < checked_items.size(); i += 1)
-//                {
-//                    Log.d(
-//                        "FILES",
-//                        fFriends.get(checked_items.keyAt(i)).getFull()
-//                    );
-//                }
+                dmd.sendMessageToGraph(filenames.toString());
+                switchToGraphFragment();
             }
         });
-
-//        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//            @Override
-//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//                //Toast.makeText(getContext(), friendsAdapter.getShortName(position) + " is a friend", Toast.LENGTH_SHORT).show();
-//                dmd.sendMessageToGraph(friendsAdapter.getFullName(position));
-//                switchToGraphFragment();
-//            }
-//        });
     }
 
     private void switchToGraphFragment(){
