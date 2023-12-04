@@ -21,6 +21,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import java.util.ArrayList;
 
+import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.CombinedChart;
 import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.components.XAxis;
@@ -204,6 +205,7 @@ public class GraphFragment extends Fragment  {
 
         getActivity().setTitle("Lolly 4");
         chart = binding.chart1;
+
         //chart.getDescription().setText(CsvFileName);
         chart.setTouchEnabled(true);
         chart.setDragDecelerationFrictionCoef(0.9f);
@@ -216,10 +218,15 @@ public class GraphFragment extends Fragment  {
 
         // set an alternative background color
        // chart.setBackgroundColor(Color.WHITE);
-        chart.setViewPortOffsets(0f, 0f, 0f, 0f);
+        //chart.setViewPortOffsets(0f, 0f, 0f, 0f);  //////////////
 
         // if disabled, scaling can be done on x- and y-axis separately
         chart.setPinchZoom(false);
+
+        // limits amount of points to view at a time////////////
+        chart.invalidate();
+        chart.setVisibleXRangeMaximum(1000);
+        chart.moveViewToX(0);
 
          // get the legend (only possible after setting data)
         Legend l = chart.getLegend();
@@ -244,7 +251,7 @@ public class GraphFragment extends Fragment  {
 
         // osa humidit
         YAxis rightAxis = chart.getAxisRight();
-        rightAxis.setDrawGridLines(false);
+        rightAxis.setDrawGridLines(true);    ///////////
         rightAxis.setPosition(YAxis.YAxisLabelPosition.INSIDE_CHART);
         //rightAxis.setAxisMinimum(0f); // this replaces setStartAtZero(true)
         //rightAxis.setAxisMaximum(1000f);
@@ -259,7 +266,7 @@ public class GraphFragment extends Fragment  {
         XAxis xAxis = chart.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.TOP_INSIDE);
         xAxis.setTextSize(10f);
-        xAxis.setTextColor(Color.WHITE);
+        xAxis.setTextColor(Color.BLACK);
         xAxis.setDrawAxisLine(true);
         xAxis.setDrawGridLines(true);
         xAxis.setTextColor(Color.rgb(255, 192, 56));
@@ -384,7 +391,11 @@ public class GraphFragment extends Fragment  {
         chart.getAxisLeft().setEnabled(true);
         chart.getAxisRight().setEnabled(true);
 
-        chart.invalidate();
+        chart.animateX(2000, Easing.EaseInCubic);
+
+        // limits amount of points to view at a time
+        chart.setVisibleXRangeMaximum(1000);
+        chart.moveViewToX(0);
     }
 
 
