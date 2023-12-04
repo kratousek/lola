@@ -1,5 +1,6 @@
 package com.tomst.lolly.ui.viewfile;
 
+
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 import static android.app.Activity.RESULT_CANCELED;
@@ -57,14 +58,17 @@ import java.util.List;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
 
-public class ListFragment extends Fragment {
 
+public class ListFragment extends Fragment
+{
     private FragmentViewerBinding binding;
     View rootView = null;
 
     private int mywidth;
 
-    private Bitmap fileImage, pictureImage, audioImage, videoImage, unknownImage, archiveImage, folderImage;
+    private Bitmap fileImage, pictureImage, audioImage,
+            videoImage, unknownImage, archiveImage,
+            folderImage;
 
 
     private PermissionManager permissionManager;
