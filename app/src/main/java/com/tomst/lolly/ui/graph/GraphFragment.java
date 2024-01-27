@@ -118,12 +118,9 @@ public class GraphFragment extends Fragment
         Log.d(Constants.TAG, "Received " + filename);
         csv_filenames += new String(filename + ";");
         csv = new CSVReader(getContext());
-        Log.d("FILES", "Created CSV reader object.");
         csv.SetHandler(handler);
-        Log.d("FILES", "Set the hander.");
         csv.SetTxf(false);
         csv.setFileName(filename);
-        Log.d("FILES", "Set file name for CSVReader to " + filename + ".");
 
         csv.SetBarListener(new OnProListener()
         {
@@ -151,7 +148,8 @@ public class GraphFragment extends Fragment
         csv.SetFinListener(new OnProListener()
         {
             @Override
-            public void OnProEvent(long Pos) {
+            public void OnProEvent(long Pos)
+            {
                 binding.proBar.setProgress(0);
                 //CopyDataToChart(vT1);
                 LoadDmdData();
@@ -159,7 +157,6 @@ public class GraphFragment extends Fragment
         });
 
         csv.start(); // start thread to read contents
-        Log.d("FILES", "CSV contents being read...");
     }
 
 
@@ -218,10 +215,6 @@ public class GraphFragment extends Fragment
                         String[] filenames = msg.split(";");
                         for (String filename : filenames)
                         {
-                            Log.d(
-                                    "FILES",
-                                    "File names: " + filename
-                            );
                             LoadCsvFile(filename);
                         }
                     }
