@@ -76,6 +76,7 @@ public class GraphFragment extends Fragment
 
     private Integer fIdx=0;
 
+
     protected Handler handler = new Handler(Looper.getMainLooper())
     {
         @Override
@@ -88,12 +89,14 @@ public class GraphFragment extends Fragment
         }
     };
 
+
     @Override
     public void onDestroy()
     {
         super.onDestroy();
         //dmd.sendMessageToGraph("");
     }
+
 
     @Override
     public void onStop()
@@ -115,9 +118,12 @@ public class GraphFragment extends Fragment
         Log.d(Constants.TAG, "Received " + filename);
         csv_filenames += new String(filename + ";");
         csv = new CSVReader(getContext());
+        Log.d("FILES", "Created CSV reader object.");
         csv.SetHandler(handler);
+        Log.d("FILES", "Set the hander.");
         csv.SetTxf(false);
         csv.setFileName(filename);
+        Log.d("FILES", "Set file name for CSVReader to " + filename + ".");
 
         csv.SetBarListener(new OnProListener()
         {
@@ -153,19 +159,26 @@ public class GraphFragment extends Fragment
         });
 
         csv.start(); // start thread to read contents
+        Log.d("FILES", "CSV contents being read...");
     }
 
 
-    private void DoBtnClick(View view){
+    private void DoBtnClick(View view)
+    {
         boolean checked = ((CheckBox) view).isChecked();
         Object ob = ((CheckBox) view).getTag();
         int tag = Integer.valueOf(ob.toString());
         if (tag<=0)
-            throw new UnsupportedOperationException("Selected linedataset doesnt exists");
+        {
+            throw new UnsupportedOperationException(
+                    "Selected linedataset doesnt exists"
+            );
+        }
 
         ((LineDataSet) dataSets.get(tag-1)).setVisible(checked);
         chart.invalidate();
     }
+
 
     // nahraje data pridane TMD adapterem ve fragmentu HomeFragment
     @Override
@@ -174,9 +187,11 @@ public class GraphFragment extends Fragment
         super.onCreate(savedInstanceState);
     }
 
+
     public View onCreateView(
             @NonNull LayoutInflater inflater,
-            ViewGroup container, Bundle savedInstanceState
+            ViewGroup container,
+            Bundle savedInstanceState
     ) {
         GraphViewModel readerViewModel =
                 new ViewModelProvider(this).get(GraphViewModel.class);
@@ -207,6 +222,7 @@ public class GraphFragment extends Fragment
                                     "FILES",
                                     "File names: " + filename
                             );
+                            LoadCsvFile(filename);
                         }
                     }
 
@@ -241,7 +257,7 @@ public class GraphFragment extends Fragment
 
         getActivity().setTitle("Lolly 4");
         chart = binding.chart1;
-        //chart.getDescription().setText(CsvFileName);
+        // chart.getDescription().setText(CsvFileName);
         chart.setTouchEnabled(true);
         chart.setDragDecelerationFrictionCoef(0.9f);
 
@@ -306,6 +322,7 @@ public class GraphFragment extends Fragment
         return root;
     }
 
+
     private LineDataSet SetLine(ArrayList<Entry> vT, TPhysValue val)
     {
         //LineData d = new LineData();
@@ -353,17 +370,20 @@ public class GraphFragment extends Fragment
         return set;
     }
 
+
     protected float getRandom(float range, float start)
     {
         return (float) (Math.random() * range) + start;
     }
+
 
     private BarData generateBarData()
     {
         ArrayList<BarEntry> entries1 = new ArrayList<>();
         ArrayList<BarEntry> entries2 = new ArrayList<>();
 
-        for (int index = 0; index < barCount; index++) {
+        for (int index = 0; index < barCount; index++)
+        {
             entries1.add(new BarEntry(0, getRandom(25, 25)));
 
             // stacked

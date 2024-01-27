@@ -31,8 +31,8 @@ package com.tomst.lolly.core;
 
  import com.tomst.lolly.BuildConfig;
 
-public class CSVReader extends Thread {
-
+public class CSVReader extends Thread
+{
     public static  Handler handler = null;
     private static Handler progressBarHandler = new Handler(Looper.getMainLooper());  // handler pro vysilani z Threadu
 
@@ -42,7 +42,7 @@ public class CSVReader extends Thread {
     private boolean writeTxf=false;
 
     private int iline=0;
-    private static String OFFPATTERN = "dd.MM.yyyy HH:mm";
+    private static String DMD_PATTERN = "yyyy.MM.dd HH:mm";
     private static final int MAXTX = 1000;
     private static final int MINTX = -1000;
 
@@ -105,7 +105,8 @@ public class CSVReader extends Thread {
     private static Context context = null;
 
     // csv file constructor
-    public CSVReader(Context context){
+    public CSVReader(Context context)
+    {
         this.context=context;
         this.fout  = null;
         this.writeTxf = false;
@@ -130,7 +131,6 @@ public class CSVReader extends Thread {
           throw new RuntimeException(e);
         }
     }
-
 
 
     // Txf soubor pro zkraceny zapis
@@ -175,51 +175,63 @@ public class CSVReader extends Thread {
     // tohle pustim po startu
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
-    public void run() {
-        try {
+    public void run()
+    {
+        try
+        {
             Looper.prepare();
 
             if (this.FileName.contains(".csv") || this.FileName.contains(".txf"))
-               openCsv(this.FileName);
+            {
+                openCsv(this.FileName);
+            }
 
-        } catch (IOException e) {
+        }
+        catch (IOException e)
+        {
             throw new RuntimeException(e);
         }
-
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    private void openCsv(String FullName) throws IOException {
+    private void openCsv(String FullName) throws IOException
+    {
         File rootDir = new File(FullName);
         rootDir = rootDir.getParentFile();
         String outputFile = FullName;
 
         // je to txf soubor ?
-        if (FullName.contains(".txf"))
-            this.writeTxf = false;
+        if (FullName.contains(".txf")) this.writeTxf = false;
 
         // velikost csv v bytech
         iFileSize = getFileSize(outputFile);
         DoProgress(-iFileSize); // celkovy pocet bytu
 
         File file = new File(outputFile);
-        Log.e(TAG,outputFile);
-        Uri uri = FileProvider.getUriForFile(this.context,
+        Log.e(TAG, outputFile);
+        Uri uri = FileProvider.getUriForFile(
+                this.context,
                 BuildConfig.APPLICATION_ID + ".provider",
-                file);
-        try {
+                file
+        );
+
+        try
+        {
+            Log.d("FILES", "Trying to read " + FullName + "...");
             //String content = readFileContent(uri);
             String ret = readFileContent(uri);
             //procCsvFile(uri);
-
-        } catch (IOException e) {
+        }
+        catch (IOException e)
+        {
             // Handle error here
             Log.d(TAG,e.toString());
         }
     }
 
 
-    public long getFileSize(String fileName) {
+    public long getFileSize(String fileName)
+    {
         Path path = null;
         try
         {
@@ -284,16 +296,18 @@ public class CSVReader extends Thread {
 
     // csv radek z TMereni
     @RequiresApi(api = Build.VERSION_CODES.O)
-    private String FormatLine(TMereni Mer){
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(OFFPATTERN);
+    private String FormatLine(TMereni Mer)
+    {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DMD_PATTERN);
         String dts = Mer.dtm.format(formatter);
-
         String line = String.format(Locale.US,"%d;%s;%d;%.4f;%.4f;%.4f;%d;%d;%d",Mer.idx,dts,Mer.gtm,Mer.t1,Mer.t2,Mer.t3,Mer.hum,Mer.mvs,Mer.Err);
+
         return (line);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    private void AddToCsv(FileOutputStream AStream, TMereni Mer) throws IOException {
+    private void AddToCsv(FileOutputStream AStream, TMereni Mer) throws IOException
+    {
         String line = FormatLine(Mer);
         AStream.write((line.getBytes()));
         AStream.write(13);
@@ -301,8 +315,8 @@ public class CSVReader extends Thread {
         AStream.flush();
     }
 
-    private void ClearAvg(){
-
+    private void ClearAvg()
+    {
         currDay =0;
         currT1 = 0;
         currT2 = 0;
@@ -312,7 +326,8 @@ public class CSVReader extends Thread {
 
     // pridej stat
     @RequiresApi(api = Build.VERSION_CODES.O)
-    public void AppendStat(TMereni Mer){
+    public void AppendStat(TMereni Mer)
+    {
         double  t1,t2,t3;
         int hum,day;
         //Date dtm;
@@ -384,13 +399,14 @@ public class CSVReader extends Thread {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    private void ProcessLine(String currentline){
+    private void ProcessLine(String currentline)
+    {
         String T1,T2,T3;
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(OFFPATTERN);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DMD_PATTERN);
         LocalDateTime dateTime = null;
 
-
-        if (!currentline.isEmpty() ) {
+        if (!currentline.isEmpty())
+        {
             // rozsekej radku
             String[] str = currentline.split(";", 0);
             // datum
@@ -430,33 +446,45 @@ public class CSVReader extends Thread {
         }
     }
 
-    private TDeviceType GuessDevice(TMereni mer){
+    private TDeviceType GuessDevice(TMereni mer)
+    {
         mer.dev = TDeviceType.dUnknown;
         if (mer.mvs == 1)
+        {
             return (TDeviceType.dLolly3);
+        }
 
         //  existuji t2,t3 teplomery
-        if ((mer.t2 <-199) && (mer.t3<-199)){
+        if ((mer.t2 <-199) && (mer.t3<-199))
+        {
            // wurst nebo dendrometr
            if (mer.adc>65300)
+           {
                mer.dev = TDeviceType.dTermoChron;
+           }
            else
+           {
                mer.dev = TDeviceType.dAD;
+           }
         }
         else
-            mer.dev=TDeviceType.dLolly4;
+        {
+            mer.dev = TDeviceType.dLolly4;
+        }
 
         return (mer.dev);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    private String readFileContent(Uri uri) throws IOException {
-
-        Integer idx=0;
+    private String readFileContent(Uri uri) throws IOException
+    {
+        Integer idx = 0;
 
         // Streamovane vycteni, zatim nejrychlejsi verze
-        InputStream inputStream =  this.context.getContentResolver().openInputStream(uri);
-        BufferedReader reader   =  new BufferedReader(new InputStreamReader(inputStream));
+        InputStream inputStream =
+                this.context.getContentResolver().openInputStream(uri);
+        BufferedReader reader =
+                new BufferedReader(new InputStreamReader(inputStream));
         Integer j = inputStream.available(); // pocet dostupnych bytu
         StringBuilder stringBuilder = new StringBuilder();
 
@@ -465,24 +493,19 @@ public class CSVReader extends Thread {
         ClearAvg();
 
         String currentline = "";
-        while ((currentline = reader.readLine()) != null) {
-
+        while ((currentline = reader.readLine()) != null)
+        {
+            Log.d("FILES", "Processing line: " + currentline + "...");
             ProcessLine(currentline);
-            idx = j-inputStream.available();
+            idx = j - inputStream.available();
             DoProgress(idx);
             stringBuilder.append(currentline).append("\n");
             idx++;
         }
         DoFinished(0);
         inputStream.close();
-        if (this.writeTxf)
-          CloseTxf();
+        if (this.writeTxf) CloseTxf();
 
         return stringBuilder.toString();
     }
-
-
-
-
-
 }
