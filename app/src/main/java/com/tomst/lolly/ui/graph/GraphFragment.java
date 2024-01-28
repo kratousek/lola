@@ -48,7 +48,6 @@ import com.tomst.lolly.core.DmdViewModel;
 public class GraphFragment extends Fragment
 {
     private final int barCount = 12;
-    private String csv_filenames;
     private CombinedChart chart;
     private CombinedData combinedData;
 
@@ -116,7 +115,6 @@ public class GraphFragment extends Fragment
         }
 
         Log.d(Constants.TAG, "Received " + filename);
-        csv_filenames += new String(filename + ";");
         csv = new CSVReader(getContext());
         csv.SetHandler(handler);
         csv.SetTxf(false);
@@ -168,7 +166,7 @@ public class GraphFragment extends Fragment
         if (tag<=0)
         {
             throw new UnsupportedOperationException(
-                    "Selected linedataset doesnt exists"
+                    "Selected line dataset doesn't exists"
             );
         }
 
@@ -212,10 +210,21 @@ public class GraphFragment extends Fragment
                     }
                     else
                     {
-                        String[] filenames = msg.split(";");
-                        for (String filename : filenames)
+                        String[] file_names = msg.split(";");
+
+                        if (file_names.length > 1)
                         {
-                            LoadCsvFile(filename);
+                            String merged_file_name = MergeCsvFiles(file_names);
+                            Log.d(
+                                    "FILES",
+                                    "Merged file name = "
+                                            + merged_file_name
+                            );
+//                            LoadCsvFile(merged_file_name);
+                        }
+                        else
+                        {
+                            LoadCsvFile(file_names[0]);
                         }
                     }
 
@@ -227,7 +236,7 @@ public class GraphFragment extends Fragment
         cbT1.setChecked(true);
         cbT1.setOnClickListener(view ->
         {
-           DoBtnClick(view);
+            DoBtnClick(view);
         });
         CheckBox cbT2 = binding.vT2;
         cbT2.setChecked(true);
@@ -313,6 +322,29 @@ public class GraphFragment extends Fragment
         //chart.invalidate();
         //setRandomData(400,100);
         return root;
+    }
+
+
+    private String MergeCsvFiles(String[] file_names)
+    {
+        final String LAST_OCCURENCE = ".*/";
+        String parent_dir = file_names[0].split(LAST_OCCURENCE)[0];
+        String merged_file_name = file_names[0]
+                        .split(LAST_OCCURENCE)[1]
+                        .replace(".csv", "-");
+        // open anonymous merged file
+
+        // op to copy contents of individual files into merged file
+        for (int i = 1; i < file_names.length; i += 1)
+        {
+            merged_file_name += file_names[i]
+                    .split(LAST_OCCURENCE)[1]
+                    .replace(".csv", "-");
+            // read current file to be merged into anonymous merge file
+        }
+        merged_file_name = parent_dir + merged_file_name + ".csv";
+
+        return merged_file_name;
     }
 
 

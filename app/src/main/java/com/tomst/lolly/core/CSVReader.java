@@ -107,7 +107,7 @@ public class CSVReader extends Thread
     // csv file constructor
     public CSVReader(Context context)
     {
-        this.context=context;
+        this.context = context;
         this.fout  = null;
         this.writeTxf = false;
 
@@ -118,58 +118,70 @@ public class CSVReader extends Thread
     }
 
     // Tomasuv zkraceny format zobrazeni grafu
-    public void SetTxf(boolean AWriteTxf){
+    public void SetTxf(boolean AWriteTxf)
+    {
         this.writeTxf = AWriteTxf; // budu vytvaret txf soubor
     }
 
     // uloz a zavri txf
-    private  void CloseTxf(){
+    private  void CloseTxf()
+    {
         try
         {
           fout.close();
-        } catch (IOException e) {
+        }
+        catch (IOException e)
+        {
           throw new RuntimeException(e);
         }
     }
 
 
     // Txf soubor pro zkraceny zapis
-    private void openTxf(String AFileName){
+    private void openTxf(String AFileName)
+    {
       // vymen priponu csv -> txf
       AFileName = AFileName.replace(".csv",".txf");
       Log.d(TAG,"TxfFileName="+AFileName);
-      try {
+      try
+      {
           fout = new FileOutputStream(AFileName);
       }
       catch(Exception e)
-        {System.out.println(e);}
+      {
+          System.out.println(e);
+      }
     }
 
     // novy CSV soubor
-    public void CreateCsvFile(String AFileName)
+    public void CreateCsvFile(String file_name)
     {
-        Log.d(TAG,"NewCSVFileName="+AFileName);
-        try {
-            fNewCsv = new FileOutputStream(AFileName);
-            if (this.writeTxf )
-                openTxf(AFileName);  // otevre AFileName, ale s priponou .txf
+        Log.d(TAG,"New CSV file name = " + file_name);
+        try
+        {
+            fNewCsv = new FileOutputStream(file_name);
+            // otevre AFileName, ale s priponou .txf
+            if (this.writeTxf ) openTxf(file_name);
 
         }
         catch(Exception e)
-            {System.out.println(e);}
+        {
+            System.out.println(e);
+        }
     }
 
-    public void setFileName(String AFileName){
+    public void setFileName(String AFileName)
+    {
         this.FileName = AFileName;
 
-        if (AFileName.contains(".txf")){
+        if (AFileName.contains(".txf"))
+        {
             this.writeTxf = false;
             return;
         }
 
         // otevre pro zapis zkracenych grafu
-        if (this.writeTxf)
-            openTxf(AFileName);
+        if (this.writeTxf) openTxf(AFileName);
     }
 
     // tohle pustim po startu
@@ -181,7 +193,8 @@ public class CSVReader extends Thread
         {
             Looper.prepare();
 
-            if (this.FileName.contains(".csv") || this.FileName.contains(".txf"))
+            if (this.FileName.contains(".csv")
+                    || this.FileName.contains(".txf"))
             {
                 openCsv(this.FileName);
             }
@@ -193,40 +206,19 @@ public class CSVReader extends Thread
         }
     }
 
+    // TODO: write a custom function for TXF files
     @RequiresApi(api = Build.VERSION_CODES.O)
-    private void openCsv(String FullName) throws IOException
+    private Uri openCsv(String full_file_name) throws IOException
     {
-        File rootDir = new File(FullName);
-        rootDir = rootDir.getParentFile();
-        String outputFile = FullName;
+        File file = new File(full_file_name);
 
-        // je to txf soubor ?
-        if (FullName.contains(".txf")) this.writeTxf = false;
+        Log.e(TAG, full_file_name);
 
-        // velikost csv v bytech
-        iFileSize = getFileSize(outputFile);
-        DoProgress(-iFileSize); // celkovy pocet bytu
-
-        File file = new File(outputFile);
-        Log.e(TAG, outputFile);
-        Uri uri = FileProvider.getUriForFile(
+        return FileProvider.getUriForFile(
                 this.context,
                 BuildConfig.APPLICATION_ID + ".provider",
                 file
         );
-
-        try
-        {
-            Log.d("FILES", "Trying to read " + FullName + "...");
-            //String content = readFileContent(uri);
-            String ret = readFileContent(uri);
-            //procCsvFile(uri);
-        }
-        catch (IOException e)
-        {
-            // Handle error here
-            Log.d(TAG,e.toString());
-        }
     }
 
 
@@ -235,7 +227,9 @@ public class CSVReader extends Thread
         Path path = null;
         try
         {
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            if (android.os.Build.VERSION.SDK_INT
+                    >= android.os.Build.VERSION_CODES.O)
+            {
                 path = Paths.get(fileName);
 
                 // size of a file (in bytes)
@@ -243,26 +237,37 @@ public class CSVReader extends Thread
 
                 return bytes;
             }
-        } catch (IOException e) {
+        }
+        catch (IOException e)
+        {
             e.printStackTrace();
         }
+
         return 0;
     }
 
-    private void DoProgress(long pos){
-        progressBarHandler.post(new Runnable() {
-            public void run() {
-                if (mBarListener != null){
+    private void DoProgress(long pos)
+    {
+        progressBarHandler.post(new Runnable()
+        {
+            public void run()
+            {
+                if (mBarListener != null)
+                {
                     mBarListener.OnProEvent(pos);
                 }
             }
         });
     }
 
-    private void DoFinished(long pos){
-        progressBarHandler.post(new Runnable() {
-            public void run() {
-                if (mFinListener != null){
+    private void DoFinished(long pos)
+    {
+        progressBarHandler.post(new Runnable()
+        {
+            public void run()
+            {
+                if (mFinListener != null)
+                {
                     mFinListener.OnProEvent(pos);
                 }
             }
@@ -270,26 +275,37 @@ public class CSVReader extends Thread
     }
 
 
-    private void sendMessage (TMereni mer) { // Handle sending message back to handler
+    private void sendMessage (TMereni mer)
+    {
+        // Handle sending message back to handler
         Message message = handler.obtainMessage();
         message.obj = new TMereni(mer);
         handler.sendMessage(message);
     }
 
 
-    public void CloseExternalCsv(){
-        try {
+    public void CloseExternalCsv()
+    {
+        try
+        {
             fNewCsv.close();
-        } catch (IOException e) {
+        }
+        catch (IOException e)
+        {
             throw new RuntimeException(e);
         }
     }
+
+
     @RequiresApi(api = Build.VERSION_CODES.O)
-    public void AddMerToCsv(TMereni Mer){
-        //
-        try {
-            AddToCsv(fNewCsv,Mer);
-        } catch (IOException e) {
+    public void AddMerToCsv(TMereni Mer)
+    {
+        try
+        {
+            AddToCsv(fNewCsv, Mer);
+        }
+        catch (IOException e)
+        {
             throw new RuntimeException(e);
         }
     }
@@ -300,13 +316,20 @@ public class CSVReader extends Thread
     {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DMD_PATTERN);
         String dts = Mer.dtm.format(formatter);
-        String line = String.format(Locale.US,"%d;%s;%d;%.4f;%.4f;%.4f;%d;%d;%d",Mer.idx,dts,Mer.gtm,Mer.t1,Mer.t2,Mer.t3,Mer.hum,Mer.mvs,Mer.Err);
+        String line = String.format(
+                Locale.US,
+                "%d;%s;%d;%.4f;%.4f;%.4f;%d;%d;%d",
+                Mer.idx,dts,Mer.gtm,Mer.t1,Mer.t2,Mer.t3,Mer.hum,Mer.mvs,Mer.Err
+        );
 
         return (line);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    private void AddToCsv(FileOutputStream AStream, TMereni Mer) throws IOException
+    private void AddToCsv(
+            FileOutputStream AStream,
+            TMereni Mer
+    ) throws IOException
     {
         String line = FormatLine(Mer);
         AStream.write((line.getBytes()));
@@ -485,7 +508,7 @@ public class CSVReader extends Thread
                 this.context.getContentResolver().openInputStream(uri);
         BufferedReader reader =
                 new BufferedReader(new InputStreamReader(inputStream));
-        Integer j = inputStream.available(); // pocet dostupnych bytu
+        Integer j = inputStream.available();  // pocet dostupnych bytu
         StringBuilder stringBuilder = new StringBuilder();
 
         currDay = 0;
@@ -495,7 +518,6 @@ public class CSVReader extends Thread
         String currentline = "";
         while ((currentline = reader.readLine()) != null)
         {
-            Log.d("FILES", "Processing line: " + currentline + "...");
             ProcessLine(currentline);
             idx = j - inputStream.available();
             DoProgress(idx);
