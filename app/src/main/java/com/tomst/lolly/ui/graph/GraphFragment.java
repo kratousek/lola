@@ -331,15 +331,14 @@ public class GraphFragment extends Fragment
         String parent_dir = file_names[0].split(LAST_OCCURENCE)[0];
         String merged_file_name = file_names[0]
                         .split(LAST_OCCURENCE)[1]
-                        .replace(".csv", "-");
+                        .replace(".csv", "");
         // open anonymous merged file
 
-        // op to copy contents of individual files into merged file
         for (int i = 1; i < file_names.length; i += 1)
         {
-            merged_file_name += file_names[i]
+            merged_file_name += "-" + file_names[i]
                     .split(LAST_OCCURENCE)[1]
-                    .replace(".csv", "-");
+                    .replace(".csv", "");
             // read current file to be merged into anonymous merge file
         }
         merged_file_name = parent_dir + merged_file_name + ".csv";
