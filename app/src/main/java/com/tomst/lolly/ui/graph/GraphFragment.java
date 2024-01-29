@@ -37,12 +37,16 @@ import com.github.mikephil.charting.data.LineDataSet;
 
 import com.github.mikephil.charting.utils.ColorTemplate;
 import com.tomst.lolly.core.CSVReader;
+import com.tomst.lolly.core.CSVFile;
 import com.tomst.lolly.core.Constants;
 import com.tomst.lolly.core.OnProListener;
 import com.tomst.lolly.core.TMereni;
 import com.tomst.lolly.core.TPhysValue;
 import com.tomst.lolly.databinding.FragmentGraphBinding;
 import com.tomst.lolly.core.DmdViewModel;
+
+
+import java.io.File;
 
 
 public class GraphFragment extends Fragment
@@ -211,15 +215,19 @@ public class GraphFragment extends Fragment
                     else
                     {
                         String[] file_names = msg.split(";");
+                        Log.d("FILES", file_names[0]);
 
                         if (file_names.length > 1)
                         {
-                            String merged_file_name = MergeCsvFiles(file_names);
+                            String merged_file_name =
+                                    merge_csv_files(file_names);
                             Log.d(
                                     "FILES",
                                     "Merged file name = "
                                             + merged_file_name
                             );
+                            CSVFile csv = CSVFile.create(merged_file_name);
+
 //                            LoadCsvFile(merged_file_name);
                         }
                         else
@@ -325,14 +333,14 @@ public class GraphFragment extends Fragment
     }
 
 
-    private String MergeCsvFiles(String[] file_names)
+    private String merge_csv_files(String[] file_names)
     {
         final String LAST_OCCURENCE = ".*/";
-        String parent_dir = file_names[0].split(LAST_OCCURENCE)[0];
+        // final String parent_dir = file_names[0].split(LAST_OCCURENCE)[0];
+        final String parent_dir = "/storage/emulated/0/Documents/";
         String merged_file_name = file_names[0]
-                        .split(LAST_OCCURENCE)[1]
-                        .replace(".csv", "");
-        // open anonymous merged file
+                .split(LAST_OCCURENCE)[1]
+                .replace(".csv", "");
 
         for (int i = 1; i < file_names.length; i += 1)
         {
@@ -341,9 +349,8 @@ public class GraphFragment extends Fragment
                     .replace(".csv", "");
             // read current file to be merged into anonymous merge file
         }
-        merged_file_name = parent_dir + merged_file_name + ".csv";
 
-        return merged_file_name;
+        return parent_dir + merged_file_name + ".csv";
     }
 
 
