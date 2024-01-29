@@ -222,7 +222,6 @@ public class ListFragment extends Fragment
                     int position,
                     long id
             ) {
-                //Toast.makeText(getContext(), friendsAdapter.getShortName(position) + " is a friend", Toast.LENGTH_SHORT).show();
                 filenames.add(friendsAdapter.getFullName(position));
             }
         });
@@ -249,7 +248,7 @@ public class ListFragment extends Fragment
     private void switchToGraphFragment()
     {
         BottomNavigationView bottomNavigationView;
-        bottomNavigationView = (BottomNavigationView) getActivity()
+        bottomNavigationView = (BottomNavigationView)getActivity()
                 .findViewById(R.id.nav_view);
         View view = bottomNavigationView.findViewById(R.id.navigation_graph);
         view.performClick();
@@ -580,7 +579,6 @@ public class ListFragment extends Fragment
             rootDir = rootDir.getParentFile();
         }
 
-
         setupDriveList(rootDirectories);
 
         if (filePath != null)
@@ -589,7 +587,7 @@ public class ListFragment extends Fragment
             {
                 listItem(rootDir);
             }
-                //listItem(new File(filePath));
+            // listItem(new File(filePath));
         }
         else
         {
@@ -599,6 +597,7 @@ public class ListFragment extends Fragment
                 {
                     listItem(folder);
                 }
+
                 break;
             }
         };
@@ -618,7 +617,7 @@ public class ListFragment extends Fragment
                 }
             }
         });
-         */
+        */
     }
 
 
@@ -650,7 +649,6 @@ public class ListFragment extends Fragment
                 R.drawable.ic_sentiment_very_dissatisfied_white_24dp,
                 R.drawable.ic_sentiment_very_satisfied_white_24dp,
         };
-
         List<FileDetail> friends = new ArrayList<>();
 
         for (int i = 0; i < names.length; i++)
@@ -665,20 +663,27 @@ public class ListFragment extends Fragment
     private void setupBitmaps()
     {
         mywidth = Resources.getSystem().getDisplayMetrics().widthPixels;
-        folderImage = BitmapFactory.decodeResource(getResources(),
-                R.drawable.folder);
-        fileImage = BitmapFactory.decodeResource(getResources(),
-                R.drawable.file);
-        archiveImage = BitmapFactory.decodeResource(getResources(),
-                R.drawable.archive);
-        audioImage = BitmapFactory.decodeResource(getResources(),
-                R.drawable.audio);
-        videoImage = BitmapFactory.decodeResource(getResources(),
-                R.drawable.video);
-        pictureImage = BitmapFactory.decodeResource(getResources(),
-                R.drawable.picture);
-        unknownImage = BitmapFactory.decodeResource(getResources(),
-                R.drawable.unknown);
+        folderImage = BitmapFactory.decodeResource(
+                getResources(), R.drawable.folder
+        );
+        fileImage = BitmapFactory.decodeResource(
+                getResources(), R.drawable.file
+        );
+        archiveImage = BitmapFactory.decodeResource(
+                getResources(), R.drawable.archive
+        );
+        audioImage = BitmapFactory.decodeResource(
+                getResources(), R.drawable.audio
+        );
+        videoImage = BitmapFactory.decodeResource(
+                getResources(), R.drawable.video
+        );
+        pictureImage = BitmapFactory.decodeResource(
+                getResources(), R.drawable.picture
+        );
+        unknownImage = BitmapFactory.decodeResource(
+                getResources(), R.drawable.unknown
+        );
     }
 
 
