@@ -7,44 +7,43 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Scanner;
 
 
 public class CSVFile
 {
+    // TODO: uncomment below constants if there is a problem with reading and
+    //  writing to a file
+    // public constants
+    // public static final char WRITE_MODE = 'w';
+    // public static final char READ_MODE = 'r';
+
+    // private constants
     private static final String TAG = "CSV";
-    private static final char WRITE_MODE = 'w';
-    private static final char READ_MODE = 'r';
 
     // operational members
-    private final char mode;
-    private final String path;
+    // private final char mode;
+    private File file;
     private FileWriter writer;
-    private FileReader reader;
+    private Scanner reader;
 
 
     /**
      * Instantiates a new CSVFile with which a CSV file's contents can be
      * written or read.
      *
-     * @param path The path at which to open a file, including the file name
-     * @param mode Specifies the file will be written to or read from
+     * @param file File object representing a file in the filesystem
      * @throws IOException
      */
-    private CSVFile(String path, char mode)
+    private CSVFile(File file)
     {
-        this.mode = mode;
-        this.path = path;
+        // this.mode = mode;
+        this.file = file;
 
         try
         {
-            if (mode == WRITE_MODE)
-            {
-                this.writer = new FileWriter(path);
-            }
-            else
-            {
-                this.reader = new FileReader(path);
-            }
+            this.writer = new FileWriter(file.getName());
+            this.reader = new Scanner(file);
         }
         catch (IOException e)
         {
@@ -56,19 +55,11 @@ public class CSVFile
     // destructor allows closing of open file at point of destruction
     protected void finalize() throws IOException
     {
-        if (this.mode == WRITE_MODE)
-        {
-            this.writer.close();
-        }
-        else
-        {
-            this.reader.close();
-        }
+        close();
     }
 
 
     // opening, closing, and creating new files
-
     /**
      * Creates a new file in the filesystem. Shorthand for creating a file and
      * calling CSVFile.open().
@@ -78,17 +69,17 @@ public class CSVFile
      */
     public static CSVFile create(String path)
     {
-        CSVFile csv_file = null;
+        CSVFile csvFile = null;
 
         try
         {
-            File new_file = new File(path);
+            File file = new File(path);
 
-            if (new_file.createNewFile())
+            if (file.createNewFile())
             {
                 Log.d(TAG, "Created file named: " + path);
 
-                csv_file = open(path, WRITE_MODE);
+                csvFile = open(path);
             }
             else
             {
@@ -100,7 +91,7 @@ public class CSVFile
             e.printStackTrace();
         }
 
-        return csv_file;
+        return csvFile;
     }
 
 
@@ -108,12 +99,13 @@ public class CSVFile
      * Opens a file for IO operations. The file specified must exist.
      *
      * @param path The path at which to open the file, include the file name
-     * @param mode Specifies the file will be written to or read from
      * @return Reference to a CSVFile through which a file can be interacted
      */
-    public static CSVFile open(String path, char mode)
+    public static CSVFile open(String path)
     {
-        return new CSVFile(path, mode);
+        File file = new File(path);
+
+        return new CSVFile(file);
     }
 
 
@@ -127,14 +119,8 @@ public class CSVFile
     {
         try
         {
-            if (this.mode == WRITE_MODE)
-            {
-                this.writer.close();
-            }
-            else
-            {
-                this.reader.close();
-            }
+            this.writer.close();
+            this.reader.close();
         }
         catch (IOException e)
         {
@@ -144,6 +130,12 @@ public class CSVFile
 
 
     // reading and writing to files
+    public void copy(CSVFile src, CSVFile dest)
+    {
+        // read all lines from source
+
+        // write lines to destination
+    }
 
     /**
      * Writes to a file.
@@ -154,14 +146,7 @@ public class CSVFile
     {
         try
         {
-            if (this.mode == WRITE_MODE)
-            {
-                this.writer.write(buffer);
-            }
-            else
-            {
-                Log.e(TAG, this.path + " was not open in write mode!");
-            }
+            this.writer.write(buffer);
         }
         catch (IOException e)
         {
@@ -177,7 +162,7 @@ public class CSVFile
      */
     public String readLine()
     {
-        return "";
+        return this.reader.nextLine();
     }
 
 
@@ -188,6 +173,13 @@ public class CSVFile
      */
     public String readAllLines()
     {
-        return "";
+        String contents = "";
+
+        while(this.reader.hasNextLine())
+        {
+            contents += readLine();
+        }
+
+        return contents;
     }
 }

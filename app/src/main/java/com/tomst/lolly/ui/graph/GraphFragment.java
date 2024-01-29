@@ -337,17 +337,23 @@ public class GraphFragment extends Fragment
     {
         final String LAST_OCCURENCE = ".*/";
         // final String parent_dir = file_names[0].split(LAST_OCCURENCE)[0];
+        // for testing purposes only
         final String parent_dir = "/storage/emulated/0/Documents/";
         String merged_file_name = file_names[0]
                 .split(LAST_OCCURENCE)[1]
                 .replace(".csv", "");
-
         for (int i = 1; i < file_names.length; i += 1)
         {
             merged_file_name += "-" + file_names[i]
                     .split(LAST_OCCURENCE)[1]
                     .replace(".csv", "");
-            // read current file to be merged into anonymous merge file
+        }
+
+        CSVFile merged_file = CSVFile.create(merged_file_name);
+        for (String file_name : file_names)
+        {
+            CSVFile file = CSVFile.open(file_name);
+            file.close();
         }
 
         return parent_dir + merged_file_name + ".csv";
