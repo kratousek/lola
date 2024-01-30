@@ -4,12 +4,15 @@ package com.tomst.lolly.core;
 import android.util.Log;
 
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Scanner;
 
 
+/**
+ * Wraps file creation and IO operations into a concise interface
+ * specifically for operating on TOMST dendrometer datasets.
+ */
 public class CSVFile
 {
     // TODO: uncomment below constants if there is a problem with reading and
@@ -20,11 +23,12 @@ public class CSVFile
 
     // private constants
     private static final String TAG = "CSV";
+    private static final int LINE_LENGTH = 0;
 
     // operational members
     // private final char mode;
     private File file;
-    private FileWriter writer;
+    private FileOutputStream writer;
     private Scanner reader;
 
 
@@ -42,7 +46,7 @@ public class CSVFile
 
         try
         {
-            this.writer = new FileWriter(file.getName());
+            this.writer = new FileOutputStream(file);
             this.reader = new Scanner(file);
         }
         catch (IOException e)
@@ -129,12 +133,25 @@ public class CSVFile
     }
 
 
-    // reading and writing to files
-    public void copy(CSVFile src, CSVFile dest)
+    public static void delete(String path)
     {
-        // read all lines from source
+        if (!new File(path).delete())
+        {
+            Log.e(TAG, path + " could not be delete!");
+        }
+    }
 
-        // write lines to destination
+
+    // reading and writing to files
+    /**
+     * Copies contents a file into this file.
+     *
+     * @param src File from which to copy
+     */
+    public void copy(CSVFile src)
+    {
+        String src_contents = src.readAllLines();
+        write(src_contents);
     }
 
     /**
@@ -146,7 +163,7 @@ public class CSVFile
     {
         try
         {
-            this.writer.write(buffer);
+            this.writer.write(buffer.getBytes());
         }
         catch (IOException e)
         {
@@ -162,7 +179,12 @@ public class CSVFile
      */
     public String readLine()
     {
-        return this.reader.nextLine();
+        if (this.reader.hasNextLine())
+        {
+            return this.reader.nextLine();
+        }
+
+        return "";
     }
 
 
@@ -173,11 +195,12 @@ public class CSVFile
      */
     public String readAllLines()
     {
+        String line = "";
         String contents = "";
 
-        while(this.reader.hasNextLine())
+        while((line = readLine()) != "")
         {
-            contents += readLine();
+            contents += line;
         }
 
         return contents;

@@ -164,48 +164,6 @@ public class ListFragment extends Fragment
 
     private void loadAllFiles()
     {
-//        ListView mListView = (ListView) rootView.findViewById(R.id.listView);
-//
-//        // get file names and collect file names
-//        String[] friendNames = new String[fFriends.size()];
-//        for (int i = 0; i < fFriends.size(); i += 1)
-//        {
-//            friendNames[i] = fFriends.get(i).getName();
-//        }
-//
-//        // create adapter for list view
-//        ArrayAdapter<String> friendsAdapter =
-//                new ArrayAdapter<String>(
-//                        getContext(),
-//                        android.R.layout.simple_list_item_multiple_choice,
-//                        friendNames
-//                );
-//
-//        // set list view mode for multiple selections
-//        mListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
-//        // set the adapter
-//        mListView.setAdapter(friendsAdapter);
-//
-//        // add listener for loading selected datasets to graph fragment
-//        Button select_sets_btn = binding.selectSets;
-//        select_sets_btn.setOnClickListener(new View.OnClickListener()
-//        {
-//            @Override
-//            public void onClick(View view)
-//            {
-//                SparseBooleanArray checked_items =
-//                        mListView.getCheckedItemPositions();
-//
-////                for (int i = 0; i < checked_items.size(); i += 1)
-////                {
-////                    Log.d(
-////                        "FILES",
-////                        fFriends.get(checked_items.keyAt(i)).getFull()
-////                    );
-////                }
-//            }
-//        });
-
         // will most likely not exceed number of datasets on device
         ArrayList<String> filenames = new ArrayList<String>();
         ListView mListView = (ListView) rootView.findViewById(R.id.listView);
@@ -248,7 +206,7 @@ public class ListFragment extends Fragment
     private void switchToGraphFragment()
     {
         BottomNavigationView bottomNavigationView;
-        bottomNavigationView = (BottomNavigationView)getActivity()
+        bottomNavigationView = (BottomNavigationView) getActivity()
                 .findViewById(R.id.nav_view);
         View view = bottomNavigationView.findViewById(R.id.navigation_graph);
         view.performClick();

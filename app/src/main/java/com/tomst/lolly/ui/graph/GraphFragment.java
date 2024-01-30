@@ -219,14 +219,15 @@ public class GraphFragment extends Fragment
 
                         if (file_names.length > 1)
                         {
-                            String merged_file_name =
-                                    merge_csv_files(file_names);
+                            // TODO: remove when finished testing; although, this method is
+                            //  probably good to keep around
+                            CSVFile.delete("/storage/emulated/0/Documents/data_92221411_2023_09_26_0-data_92224514_2023_09_23_0.csv");
+                            String merged_file_name = mergeCsvFiles(file_names);
                             Log.d(
                                     "FILES",
                                     "Merged file name = "
                                             + merged_file_name
                             );
-                            CSVFile csv = CSVFile.create(merged_file_name);
 
 //                            LoadCsvFile(merged_file_name);
                         }
@@ -333,13 +334,13 @@ public class GraphFragment extends Fragment
     }
 
 
-    private String merge_csv_files(String[] file_names)
+    private String mergeCsvFiles(String[] file_names)
     {
         final String LAST_OCCURENCE = ".*/";
         // final String parent_dir = file_names[0].split(LAST_OCCURENCE)[0];
         // for testing purposes only
         final String parent_dir = "/storage/emulated/0/Documents/";
-        String merged_file_name = file_names[0]
+        String merged_file_name = parent_dir + file_names[0]
                 .split(LAST_OCCURENCE)[1]
                 .replace(".csv", "");
         for (int i = 1; i < file_names.length; i += 1)
@@ -348,15 +349,17 @@ public class GraphFragment extends Fragment
                     .split(LAST_OCCURENCE)[1]
                     .replace(".csv", "");
         }
+        merged_file_name += ".csv";
 
         CSVFile merged_file = CSVFile.create(merged_file_name);
         for (String file_name : file_names)
         {
             CSVFile file = CSVFile.open(file_name);
-            file.close();
+
+            merged_file.copy(file);
         }
 
-        return parent_dir + merged_file_name + ".csv";
+        return merged_file_name;
     }
 
 
