@@ -111,18 +111,14 @@ public class GraphFragment extends Fragment
     }
 
 
-    private void LoadCsvFile(String filename)
+    private void LoadCsvFile(String fileName)
     {
-        if (filename == "")
+        if (fileName == "")
         {
             return;
         }
 
-        Log.d(Constants.TAG, "Received " + filename);
-        csv = new CSVReader(getContext());
-        csv.SetHandler(handler);
-        csv.SetTxf(false);
-        csv.setFileName(filename);
+        Log.d(Constants.TAG, "Received " + fileName);
 
         csv.SetBarListener(new OnProListener()
         {
@@ -157,8 +153,6 @@ public class GraphFragment extends Fragment
                 LoadDmdData();
             }
         });
-
-        csv.start(); // start thread to read contents
     }
 
 
@@ -214,26 +208,22 @@ public class GraphFragment extends Fragment
                     }
                     else
                     {
-                        String[] file_names = msg.split(";");
-                        Log.d("FILES", file_names[0]);
+                        String[] fileNames = msg.split(";");
 
-                        if (file_names.length > 1)
+                        if (fileNames.length > 1)
                         {
-                            // TODO: remove when finished testing; although, this method is
-                            //  probably good to keep around
-                            CSVFile.delete("/storage/emulated/0/Documents/data_92221411_2023_09_26_0-data_92224514_2023_09_23_0.csv");
-                            String merged_file_name = mergeCsvFiles(file_names);
+                            String mergedFileName = mergeCsvFiles(fileNames);
                             Log.d(
-                                    "FILES",
+                                    "GRAPH",
                                     "Merged file name = "
-                                            + merged_file_name
+                                            + mergedFileName
                             );
 
-//                            LoadCsvFile(merged_file_name);
+//                            LoadCsvFile(mergedFileName);
                         }
                         else
                         {
-                            LoadCsvFile(file_names[0]);
+                            LoadCsvFile(fileNames[0]);
                         }
                     }
 
@@ -334,32 +324,32 @@ public class GraphFragment extends Fragment
     }
 
 
-    private String mergeCsvFiles(String[] file_names)
+    private String mergeCsvFiles(String[] fileNames)
     {
         final String LAST_OCCURENCE = ".*/";
         // final String parent_dir = file_names[0].split(LAST_OCCURENCE)[0];
         // for testing purposes only
         final String parent_dir = "/storage/emulated/0/Documents/";
-        String merged_file_name = parent_dir + file_names[0]
+        String mergedFileName = parent_dir + fileNames[0]
                 .split(LAST_OCCURENCE)[1]
                 .replace(".csv", "");
-        for (int i = 1; i < file_names.length; i += 1)
+        for (int i = 1; i < fileNames.length; i += 1)
         {
-            merged_file_name += "-" + file_names[i]
+            mergedFileName += "-" + fileNames[i]
                     .split(LAST_OCCURENCE)[1]
                     .replace(".csv", "");
         }
-        merged_file_name += ".csv";
+        mergedFileName += ".csv";
 
-        CSVFile merged_file = CSVFile.create(merged_file_name);
-        for (String file_name : file_names)
+        CSVFile mergedFile = CSVFile.create(mergedFileName);
+        for (String fileName : fileNames)
         {
-            CSVFile file = CSVFile.open(file_name);
-
-            merged_file.copy(file);
+            CSVFile csvFile = CSVFile.open(fileName, CSVFile.READ_MODE);
+            String contents = csvFile.readAllLines();
+            mergedFile.write(contents);
         }
 
-        return merged_file_name;
+        return mergedFileName;
     }
 
 
@@ -482,7 +472,6 @@ public class GraphFragment extends Fragment
         dataSets.add(d);
         LineData lines = new LineData(dataSets);
         combinedData.setData(lines);
-
         // combinedData.setData(generateBarData());
         chart.setData(combinedData);
         chart.getAxisLeft().setEnabled(true);
