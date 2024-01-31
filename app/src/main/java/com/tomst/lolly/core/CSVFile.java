@@ -15,18 +15,21 @@ import java.util.Scanner;
  */
 public class CSVFile
 {
-    // TODO: uncomment below constants if there is a problem with reading and
-    //  writing to a file
     // public constants
-    // public static final char WRITE_MODE = 'w';
-    // public static final char READ_MODE = 'r';
+    /**
+     * Modes allow control over how to open a file. These are useful for
+     * deciphering if a file is intended to be overwritten or appended to.
+     */
+    public static final char APPEND_MODE = 'a';
+    public static final char READ_MODE = 'r';
+    public static final char WRITE_MODE = 'w';
 
     // private constants
     private static final String TAG = "CSV";
     private static final int LINE_LENGTH = 0;
 
     // operational members
-    // private final char mode;
+    private final char mode;
     private File file;
     private FileOutputStream writer;
     private Scanner reader;
@@ -39,27 +42,26 @@ public class CSVFile
      * @param file File object representing a file in the filesystem
      * @throws IOException
      */
-    private CSVFile(File file)
+    private CSVFile(File file, char mode)
     {
-        // this.mode = mode;
+        this.mode = mode;
         this.file = file;
 
         try
         {
-            this.writer = new FileOutputStream(file);
-            this.reader = new Scanner(file);
+            if (mode == READ_MODE)
+            {
+                this.reader = new Scanner(file);
+            }
+            else
+            {
+                this.writer = new FileOutputStream(file, (mode == APPEND_MODE));
+            }
         }
         catch (IOException e)
         {
             e.printStackTrace();
         }
-    }
-
-
-    // destructor allows closing of open file at point of destruction
-    protected void finalize() throws IOException
-    {
-        close();
     }
 
 
@@ -83,7 +85,7 @@ public class CSVFile
             {
                 Log.d(TAG, "Created file named: " + path);
 
-                csvFile = open(path);
+                csvFile = open(path, WRITE_MODE);
             }
             else
             {
@@ -105,11 +107,11 @@ public class CSVFile
      * @param path The path at which to open the file, include the file name
      * @return Reference to a CSVFile through which a file can be interacted
      */
-    public static CSVFile open(String path)
+    public static CSVFile open(String path, char mode)
     {
         File file = new File(path);
 
-        return new CSVFile(file);
+        return new CSVFile(file, mode);
     }
 
 
@@ -133,6 +135,11 @@ public class CSVFile
     }
 
 
+    /**
+     * Removes a file at the given path from the filesystem.
+     *
+     * @param path File path from which a file is to be removed
+     */
     public static void delete(String path)
     {
         if (!new File(path).delete())
@@ -144,15 +151,22 @@ public class CSVFile
 
     // reading and writing to files
     /**
-     * Copies contents a file into this file.
+     * Copies contents of a source file in a destination file given the file
+     * paths.
+     * @apiNote Provides a more succinct way of a file.
      *
-     * @param src File from which to copy
+     * @param srcPath File with contents to copy
+     * @param destPath File into which source file contents will be copied
      */
-    public void copy(CSVFile src)
+    public static void copy(String srcPath, String destPath)
     {
-        String src_contents = src.readAllLines();
-        write(src_contents);
+        CSVFile srcFile = CSVFile.open(srcPath, READ_MODE);
+        CSVFile destFile = CSVFile.open(destPath, WRITE_MODE);
+
+        String srcContents = srcFile.readAllLines();
+        destFile.write(srcContents);
     }
+
 
     /**
      * Writes to a file.
