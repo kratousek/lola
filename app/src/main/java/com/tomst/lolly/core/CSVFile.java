@@ -193,6 +193,7 @@ public class CSVFile
      */
     public String readLine()
     {
+        // TODO: maybe should let the user do this?
         if (this.reader.hasNextLine())
         {
             return this.reader.nextLine();
