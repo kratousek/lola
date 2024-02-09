@@ -344,9 +344,13 @@ public class GraphFragment extends Fragment
         CSVFile mergedFile = CSVFile.create(mergedFileName);
         for (String fileName : fileNames)
         {
+            String line = "";
             CSVFile csvFile = CSVFile.open(fileName, CSVFile.READ_MODE);
-            String line = csvFile.readLine();
-            mergedFile.write(line);
+
+            while ((line = csvFile.readLine()) != "")
+            {
+                mergedFile.write(line);
+            }
         }
 
         return mergedFileName;
