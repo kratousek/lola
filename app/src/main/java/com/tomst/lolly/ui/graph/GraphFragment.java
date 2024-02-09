@@ -349,7 +349,7 @@ public class GraphFragment extends Fragment
 
             while ((line = csvFile.readLine()) != "")
             {
-                mergedFile.write(line);
+                mergedFile.write(line + "\n");
             }
         }
 
