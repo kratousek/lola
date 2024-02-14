@@ -212,7 +212,7 @@ public class GraphFragment extends Fragment
 
                         if (fileNames.length > 1)
                         {
-                            String mergedFileName = mergeCsvFiles(fileNames);
+                            String mergedFileName = mergeCSVFiles(fileNames);
                             Log.d(
                                     "GRAPH",
                                     "Merged file name = "
@@ -324,13 +324,14 @@ public class GraphFragment extends Fragment
     }
 
 
-    private String mergeCsvFiles(String[] fileNames)
+    private String mergeCSVFiles(String[] fileNames)
     {
         final String LAST_OCCURENCE = ".*/";
         // final String parent_dir = file_names[0].split(LAST_OCCURENCE)[0];
         // for testing purposes only
-        final String parent_dir = "/storage/emulated/0/Documents/";
-        String mergedFileName = parent_dir + fileNames[0]
+        final String parentDir = "/storage/emulated/0/Documents/";
+        String tempFileName = parentDir + "temp.csv";
+        String mergedFileName = parentDir + fileNames[0]
                 .split(LAST_OCCURENCE)[1]
                 .replace(".csv", "");
         for (int i = 1; i < fileNames.length; i += 1)
@@ -341,17 +342,36 @@ public class GraphFragment extends Fragment
         }
         mergedFileName += ".csv";
 
-        CSVFile mergedFile = CSVFile.create(mergedFileName);
+        CSVFile tempFile = CSVFile.create(tempFileName);
+        String header = fileNames.length + ";\n";
+        long datasetStartLine = fileNames.length + 1;
         for (String fileName : fileNames)
         {
-            String line = "";
             CSVFile csvFile = CSVFile.open(fileName, CSVFile.READ_MODE);
+            String line = csvFile.readLine();
+            // serial number is always first line in data set
+            header += line + datasetStartLine + "\n";
 
             while ((line = csvFile.readLine()) != "")
             {
-                mergedFile.write(line + "\n");
+                tempFile.write(line + "\n");
+                datasetStartLine += 1;
             }
         }
+        tempFile.close();
+
+        CSVFile mergedFile = CSVFile.create(mergedFileName);
+        tempFile = CSVFile.open(tempFileName, CSVFile.READ_MODE);
+        mergedFile.write(header);
+
+        String line = "";
+        while ((line = tempFile.readLine()) != "")
+        {
+            mergedFile.write(line + "\n");
+        }
+
+        tempFile.close();
+        CSVFile.delete(parentDir + "temp.csv");
 
         return mergedFileName;
     }

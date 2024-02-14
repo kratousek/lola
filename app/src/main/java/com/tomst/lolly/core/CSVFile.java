@@ -125,8 +125,14 @@ public class CSVFile
     {
         try
         {
-            this.writer.close();
-            this.reader.close();
+            if (mode == WRITE_MODE || mode == APPEND_MODE)
+            {
+                this.writer.close();
+            }
+            else
+            {
+                this.reader.close();
+            }
         }
         catch (IOException e)
         {
