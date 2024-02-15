@@ -161,11 +161,21 @@ public class HomeFragment extends Fragment {
                 });
     }
 
+    // load native C library
+    static {
+        System.loadLibrary("lolly-backend-lib");
+    }
 
+    public native String getExampleStringJNI();
 
     @Override
     public void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
+
+        Log.i("| DEBUG |", "Home Fragment, right above jni string");
+
+        Log.i("| DEBUG |", getExampleStringJNI());
+
     }
 
     private ServiceConnection connection = new ServiceConnection() {
