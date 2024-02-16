@@ -22,6 +22,7 @@ import android.webkit.MimeTypeMap;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -62,48 +63,45 @@ import java.util.concurrent.ThreadPoolExecutor;
 public class ListFragment extends Fragment
 {
     private FragmentViewerBinding binding;
-    View rootView = null;
-
+    private View rootView = null;
     private int mywidth;
-
     private Bitmap fileImage, pictureImage, audioImage,
             videoImage, unknownImage, archiveImage,
             folderImage;
-
-
     private PermissionManager permissionManager;
-
-    //private final ThreadPoolExecutor executor;
     private String filePath;
     private File parent;
     private final String TAG = "TOMST";
-
     public FileOpener fopen;
-
     private  DmdViewModel dmd;
 
     List<FileDetail> fFriends = null;
 
-    public ListFragment(){
+    public ListFragment()
+    {
         //executor = new ScheduledThreadPoolExecutor(1);
         //fopen = new FileOpener(this);
     }
 
 
-    public View onCreateView(@NonNull LayoutInflater inflater,
-                             ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(
+            @NonNull LayoutInflater inflater, ViewGroup container,
+            Bundle savedInstanceState
+    ) {
         ListViewModel listViewModel =
                 new ViewModelProvider(this).get(ListViewModel.class);
 
-        binding = FragmentViewerBinding.inflate(inflater, container, false);
-        //View rootView = binding.getRoot();
+        binding = FragmentViewerBinding.inflate(
+                inflater, container, false
+        );
         rootView = binding.getRoot();
 
         Button zip_btn = binding.buttonZipall;
         zip_btn.setText("Upload Zip");
-        zip_btn.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                //Log.d("BUTTONS", "User tapped the Supabutton");
+        zip_btn.setOnClickListener(new View.OnClickListener()
+        {
+            public void onClick(View v)
+            {
                 ZipFiles zipFiles = new ZipFiles();
 
                 File dir = new File(Constants.FILEDIR);
@@ -114,7 +112,11 @@ public class ListFragment extends Fragment
                 File zipFile = new File(zipDirName);
 
                 // Get a content URI for the zip file using FileProvider
-                Uri zipUri = FileProvider.getUriForFile(getContext(), BuildConfig.APPLICATION_ID + ".provider", zipFile);
+                Uri zipUri = FileProvider.getUriForFile(
+                    getContext(),
+                    BuildConfig.APPLICATION_ID + ".provider",
+                    zipFile
+                );
 
                 // Create an intent with the action ACTION_SEND and the type "application/zip"
                 Intent sendIntent = new Intent(Intent.ACTION_SEND);
@@ -125,7 +127,10 @@ public class ListFragment extends Fragment
 
                 // Optionally, you can also add a subject and a text message for the intent
                 sendIntent.putExtra(Intent.EXTRA_SUBJECT, "Zip file");
-                sendIntent.putExtra(Intent.EXTRA_TEXT, "Here is content of my download from lolly phone app.");
+                sendIntent.putExtra(
+                    Intent.EXTRA_TEXT,
+                    "Here is content of my download from lolly phone app."
+                );
 
                 // Start the intent using startActivity() or startActivityForResult()
                 startActivity(sendIntent);
@@ -138,11 +143,11 @@ public class ListFragment extends Fragment
         permissionManager = new PermissionManager(getActivity());
         fopen = new FileOpener(getActivity());
 
-        //List<FileDetail> fFriends = new ArrayList<>();
         fFriends = new ArrayList<>();
 
         Intent intent = getActivity().getIntent();
-        switch (intent.getAction()){
+        switch (intent.getAction())
+        {
             case Intent.ACTION_GET_CONTENT:
                 fopen.isRequestDocument = true;
                 getActivity().setResult(RESULT_CANCELED);
@@ -181,6 +186,7 @@ public class ListFragment extends Fragment
                     long id
             ) {
                 filenames.add(friendsAdapter.getFullName(position));
+                friendsAdapter.setChecked(view);
             }
         });
 
@@ -318,8 +324,7 @@ public class ListFragment extends Fragment
     }
 
 
-    //private void addItem(final ImageView imageView, final File file) {
-    private void addItem(int iconID,File file)
+    private void addItem(int iconID, File file)
     {
        // new Item(imageView, file);
         String fName= file.getName();
@@ -328,16 +333,16 @@ public class ListFragment extends Fragment
             iconID = 0;
         }
         fFriends.add(new FileDetail(
-                file.getName(),
-                file.getAbsolutePath(),
-                iconID
+            file.getName(),
+            file.getAbsolutePath(),
+            iconID
         ));
-        Log.d(TAG,file.getName());
+        Log.d(TAG, file.getName());
     }
+
 
     private void AddDirName(String DirName)
     {
-        //fFriends.add(new FileDetail(DirName,R.drawable.ic_mood_white_24dp));
         fFriends.add(new FileDetail(DirName,R.drawable.folder));
     }
 
@@ -378,6 +383,7 @@ public class ListFragment extends Fragment
         return "application/octet-stream";
     }
 
+
     private void listItem(final File folder)
     {
         String info = "Name: " + folder.getName() + "\n";
@@ -406,7 +412,9 @@ public class ListFragment extends Fragment
         {
             final File[] items = folder.listFiles();
             assert items != null;
+
             sort(items);
+
             if (items.length == 0)
             {
                 addDialog("Empty folder!", 16);
@@ -415,6 +423,7 @@ public class ListFragment extends Fragment
             {
                 String lastLetter = "";
                 boolean hasFolders = false;
+
                 for (File item : items)
                 {
                     if (item.isDirectory())
@@ -517,7 +526,6 @@ public class ListFragment extends Fragment
                 addDialog("Access Denied", 16);
             }
         }
-       // runOnUiThread(() -> ll.removeView(findViewById(LOADING_VIEW_ID)));
     }
 
 
@@ -545,7 +553,6 @@ public class ListFragment extends Fragment
             {
                 listItem(rootDir);
             }
-            // listItem(new File(filePath));
         }
         else
         {
