@@ -1,11 +1,13 @@
 package com.tomst.lolly.fileview;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -68,11 +70,19 @@ public class FileViewerAdapter extends BaseAdapter
             );
 
             ImageView imageView = (ImageView) view.findViewById(R.id.iconID);
-            TextView textView = (TextView) view.findViewById(R.id.president);
+//            TextView textView = (TextView) view.findViewById(R.id.president);
             CheckBox checkBox = (CheckBox) view.findViewById(R.id.checkBox);
+            checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener()
+            {
+                @Override
+                public void onCheckedChanged(CompoundButton compoundButton, boolean b)
+                {
+                    Log.d("FILEVIEWER", "Checked: " + b);
+                }
+            });
 
             name = mAllFiles.get(position).getName();
-            textView.setText(name);
+            checkBox.setText(name);
             imageView.setImageResource(mAllFiles.get(position).getIconID());
             checkBox.setChecked(false);
         }
