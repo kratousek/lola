@@ -176,19 +176,6 @@ public class ListFragment extends Fragment
                 getContext(), fFriends
         );
         mListView.setAdapter(friendsAdapter);
-        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener()
-        {
-            @Override
-            public void onItemClick(
-                    AdapterView<?> parent,
-                    View view,
-                    int position,
-                    long id
-            ) {
-                filenames.add(friendsAdapter.getFullName(position));
-                friendsAdapter.setChecked(view);
-            }
-        });
 
         // add listener for loading selected datasets to graph fragment
         Button select_sets_btn = binding.selectSets;
@@ -197,13 +184,14 @@ public class ListFragment extends Fragment
             @Override
             public void onClick(View view)
             {
-                String filenames_msg = "";
-                for (String filename : filenames)
+                String fileNameMsg = "";
+                ArrayList<String> fileNames = friendsAdapter.collectSelected();
+                for (String fileName : fileNames)
                 {
-                    filenames_msg += filename + ";";
+                    fileNameMsg += fileName + ";";
                 }
 
-                dmd.sendMessageToGraph(filenames_msg);
+                dmd.sendMessageToGraph(fileNameMsg);
                 switchToGraphFragment();
             }
         });
@@ -532,6 +520,7 @@ public class ListFragment extends Fragment
     @Override
     public void onStart()
     {
+        Log.d("LIST", "Started...");
         super.onStart();
 
         File[] rootDirectories = FileOperation.getAllStorages(getContext());

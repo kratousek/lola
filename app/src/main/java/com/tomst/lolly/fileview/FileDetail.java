@@ -7,6 +7,7 @@ public class FileDetail
     private int iconID;
     private int FileSize;
     private String fullName;
+    private boolean isSelected;
 
 
     public FileDetail(String filename, int iconID)
@@ -14,6 +15,7 @@ public class FileDetail
         this.name = filename;
         this.iconID = iconID;
         this.fullName =  "";
+        this.isSelected = false;
     }
 
 
@@ -22,6 +24,7 @@ public class FileDetail
         this.name = filename;
         this.iconID = iconID;
         this.fullName = FullName;
+        this.isSelected = false;
     }
 
 
@@ -35,4 +38,13 @@ public class FileDetail
 
 
     public int getFileSize() { return FileSize; }
+
+
+    public void setSelected(boolean select)
+    {
+        isSelected = select;
+    }
+
+
+    public boolean isSelected() { return isSelected; }
 }

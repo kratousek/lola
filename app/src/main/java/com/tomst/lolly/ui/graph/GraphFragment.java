@@ -200,6 +200,7 @@ public class GraphFragment extends Fragment
         dmd.getMessageContainerGraph()
                 .observe(getViewLifecycleOwner(), msg ->
                 {
+                    Log.d("GRAPH", "Received: " + msg);
                     if (msg.equals("TMD"))
                     {
                         // vytahne data z dmd, ktere sem poslal TMD adapter

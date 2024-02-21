@@ -13,13 +13,14 @@ import android.widget.TextView;
 
 import com.tomst.lolly.R;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
 public class FileViewerAdapter extends BaseAdapter
 {
     private final Context mContext;
-    private List<FileDetail> mAllFiles;//= Collections.EMPTY_LIST;
+    private List<FileDetail> mAllFiles;
 
     public FileViewerAdapter(Context mContext, List<FileDetail> mAllFiles)
     {
@@ -77,7 +78,8 @@ public class FileViewerAdapter extends BaseAdapter
                 @Override
                 public void onCheckedChanged(CompoundButton compoundButton, boolean b)
                 {
-                    Log.d("FILEVIEWER", "Checked: " + b);
+                    Log.d("FILEVIEWER", getFullName(position) + " selected = " + b);
+                    mAllFiles.get(position).setSelected(b);
                 }
             });
 
@@ -102,9 +104,24 @@ public class FileViewerAdapter extends BaseAdapter
         return mAllFiles.get(position).getFull();
     }
 
-    public void setChecked(View view)
+
+    public boolean isSelected(int position)
     {
-        CheckBox checkBox = (CheckBox) view.findViewById(R.id.checkBox);
-        checkBox.setChecked(true);
+        return mAllFiles.get(position).isSelected();
+    }
+
+
+    public ArrayList<String> collectSelected()
+    {
+        ArrayList<String> selected = new ArrayList<>();
+        for (FileDetail fileDetail : mAllFiles)
+        {
+            if (fileDetail.isSelected())
+            {
+                selected.add(fileDetail.getFull());
+            }
+        }
+
+        return selected;
     }
 }
