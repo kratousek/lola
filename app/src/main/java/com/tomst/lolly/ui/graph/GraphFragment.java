@@ -111,48 +111,9 @@ public class GraphFragment extends Fragment
     }
 
 
-    private void LoadCsvFile(String fileName)
+    private void LoadCSVFile(String fileName)
     {
-        if (fileName == "")
-        {
-            return;
-        }
-
-        Log.d(Constants.TAG, "Received " + fileName);
-
-        csv.SetBarListener(new OnProListener()
-        {
-            @Override
-            public void OnProEvent(long Pos)
-            {
-                if  (binding == null)
-                {
-                    return;
-                }
-
-                if (Pos < 0)
-                {
-                    fIdx = 0;
-                    vT1.clear();
-                    binding.proBar.setMax((int) -Pos);
-                }
-                else
-                {
-                    binding.proBar.setProgress((int) Pos);
-                }
-            }
-        });
-
-        csv.SetFinListener(new OnProListener()
-        {
-            @Override
-            public void OnProEvent(long Pos)
-            {
-                binding.proBar.setProgress(0);
-                //CopyDataToChart(vT1);
-                LoadDmdData();
-            }
-        });
+        // refill
     }
 
 
@@ -224,7 +185,7 @@ public class GraphFragment extends Fragment
                         }
                         else
                         {
-                            LoadCsvFile(fileNames[0]);
+                            LoadCSVFile(fileNames[0]);
                         }
                     }
 
@@ -352,7 +313,7 @@ public class GraphFragment extends Fragment
             String line = csvFile.readLine();
             // serial number is always first line in data set
             header += line + datasetStartLine + "\n";
-
+            tempFile.write(line + "\n");
             while ((line = csvFile.readLine()) != "")
             {
                 tempFile.write(line + "\n");
