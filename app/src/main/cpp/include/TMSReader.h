@@ -4,5 +4,9 @@
 #include <jni.h>
 
 #include <stdlib.h>
+#include <signal.h>
+
+#include <libusb.h>
+#include <ftdi.h>
 
 #endif //LOLLY_TMSREADER_H
