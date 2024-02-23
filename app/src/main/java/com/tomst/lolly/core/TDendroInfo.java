@@ -8,22 +8,24 @@ public class TDendroInfo
 {
     public String serial;
     // include picture later
-    public Long startLine, endLine, longitude, latitude;
+    public Long longitude, latitude;
     // an array of measurements (lines of a file)
-    public ArrayList<TMereni> mers = new ArrayList<TMereni>();
-    public ArrayList<Entry> vT1 = new ArrayList<>();
-    public ArrayList<Entry> vT2 = new ArrayList<>();
-    public ArrayList<Entry> vT3 = new ArrayList<>();
-    public ArrayList<Entry> vHA = new ArrayList<>();
+    public ArrayList<TMereni> mers;
+    public ArrayList<Entry> vT1;
+    public ArrayList<Entry> vT2;
+    public ArrayList<Entry> vT3;
+    public ArrayList<Entry> vHA;
 
 
-    public TDendroInfo(TDendroInfo header)
+    public TDendroInfo(String serial, Long longitude, Long latitude)
     {
-        this.serial = header.serial;
-        this.startLine = header.startLine;
-        this.endLine = header.endLine;
-        this.longitude = header.longitude;
-        this.latitude = header.latitude;
-        this.mers = header.mers;
+        this.serial = serial;
+        this.longitude = longitude;
+        this.latitude = latitude;
+        this.mers = new ArrayList<>();
+        this.vT1 = new ArrayList<>();
+        this.vT2 = new ArrayList<>();
+        this.vT3 = new ArrayList<>();
+        this.vHA = new ArrayList<>();
     }
 }

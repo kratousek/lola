@@ -60,9 +60,8 @@ public class GraphFragment extends Fragment
     // constants for loading CSV files
     private static final String DATE_PATTERN = "dd.MM.yyyy HH:mm";
     private static final byte SERIAL_INDEX = 0;
-    private static final byte START_LINE_INDEX = 1;
-    private static final byte LONGITUDE_INDEX = 2;
-    private static final byte LATITUDE_INDEX = 3;
+    private static final byte LONGITUDE_INDEX = 1;
+    private static final byte LATITUDE_INDEX = 2;
     private static final byte PICTURE_INDEX = 4;
 
 
@@ -82,7 +81,7 @@ public class GraphFragment extends Fragment
     // visualization data holders
     private final int barCount = 12;
     private ArrayList<ILineDataSet> dataSets = new ArrayList<>();
-    private ArrayList<TDendroInfo> dendroInfo = new ArrayList<>();
+    private ArrayList<TDendroInfo> dendroInfos = new ArrayList<>();
 
 
     // graphing
@@ -147,14 +146,14 @@ public class GraphFragment extends Fragment
         do
         {
             // line graph
-            d = SetLine(dendroInfo.get(headerIndex).vT1, TPhysValue.vT1);
+            d = SetLine(dendroInfos.get(headerIndex).vT1, TPhysValue.vT1);
             dataSets.add(d);
-            d = SetLine(dendroInfo.get(headerIndex).vT2, TPhysValue.vT2);
+            d = SetLine(dendroInfos.get(headerIndex).vT2, TPhysValue.vT2);
             dataSets.add(d);
-            d = SetLine(dendroInfo.get(headerIndex).vT3, TPhysValue.vT3);
+            d = SetLine(dendroInfos.get(headerIndex).vT3, TPhysValue.vT3);
             dataSets.add(d);
             // humidity
-            d = SetLine(dendroInfo.get(headerIndex).vHA, TPhysValue.vHum);
+            d = SetLine(dendroInfos.get(headerIndex).vHA, TPhysValue.vHum);
             dataSets.add(d);
             LineData lines = new LineData(dataSets);
             combinedData.setData(lines);
@@ -183,49 +182,57 @@ public class GraphFragment extends Fragment
 
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    private void LoadCSVFile(String fileName)
+    private void loadCSVFile(String fileName)
     {
-        int valueIndex = 0;
+        long valueIndex = 0;
+        String currentLine = "";
         CSVFile csv = CSVFile.open(fileName, CSVFile.READ_MODE);
 
-        // read header of file
-        String currentline = "";
-        currentline = csv.readLine();
-        numDataSets = Integer.parseInt(currentline.split(";")[0]);
+        // count data sets
+        currentLine = csv.readLine();
+        numDataSets = Integer.parseInt(currentLine.split(";")[0]);
 
-        // loop through header
+        // read file header
         while (headerIndex < numDataSets)
         {
-            currentline = csv.readLine();
-            String[] lineOfFile = currentline.split(";");
-            dendroInfo.get(headerIndex).serial = lineOfFile[SERIAL_INDEX];
-            dendroInfo.get(headerIndex).startLine =
-                    Long.parseLong(lineOfFile[START_LINE_INDEX]);
-            dendroInfo.get(headerIndex).longitude =
-                    Long.parseLong(lineOfFile[LONGITUDE_INDEX]);
-            dendroInfo.get(headerIndex).latitude =
-                    Long.parseLong(lineOfFile[LATITUDE_INDEX]);
+            currentLine = csv.readLine();
+            String[] lineOfFile = currentLine.split(";");
+            Log.d("GRAPH", "Line = ");
+            for (String line : lineOfFile)
+            {
+                Log.d("GRAPH", line);
+            }
+
+            String serial = lineOfFile[SERIAL_INDEX];
+            Long longitude = Long.parseLong(lineOfFile[LONGITUDE_INDEX]);
+            Long latitude = Long.parseLong(lineOfFile[LATITUDE_INDEX]);
+            TDendroInfo dendroInfo = new TDendroInfo(
+                    serial, longitude, latitude
+            );
+            dendroInfos.add(headerIndex, dendroInfo);
+
             headerIndex++;
         }
 
-        // looping through rest of file
-        headerIndex = 0;
-        while ((currentline = csv.readLine()) != "")
+        // read data
+        headerIndex = -1;
+        while ((currentLine = csv.readLine()) != "")
         {
-            TMereni mer = processLine(currentline);
-            dendroInfo.get(headerIndex).mers.add(mer);
-            dendroInfo.get(headerIndex).vT1.add(
+            TMereni mer = processLine(currentLine);
+            dendroInfos.get(headerIndex).mers.add(mer);
+            dendroInfos.get(headerIndex).vT1.add(
                     new Entry(valueIndex, (float)mer.t1)
             );
-            dendroInfo.get(headerIndex).vT2.add(
+            dendroInfos.get(headerIndex).vT2.add(
                     new Entry(valueIndex, (float)mer.t2)
             );
-            dendroInfo.get(headerIndex).vT3.add(
+            dendroInfos.get(headerIndex).vT3.add(
                     new Entry(valueIndex, (float)mer.t3)
             );
-            dendroInfo.get(headerIndex).vHA.add(
+            dendroInfos.get(headerIndex).vHA.add(
                     new Entry(valueIndex, (float)mer.hum)
             );
+
             valueIndex++;
         }
     }
@@ -235,14 +242,11 @@ public class GraphFragment extends Fragment
     private TMereni processLine(String line)
     {
         int currDay = 0;
+        String[] lineOfFile = line.split(";");
         LocalDateTime dateTime = null;
         LocalDateTime currDate;
 
         TMereni mer = new TMereni();
-
-        String[] lineOfFile = line.split(";");
-
-        // requires changing csv to have serial before dataset
         if (lineOfFile.length == 1)
         {
             headerIndex++;
@@ -263,11 +267,14 @@ public class GraphFragment extends Fragment
             }
 
             // replaces all occurrences of 'a' to 'e'
-            String T1 = lineOfFile[TEMP1_INDEX].replace(',', '.');
+            String T1 = lineOfFile[TEMP1_INDEX]
+                    .replace(',', '.');
             // replaces all occurrences of 'a' to 'e'
-            String T2 = lineOfFile[TEMP2_INDEX].replace(',', '.');
+            String T2 = lineOfFile[TEMP2_INDEX]
+                    .replace(',', '.');
             // replaces all occurrences of 'a' to 'e'
-            String T3 = lineOfFile[TEMP3_INDEX].replace(',', '.');
+            String T3 = lineOfFile[TEMP3_INDEX]
+                    .replace(',', '.');
 
             mer.t1 = Float.parseFloat(T1);
             mer.t2 = Float.parseFloat(T2);
@@ -285,7 +292,7 @@ public class GraphFragment extends Fragment
         boolean checked = ((CheckBox) view).isChecked();
         Object ob = ((CheckBox) view).getTag();
         int tag = Integer.valueOf(ob.toString());
-        if (tag<=0)
+        if (tag <= 0)
         {
             throw new UnsupportedOperationException(
                     "Selected line dataset doesn't exists"
@@ -345,11 +352,13 @@ public class GraphFragment extends Fragment
                                             + mergedFileName
                             );
 
-                            LoadCSVFile(mergedFileName);
+                            loadCSVFile(mergedFileName);
+                            DisplayData();
                         }
                         else
                         {
-                            LoadCSVFile(fileNames[0]);
+                            loadCSVFile(fileNames[0]);
+                            DisplayData();
                         }
                     }
 
@@ -468,23 +477,28 @@ public class GraphFragment extends Fragment
         }
         mergedFileName += ".csv";
 
+        int numDataSets = 0;
+        String header = "";
         CSVFile tempFile = CSVFile.create(tempFileName);
-        String header = fileNames.length + ";\n";
-        long datasetStartLine = fileNames.length + 1;
         for (String fileName : fileNames)
         {
             CSVFile csvFile = CSVFile.open(fileName, CSVFile.READ_MODE);
-            String line = csvFile.readLine();
+            // count the data sets
+            String currentLine = csvFile.readLine();
+            numDataSets += Integer.parseInt(currentLine.split(";")[0]);
             // serial number is always first line in data set
-            header += line + datasetStartLine + "\n";
-            tempFile.write(line + "\n");
-            while ((line = csvFile.readLine()) != "")
+            currentLine = csvFile.readLine();
+            header += currentLine + "\n";
+            // read data
+            while ((currentLine = csvFile.readLine()) != "")
             {
-                tempFile.write(line + "\n");
-                datasetStartLine += 1;
+                tempFile.write(currentLine + "\n");
             }
         }
         tempFile.close();
+
+        header = numDataSets + ";\n" + header;
+        Log.d("GRAPH", "Header = " + header);
 
         CSVFile mergedFile = CSVFile.create(mergedFileName);
         tempFile = CSVFile.open(tempFileName, CSVFile.READ_MODE);
