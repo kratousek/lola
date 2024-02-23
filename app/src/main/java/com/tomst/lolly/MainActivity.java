@@ -26,6 +26,7 @@ import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -50,6 +51,7 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
 import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.Firebase;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
@@ -61,6 +63,8 @@ import com.tomst.lolly.core.FileOpener;
 import com.tomst.lolly.core.PermissionManager;
 import com.tomst.lolly.databinding.ActivityMainBinding;
 import com.tomst.lolly.core.DmdViewModel;
+
+import org.w3c.dom.Text;
 
 import java.io.File;
 import java.util.HashMap;
@@ -276,12 +280,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 .show();
     }
 
-    // variables for authentication
-    Button logInBtn;
+    // for user authentication
     FirebaseAuth auth;
-    FirebaseDatabase database;
-    GoogleSignInClient mGoogleSignInClient;
-    int RC_SIGN_IN = 20;
+    Button button;
+    TextView textView;
+    FirebaseUser user;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -290,29 +293,59 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        // for user authentication
+        auth = FirebaseAuth.getInstance();
+        button = findViewById(R.id.btnLogout);
+        textView = findViewById(R.id.userDetails);
+        user = auth.getCurrentUser();
+
+        if (user == null)
+        {
+            Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+            startActivity(intent);
+            finish();
+        }
+        else
+        {
+            textView.setText(user.getEmail());
+        }
+
+        button.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                FirebaseAuth.getInstance().signOut();
+                Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+                startActivity(intent);
+                finish();
+            }
+        });
+
+
         view = binding.getRoot();
-        
-       // permissionManager = new PermissionManager(this);
+
+        // permissionManager = new PermissionManager(this);
 
         Intent intent = getIntent();
         switch (intent.getAction()) {
-            case Intent.ACTION_GET_CONTENT :
+            case Intent.ACTION_GET_CONTENT:
                 fopen.isRequestDocument = true;
                 setResult(RESULT_CANCELED);
                 break;
-            case Intent.ACTION_OPEN_DOCUMENT : {
+            case Intent.ACTION_OPEN_DOCUMENT: {
                 fopen.isRequestDocument = true;
                 setResult(RESULT_CANCELED);
                 break;
             }
-            default :
+            default:
                 fopen.isRequestDocument = false;
         }
 
         //checkPermission();
-         if (!checkPermission()) {
+        if (!checkPermission()) {
             requestPermission();
-         }
+        }
 
         // sdileny datovy modul
         dmdViewModel = new ViewModelProvider(this).get(DmdViewModel.class);
@@ -321,128 +354,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
         AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.navigation_home, R.id.navigation_graph, R.id.navigation_notifications,R.id.navigation_options)
+                R.id.navigation_home, R.id.navigation_graph, R.id.navigation_notifications, R.id.navigation_options)
                 .build();
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_main);
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(binding.navView, navController);
 
-        // user authentication
-        logInBtn = findViewById(R.id.logInBtn);
-
-        auth = FirebaseAuth.getInstance();
-        database = FirebaseDatabase.getInstance();
-
-        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken("563982025396-79bivbd7730hu6fd8m1dq262v4bc9fev.apps.googleusercontent.com")
-                .requestEmail().build();
-
-        mGoogleSignInClient = GoogleSignIn.getClient(this,gso);
-
-        // when log in button gets pressed, it initiates the google sign in
-        logInBtn.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View view)
-            {
-
-                googleSignIn();
-            }
-        });
-
     }
-
-    //
-    private void googleSignIn()
-    {
-        Intent intent = mGoogleSignInClient.getSignInIntent();
-        //startActivityForResult(intent, RC_SIGN_IN);
-        someActivityResultLauncher.launch(intent);
-    }
-
-    ActivityResultLauncher<Intent> someActivityResultLauncher = registerForActivityResult(
-            new ActivityResultContracts.StartActivityForResult(),
-            new ActivityResultCallback<ActivityResult>()
-            {
-                @Override
-                public void onActivityResult(ActivityResult result)
-                {
-                    if (result.getResultCode() == Activity.RESULT_OK)
-                    {
-                        Intent data = result.getData();
-                        Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
-
-                        try
-                        {
-                            GoogleSignInAccount account = task.getResult(ApiException.class);
-                            firebaseAuth(account.getIdToken());
-                        }
-                        catch (Exception e)
-                        {
-                            //Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
-                        }
-
-                    }
-                }
-
-            });
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data)
-    {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (requestCode==RC_SIGN_IN)
-        {
-            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
-
-            try
-            {
-                GoogleSignInAccount account = task.getResult(ApiException.class);
-                firebaseAuth(account.getIdToken());
-            }
-            catch (Exception e)
-            {
-                Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
-
-    private void firebaseAuth(String idToken)
-    {
-        AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
-        auth.signInWithCredential(credential)
-                .addOnCompleteListener(new OnCompleteListener<AuthResult>()
-                {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task)
-                    {
-                        if (task.isSuccessful())
-                        {
-                            FirebaseUser user = auth.getCurrentUser();
-
-                            HashMap<String, Object> map = new HashMap<>();
-                            map.put("id",user.getUid());
-                            map.put("name", user.getDisplayName());
-                            map.put("email",user.getEmail());
-
-                            database.getReference().child("users").child(user.getUid())
-                                    .setValue(map);
-
-                            Intent intent = new Intent(MainActivity.this,
-                                                                    SecondActivity.class);
-                            startActivity(intent);
-
-                        }
-                        else
-                        {
-                            Toast.makeText(MainActivity.this,"something went wrong",
-                                                  Toast.LENGTH_SHORT).show();
-
-                        }
-                    }
-                });
-    }
-
 
 }
