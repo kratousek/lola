@@ -15,7 +15,7 @@
         <item>From date</item>
     </string-array>
 
-   <string name="measurement_mode">Choose a measurement mode</string>
+    <string name="measurement_mode">Choose a measurement mode</string>
     <string-array name="modes_array">
         <item>None</item>
         <item>Basic</item>

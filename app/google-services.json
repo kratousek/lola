@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "563982025396",
+    "firebase_url": "https://dendro-dawgz-default-rtdb.firebaseio.com",
     "project_id": "dendro-dawgz",
     "storage_bucket": "dendro-dawgz.appspot.com"
   },
@@ -12,7 +13,20 @@
           "package_name": "com.tomst.lolly"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "563982025396-79bivbd7730hu6fd8m1dq262v4bc9fev.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.tomst.lolly",
+            "certificate_hash": "ee6f05c66e693fadc3411dd5b3d9e60361fa202c"
+          }
+        },
+        {
+          "client_id": "563982025396-f9ko97qodgi646095v6606usnmqar060.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDDeK9-yndeDp2AAnR1dTG0REIafXwEPdM"
@@ -20,7 +34,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "563982025396-f9ko97qodgi646095v6606usnmqar060.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

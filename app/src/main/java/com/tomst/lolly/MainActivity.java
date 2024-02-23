@@ -3,12 +3,15 @@ package com.tomst.lolly;
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 
+import static java.sql.DriverManager.println;
+
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -22,11 +25,20 @@ import android.os.IBinder;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -38,6 +50,12 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
 import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.database.FirebaseDatabase;
 import com.tomst.lolly.core.Constants;
 import com.tomst.lolly.core.FileOpener;
 import com.tomst.lolly.core.PermissionManager;
@@ -45,6 +63,7 @@ import com.tomst.lolly.databinding.ActivityMainBinding;
 import com.tomst.lolly.core.DmdViewModel;
 
 import java.io.File;
+import java.util.HashMap;
 
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
@@ -257,6 +276,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 .show();
     }
 
+    // variables for authentication
+    Button logInBtn;
+    FirebaseAuth auth;
+    FirebaseDatabase database;
+    GoogleSignInClient mGoogleSignInClient;
+    int RC_SIGN_IN = 20;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -301,6 +326,123 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_main);
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(binding.navView, navController);
+
+        // user authentication
+        logInBtn = findViewById(R.id.logInBtn);
+
+        auth = FirebaseAuth.getInstance();
+        database = FirebaseDatabase.getInstance();
+
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken("563982025396-79bivbd7730hu6fd8m1dq262v4bc9fev.apps.googleusercontent.com")
+                .requestEmail().build();
+
+        mGoogleSignInClient = GoogleSignIn.getClient(this,gso);
+
+        // when log in button gets pressed, it initiates the google sign in
+        logInBtn.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+
+                googleSignIn();
+            }
+        });
+
     }
+
+    //
+    private void googleSignIn()
+    {
+        Intent intent = mGoogleSignInClient.getSignInIntent();
+        //startActivityForResult(intent, RC_SIGN_IN);
+        someActivityResultLauncher.launch(intent);
+    }
+
+    ActivityResultLauncher<Intent> someActivityResultLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            new ActivityResultCallback<ActivityResult>()
+            {
+                @Override
+                public void onActivityResult(ActivityResult result)
+                {
+                    if (result.getResultCode() == Activity.RESULT_OK)
+                    {
+                        Intent data = result.getData();
+                        Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
+
+                        try
+                        {
+                            GoogleSignInAccount account = task.getResult(ApiException.class);
+                            firebaseAuth(account.getIdToken());
+                        }
+                        catch (Exception e)
+                        {
+                            //Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+
+                    }
+                }
+
+            });
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data)
+    {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode==RC_SIGN_IN)
+        {
+            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
+
+            try
+            {
+                GoogleSignInAccount account = task.getResult(ApiException.class);
+                firebaseAuth(account.getIdToken());
+            }
+            catch (Exception e)
+            {
+                Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    private void firebaseAuth(String idToken)
+    {
+        AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
+        auth.signInWithCredential(credential)
+                .addOnCompleteListener(new OnCompleteListener<AuthResult>()
+                {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task)
+                    {
+                        if (task.isSuccessful())
+                        {
+                            FirebaseUser user = auth.getCurrentUser();
+
+                            HashMap<String, Object> map = new HashMap<>();
+                            map.put("id",user.getUid());
+                            map.put("name", user.getDisplayName());
+                            map.put("email",user.getEmail());
+
+                            database.getReference().child("users").child(user.getUid())
+                                    .setValue(map);
+
+                            Intent intent = new Intent(MainActivity.this,
+                                                                    SecondActivity.class);
+                            startActivity(intent);
+
+                        }
+                        else
+                        {
+                            Toast.makeText(MainActivity.this,"something went wrong",
+                                                  Toast.LENGTH_SHORT).show();
+
+                        }
+                    }
+                });
+    }
+
 
 }
