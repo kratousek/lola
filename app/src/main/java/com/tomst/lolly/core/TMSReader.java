@@ -1,8 +1,12 @@
 package com.tomst.lolly.core;
 
 import android.annotation.SuppressLint;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.content.IntentFilter;
+import android.hardware.usb.UsbDevice;
+import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
 import android.os.Build;
 import android.os.Handler;
@@ -25,6 +29,8 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
+import java.util.Iterator;
 
 
 public class TMSReader extends Thread {
@@ -38,7 +44,6 @@ public class TMSReader extends Thread {
     private Context DeviceUARTContext;
     private D2xxManager ftdid2xx = null;
     private int currentIndex = -1;
-    private final int openIndex = 0;
     private boolean uart_configured = true;
     private static Handler progressBarHandler = new Handler(Looper.getMainLooper());  // handler pro vysilani z Threadu
     public OnProListener mBarListener; // listener field
@@ -46,8 +51,6 @@ public class TMSReader extends Thread {
     public TMereni mer ;
     public String sMeteo;
     public TMeteo meteo;
-    private int fAddr;
-    private int TmpNan = -200;
     private final String TAG = "TOMST";
     public String SerialNumber;
     public String AdapterNumber;
@@ -77,14 +80,16 @@ public class TMSReader extends Thread {
     private boolean mRunning;
 
     public void SetHer(uHer her){
-        this.fHer = her;
+        fHer = her;
     }
-    public void SetHandler(Handler han){  this.handler = han; }
+    public void SetHandler(Handler han){  handler = han; }
 
     public void SetBarListener(OnProListener AListener){
         this.mBarListener = AListener;
     }
-    public void SetDataHandler(Handler han) {this.datahandler= han;}
+    public void SetDataHandler(Handler han) {
+        datahandler= han;
+    }
 
     public void SetFilePath(String AFileDir){
         this.fileDir = AFileDir;
@@ -100,6 +105,11 @@ public class TMSReader extends Thread {
     public void SetDevice(FT_Device Dev) {this.ftDev =Dev;}
 
     private final Context context;
+
+    // load shared native library
+    static {
+        System.loadLibrary("lolly-backend-lib");
+    }
 
     // chci, aby firmware existoval v danem kontextu
     public TMSReader(Context context){
@@ -195,8 +205,7 @@ public class TMSReader extends Thread {
     }
 
     public static String between(String line, String s1, String s2){
-        String subStr = line.substring(line.indexOf(s1 ) + 1, line.indexOf(s2));
-        return subStr;
+        return line.substring(line.indexOf(s1 ) + 1, line.indexOf(s2));
     }
 
     public boolean ParseHeader(String line){
@@ -205,7 +214,7 @@ public class TMSReader extends Thread {
         boolean result = false;
         line = aft(line,"=");
         rfir.Result = line.length()>0;
-        if (rfir.Result == false)
+        if (!rfir.Result)
             return (false);
 
         String s = between(line,"&","^");
@@ -281,11 +290,12 @@ public class TMSReader extends Thread {
 
     public  byte con(String str, byte pos){
         String s = str.substring(pos,pos+1);
-        byte r  = (byte)Integer.parseInt(s,16);
-        return r;
+        return (byte)Integer.parseInt(s,16);
     }
 
     public boolean convertMereni(String line) {
+        int tmpNan = -200;
+
         String[] str = line.split(";");
         // 00F;ADC;FF3;183;2
         if (str[1].equals("ADC")) {
@@ -329,8 +339,8 @@ public class TMSReader extends Thread {
         if ((mer.dev == TDeviceType.dAD) || (mer.dev == TDeviceType.dAdMicro)) {
             mer.hum = 0;
             mer.t1  = convertTemp(tt3);
-            mer.t2  = TmpNan;
-            mer.t3  = TmpNan;
+            mer.t2  = tmpNan;
+            mer.t3  = tmpNan;
 
             s = str[0].substring(0,2) + str[2].substring(0,2);
             mer.adc = Integer.parseInt(s,16);
@@ -410,7 +420,7 @@ public class TMSReader extends Thread {
         if (ftDev == null)
             return;
 
-        if (ftDev.isOpen() == false) {
+        if (!ftDev.isOpen()) {
             Log.e("j2xx", "SetConfig: device not open");
             return;
         }
@@ -495,11 +505,12 @@ public class TMSReader extends Thread {
         // Toast.makeText(DeviceUARTContext, "Config done", Toast.LENGTH_SHORT).show();
     }
 
-    private boolean connectFunction()
+    private void connectFunction()
     {
         try
         {
             //int tmpProtNumber = openIndex + 1;
+            int openIndex = 0;
             if (currentIndex != openIndex) {
                 if (null == ftDev) {
                     ftDev = ftdid2xx.openByIndex(DeviceUARTContext, openIndex);
@@ -511,19 +522,19 @@ public class TMSReader extends Thread {
                 uart_configured = false;
             } else {
                 // Toast.makeText(DeviceUARTContext, "Device port " + tmpProtNumber + " is already opened", Toast.LENGTH_LONG).show();
-                return true;
+                return;
             }
 
             if (ftDev == null) {
                 //Toast.makeText(DeviceUARTContext, "open device port(" + tmpProtNumber + ") NG, ftDev == null", Toast.LENGTH_LONG).show();
-                return false;
+                return;
             }
 
-            if (true == ftDev.isOpen()) {
+            if (ftDev.isOpen()) {
                 currentIndex = openIndex;
                 //Toast.makeText(DeviceUARTContext, "open device port(" + tmpProtNumber + ") OK", Toast.LENGTH_SHORT).show();
 
-                if (false == bReadThreadGoing) {
+                if (!bReadThreadGoing) {
                     //read_thread = new readThread(handler);
                     fHer = new uHer(handler);
                     fHer.ftDev = ftDev;
@@ -533,25 +544,22 @@ public class TMSReader extends Thread {
             } else {
                 //Toast.makeText(DeviceUARTContext, "open device port(" + tmpProtNumber + ") NG", Toast.LENGTH_LONG).show();
                 Toast.makeText(DeviceUARTContext, "Need to get permission!", Toast.LENGTH_SHORT).show();
-                return false;
             }
 
         } catch (Exception e) {
             //throw new RuntimeException(e);
             Log.e(TAG,e.getMessage());
             Toast.makeText(DeviceUARTContext, "No FTDI device found !", Toast.LENGTH_SHORT).show();
-            return false;
         }
 
-        return true;
     }
 
-    private boolean DoInitFTDI(Context mContext){
+    private void DoInitFTDI(Context mContext){
         try {
             ftdid2xx = D2xxManager.getInstance(mContext);
         } catch (D2xxManager.D2xxException ex) {
             ex.printStackTrace();
-            return(false);
+            return;
         }
 
         if(!ftdid2xx.setVIDPID(0x0403, 0xada1))
@@ -564,9 +572,9 @@ public class TMSReader extends Thread {
 
         DeviceUARTContext = mContext;
         int tempDevCount = ftdid2xx.createDeviceInfoList(DeviceUARTContext);
-        return(true);
     }
 
+    // gets number of devices
     public void createDeviceList()
     {
         //DeviceUARTContext = getContext();
@@ -593,10 +601,41 @@ public class TMSReader extends Thread {
         }
     }
 
+    // gets file descriptor from usb device list so native libusb can have access
+    private int getUSBPermissionForLibUSB() {
+        // obtain USB permissions
+        UsbManager usbManager = (UsbManager) this.context.getApplicationContext().getSystemService(Context.USB_SERVICE);
+        HashMap<String, UsbDevice> deviceList = usbManager.getDeviceList();
+
+        Iterator<UsbDevice> deviceIterator = deviceList.values().iterator();
+
+        if (!deviceIterator.hasNext()) {
+            return -1;
+        }
+        UsbDevice usbDevice = deviceIterator.next();
+
+        usbManager.requestPermission(usbDevice, PendingIntent.getActivity(this.context.getApplicationContext(), 0, new Intent("com.tomst.lolly.core"), PendingIntent.FLAG_MUTABLE));
+
+        // get native fileDescriptor and transfer over JNI
+        UsbDeviceConnection usbDeviceConnection = usbManager.openDevice(usbDevice);
+        int fileDescriptor = usbDeviceConnection.getFileDescriptor();
+
+        Toast.makeText(DeviceUARTContext, String.format("file desc: %d", fileDescriptor), Toast.LENGTH_LONG).show();
+        Log.i("||| DEBUG |||", String.valueOf(fileDescriptor));
+
+        return fileDescriptor;
+    };
+
+    private native int getDeviceCount(int fileDescriptor);
+
     public void ConnectDevice(){
         DevCount = 0;
         DoInitFTDI(context);
-        createDeviceList();
+
+        int fileDesc = getUSBPermissionForLibUSB();
+        DevCount = fileDesc == -1 ? 0 : getDeviceCount(fileDesc);
+        Toast.makeText(DeviceUARTContext, String.format("Device Count retrieved: %d", DevCount), Toast.LENGTH_LONG).show();
+
         if(DevCount > 0)
         {
             connectFunction();
@@ -611,8 +650,7 @@ public class TMSReader extends Thread {
     }
 
     private int copyByte(String line,int i, int count){
-        int hi = Integer.parseInt(line.substring(i-1,i-1+count));
-        return (hi);
+        return (Integer.parseInt(line.substring(i-1,i-1+count)));
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -630,7 +668,7 @@ public class TMSReader extends Thread {
             return;
         }
 
-        while (( devState != TDevState.tFinal ) && (devState != TDevState.tError) && (mRunning==true)){
+        while (( devState != TDevState.tFinal ) && (devState != TDevState.tError) && (mRunning)){
             // devState
             Log.e(TAG,devState.toString());
 
@@ -708,7 +746,7 @@ public class TMSReader extends Thread {
 
                 case tInfo:
                     s = fHer.doCommand("W");
-                    if (s.indexOf("@W.") ==-1)  // pockej az se domeri
+                    if (!s.contains("@W."))  // pockej az se domeri
                        break;
 
                     SystemClock.sleep(600);
@@ -721,7 +759,7 @@ public class TMSReader extends Thread {
                     }
                     // ted bych tu mel mit neco jako
                     // '00F;ADC;FF3;1A7;2'  -> 'Tx=26.4, ADC=255'
-                    if (convertMereni(s) == true)
+                    if (convertMereni(s))
                     {
                         // nakompiluj vysledky mereni do stringu a odesli
                        // info.t1 = mer.t1;
@@ -858,7 +896,7 @@ public class TMSReader extends Thread {
         LocalDateTime localDateTime = LocalDateTime.now();
         int idx=0;
         boolean bex = false;
-        while ( (bex = FileExists(Serial,localDateTime,idx)) == true){
+        while ((bex = FileExists(Serial, localDateTime, idx))){
             idx++;
         }
 
@@ -875,7 +913,7 @@ public class TMSReader extends Thread {
             return false;
         }
 
-        if (ftDev.isOpen() == false) {
+        if (!ftDev.isOpen()) {
             Log.e("j2xx", "SendMessage: device not open");
             return false;
         }
@@ -927,7 +965,7 @@ public class TMSReader extends Thread {
             return false;
         }
 
-        if (ftDev.isOpen() == false) {
+        if (!ftDev.isOpen()) {
             Log.e("j2xx", "SendMessage: device not open");
             return false;
         }
@@ -944,10 +982,10 @@ public class TMSReader extends Thread {
         int lastAddress = getaddr(respond);
         DoProgress(-lastAddress); // celkovy pocet bytu
 
-        fAddr = 0;
+        int fAddr = 0;
 
         String ss = "";
-        while ((fAddr < lastAddress) && (mRunning==true)) {
+        while ((fAddr < lastAddress) && (mRunning)) {
             // performing operation
 
             respond = fHer.doCommand("D");
@@ -1052,8 +1090,7 @@ public class TMSReader extends Thread {
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     public long DaysBetween(Instant phoneTime, Instant deviceTime){
-        long ret = ChronoUnit.DAYS.between(phoneTime, deviceTime);
-        return(ret);
+        return(ChronoUnit.DAYS.between(phoneTime, deviceTime));
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)

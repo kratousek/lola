@@ -2,6 +2,7 @@
 #define LOLLY_TMSREADER_H
 
 #include <jni.h>
+#include <android/log.h>
 
 #include <stdlib.h>
 #include <signal.h>
