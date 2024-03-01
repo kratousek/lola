@@ -87,7 +87,7 @@ public class GraphFragment extends Fragment
     // graphing
     private CombinedChart chart;
     private CombinedData combinedData;
-
+    private int colorStep=0;
 
     private SeekBar seekBarX;
     private TextView tvX;
@@ -137,25 +137,28 @@ public class GraphFragment extends Fragment
     }
 
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     private void DisplayData()
     {
         int ogHeaderIndex = headerIndex;
         LineDataSet d = null;
+        LineData lines;
 
         headerIndex = 0;
+        colorStep=0;
         do
         {
             // line graph
             d = SetLine(dendroInfos.get(headerIndex).vT1, TPhysValue.vT1);
             dataSets.add(d);
-            d = SetLine(dendroInfos.get(headerIndex).vT2, TPhysValue.vT2);
-            dataSets.add(d);
-            d = SetLine(dendroInfos.get(headerIndex).vT3, TPhysValue.vT3);
-            dataSets.add(d);
+            //d = SetLine(dendroInfos.get(headerIndex).vT2, TPhysValue.vT2);
+            //dataSets.add(d);
+            //d = SetLine(dendroInfos.get(headerIndex).vT3, TPhysValue.vT3);
+            //dataSets.add(d);
             // humidity
             d = SetLine(dendroInfos.get(headerIndex).vHA, TPhysValue.vHum);
             dataSets.add(d);
-            LineData lines = new LineData(dataSets);
+            lines = new LineData(dataSets);
             combinedData.setData(lines);
 
             // combinedData.setData(generateBarData());
@@ -166,16 +169,20 @@ public class GraphFragment extends Fragment
             // startup animation
             chart.animateX(2000, Easing.EaseInCubic);
 
-            // sets view to start of graph and zooms into x axis by 7x
-            chart.zoomAndCenterAnimated(
-                    7f, 1f,
-                    0, 0,
-                    chart.getAxisLeft().getAxisDependency(), 3000
-            );
+            //refresh datasets array??
+
 
             headerIndex++;
+            colorStep += 255/numDataSets;
         }
         while (headerIndex < numDataSets);
+
+        // sets view to start of graph and zooms into x axis by 7x
+        chart.zoomAndCenterAnimated(
+                7f, 1f,
+                0, 0,
+                chart.getAxisLeft().getAxisDependency(), 3000
+        );
 
         headerIndex = ogHeaderIndex;
     }
@@ -311,7 +318,7 @@ public class GraphFragment extends Fragment
             );
         }
 
-        ((LineDataSet) dataSets.get(tag-1)).setVisible(checked);
+        ((LineDataSet) dataSets.get(tag - 1)).setVisible(checked);
         chart.invalidate();
     }
 
@@ -529,6 +536,7 @@ public class GraphFragment extends Fragment
     }
 
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     private LineDataSet SetLine(ArrayList<Entry> vT, TPhysValue val)
     {
         //LineData d = new LineData();
@@ -540,7 +548,7 @@ public class GraphFragment extends Fragment
         set.setDrawCircles(false);
         set.setMode(LineDataSet.Mode.LINEAR);
         set.setDrawFilled(false);
-        set.setLabel(val.valToString(val));
+        set.setLabel(val.valToString(val)+" "+(headerIndex+1));
 
         set.setAxisDependency(YAxis.AxisDependency.LEFT);
 
@@ -548,24 +556,27 @@ public class GraphFragment extends Fragment
         {
             case vT1:
                 //set.setColor(Color.BLUE);
-                set.setColor(Color.rgb(68, 102, 163));
+                set.setColor(Color.rgb(68, colorStep, 163));
                 break;
 
             case vT2:
                 //set.setColor(Color.MAGENTA);
-                set.setColor(Color.rgb(243, 156, 53));
+                set.setColor(Color.rgb(colorStep, 156, 53));
                 break;
 
             case vT3:
                 //set.setColor(Color.GREEN);
-                set.setColor(Color.rgb(0, 128, 0));
+                set.setColor(Color.rgb(150, 128, colorStep));
                 break;
 
             case vHum:
+                set.setColor(Color.rgb(200, colorStep, 200));
             case vAD:
+                set.setColor(Color.rgb(200, colorStep, 200));
+
             case vMicro:
-                set.setColor(Color.BLACK);
-                set.setColor(Color.rgb(128, 0, 0));
+                //set.setColor(Color.BLACK);
+                //set.setColor(Color.rgb(128, 0, 0));
                 set.setAxisDependency(YAxis.AxisDependency.RIGHT);
                 break;
 
@@ -638,6 +649,7 @@ public class GraphFragment extends Fragment
          ViewModel
         2) Shrink definition
      */
+    @RequiresApi(api = Build.VERSION_CODES.O)
     private void LoadDmdData()
     {
         LineDataSet d = null;
