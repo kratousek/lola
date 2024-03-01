@@ -219,21 +219,29 @@ public class GraphFragment extends Fragment
         while ((currentLine = csv.readLine()) != "")
         {
             TMereni mer = processLine(currentLine);
-            dendroInfos.get(headerIndex).mers.add(mer);
-            dendroInfos.get(headerIndex).vT1.add(
-                    new Entry(valueIndex, (float)mer.t1)
-            );
-            dendroInfos.get(headerIndex).vT2.add(
-                    new Entry(valueIndex, (float)mer.t2)
-            );
-            dendroInfos.get(headerIndex).vT3.add(
-                    new Entry(valueIndex, (float)mer.t3)
-            );
-            dendroInfos.get(headerIndex).vHA.add(
-                    new Entry(valueIndex, (float)mer.hum)
-            );
 
-            valueIndex++;
+            if (mer.Serial != null)
+            {
+                headerIndex++;
+                valueIndex=0;
+            }
+            else {
+                dendroInfos.get(headerIndex).mers.add(mer);
+                dendroInfos.get(headerIndex).vT1.add(
+                        new Entry(valueIndex, (float) mer.t1)
+                );
+                dendroInfos.get(headerIndex).vT2.add(
+                        new Entry(valueIndex, (float) mer.t2)
+                );
+                dendroInfos.get(headerIndex).vT3.add(
+                        new Entry(valueIndex, (float) mer.t3)
+                );
+                dendroInfos.get(headerIndex).vHA.add(
+                        new Entry(valueIndex, (float) mer.hum)
+                );
+
+                valueIndex++;
+            }
         }
     }
 
@@ -249,10 +257,11 @@ public class GraphFragment extends Fragment
         TMereni mer = new TMereni();
         if (lineOfFile.length == 1)
         {
-            headerIndex++;
+            mer.Serial = lineOfFile[SERIAL_INDEX];
         }
         else
         {
+            /*   THIS DOESNT WORK ALSO USELESS AS OF NOW
             try
             {
                 DateTimeFormatter formatter =
@@ -260,12 +269,14 @@ public class GraphFragment extends Fragment
                 dateTime = LocalDateTime.parse(lineOfFile[1], formatter);
                 mer.dtm = dateTime;
                 mer.day = dateTime.getDayOfMonth();
+                System.out.println(mer.dtm);
+                System.out.println(mer.day);
             }
             catch (Exception e)
             {
                 System.out.println(e);
             }
-
+            */
             // replaces all occurrences of 'a' to 'e'
             String T1 = lineOfFile[TEMP1_INDEX]
                     .replace(',', '.');
@@ -276,6 +287,7 @@ public class GraphFragment extends Fragment
             String T3 = lineOfFile[TEMP3_INDEX]
                     .replace(',', '.');
 
+            mer.Serial = null;
             mer.t1 = Float.parseFloat(T1);
             mer.t2 = Float.parseFloat(T2);
             mer.t3 = Float.parseFloat(T3);
