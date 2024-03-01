@@ -65,6 +65,10 @@ public class GraphFragment extends Fragment
     private static final byte PICTURE_INDEX = 4;
 
 
+    // constants for merging CSV files
+    private static final int SERIAL_NUMBER_LINE_LENGTH = 3;
+
+
     // constants for loading measurements
     private static final byte TEMP1_INDEX = 3;
     private static final byte TEMP2_INDEX = 4;
@@ -498,9 +502,14 @@ public class GraphFragment extends Fragment
             // count the data sets
             String currentLine = csvFile.readLine();
             numDataSets += Integer.parseInt(currentLine.split(";")[0]);
-            // serial number is always first line in data set
-            currentLine = csvFile.readLine();
-            header += currentLine + "\n";
+            // read serial number(s) is always first line in data set
+            while((currentLine = csvFile.readLine())
+                    .split(";").length == SERIAL_NUMBER_LINE_LENGTH
+            ) {
+                header += currentLine + "\n";
+            }
+            // write serial number
+            tempFile.write(currentLine + "\n");
             // read data
             while ((currentLine = csvFile.readLine()) != "")
             {
@@ -510,7 +519,7 @@ public class GraphFragment extends Fragment
         tempFile.close();
 
         header = numDataSets + ";\n" + header;
-        Log.d("GRAPH", "Header = " + header);
+        Log.d("GRAPH", "Header =\n" + header);
 
         CSVFile mergedFile = CSVFile.create(mergedFileName);
         tempFile = CSVFile.open(tempFileName, CSVFile.READ_MODE);
