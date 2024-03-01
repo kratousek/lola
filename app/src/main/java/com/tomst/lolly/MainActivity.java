@@ -44,9 +44,11 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
+import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
@@ -63,6 +65,7 @@ import com.tomst.lolly.core.FileOpener;
 import com.tomst.lolly.core.PermissionManager;
 import com.tomst.lolly.databinding.ActivityMainBinding;
 import com.tomst.lolly.core.DmdViewModel;
+import com.tomst.lolly.ui.options.OptionsFragment;
 
 import org.w3c.dom.Text;
 
@@ -282,8 +285,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     // for user authentication
     FirebaseAuth auth;
-    Button button;
-    TextView textView;
     FirebaseUser user;
 
     @Override
@@ -293,11 +294,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        view = binding.getRoot();
+
         // for user authentication
         auth = FirebaseAuth.getInstance();
-        button = findViewById(R.id.btnLogout);
-        textView = findViewById(R.id.userDetails);
         user = auth.getCurrentUser();
+
 
         if (user == null)
         {
@@ -305,41 +307,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             startActivity(intent);
             finish();
         }
-        else
-        {
-            textView.setText(user.getEmail());
-        }
-
-        button.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View view)
-            {
-                FirebaseAuth.getInstance().signOut();
-                Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
-                startActivity(intent);
-                finish();
-            }
-        });
-
-
-        view = binding.getRoot();
 
         // permissionManager = new PermissionManager(this);
 
         Intent intent = getIntent();
-        switch (intent.getAction()) {
-            case Intent.ACTION_GET_CONTENT:
-                fopen.isRequestDocument = true;
-                setResult(RESULT_CANCELED);
-                break;
-            case Intent.ACTION_OPEN_DOCUMENT: {
-                fopen.isRequestDocument = true;
-                setResult(RESULT_CANCELED);
-                break;
+        String action = intent.getAction();
+
+        if (action != null)
+        {
+            switch (intent.getAction()) {
+                case Intent.ACTION_GET_CONTENT:
+                    fopen.isRequestDocument = true;
+                    setResult(RESULT_CANCELED);
+                    break;
+                case Intent.ACTION_OPEN_DOCUMENT: {
+                    fopen.isRequestDocument = true;
+                    setResult(RESULT_CANCELED);
+                    break;
+                }
+                default:
+                    fopen.isRequestDocument = false;
             }
-            default:
-                fopen.isRequestDocument = false;
         }
 
         //checkPermission();

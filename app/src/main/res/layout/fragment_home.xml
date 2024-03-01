@@ -27,6 +27,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/spacing_small" />
 
+
+
         <!-- Druhy radek, OBRAZEK LIZATKA, TEPLOTY, PAMET/BATERKA,REZIM -->
         <LinearLayout
             android:layout_width="match_parent"
@@ -549,35 +551,6 @@
 
 
         </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="?attr/selectableItemBackground"
-                android:clickable="true"
-                android:gravity="center"
-                android:layout_gravity="center"
-                android:minHeight="@dimen/spacing_xxlarge"
-                android:orientation="horizontal"
-                android:paddingLeft="@dimen/spacing_medium"
-                android:paddingRight="@dimen/spacing_medium">
-
-                <TextView
-                    android:id="@+id/userDetails"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Hello World"
-                    />
-
-                <Button
-                    android:id="@+id/btnLogout"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="40px"
-                    android:layout_marginBottom="10px"
-                    android:text="Log Out" />
-
-            </LinearLayout>
 
         </LinearLayout>
 
