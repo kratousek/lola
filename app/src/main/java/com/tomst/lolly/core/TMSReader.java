@@ -2,11 +2,14 @@ package com.tomst.lolly.core;
 
 import android.annotation.SuppressLint;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
+import android.hardware.usb.UsbEndpoint;
+import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
 import android.os.Build;
 import android.os.Handler;
@@ -601,39 +604,87 @@ public class TMSReader extends Thread {
         }
     }
 
+
+    // ====================================================
+
+    private static final String ACTION_USB_PERMISSION = "com.tomst.lolly.core.USB_PERMISSION";
+    private static BroadcastReceiver usbDevicePermissions = new BroadcastReceiver() {
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (ACTION_USB_PERMISSION.equals(action)) {
+                synchronized(this) {
+                    UsbDevice device = (UsbDevice)intent.getParcelableExtra("device");
+
+                    if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
+                        if (device != null) {
+                            // call method to set up device communication
+                        }
+                    } else {
+                        Log.d("D2xx::", "permission denied for device " + device);
+                    }
+                }
+            }
+        }
+    };
+
     // gets file descriptor from usb device list so native libusb can have access
     private int getUSBPermissionForLibUSB() {
+        DeviceUARTContext = this.context;
+
+        // set up broadcast and intent filter
+        IntentFilter permissionFilter = new IntentFilter(ACTION_USB_PERMISSION);
+        DeviceUARTContext.registerReceiver(usbDevicePermissions, permissionFilter);
+
+        Intent intent = new Intent(ACTION_USB_PERMISSION);
+        PendingIntent permissionIntent = PendingIntent.getBroadcast(DeviceUARTContext, 0, intent, PendingIntent.FLAG_IMMUTABLE);
+
         // obtain USB permissions
-        UsbManager usbManager = (UsbManager) this.context.getApplicationContext().getSystemService(Context.USB_SERVICE);
+        UsbManager usbManager = (UsbManager) DeviceUARTContext.getApplicationContext().getSystemService(Context.USB_SERVICE);
         HashMap<String, UsbDevice> deviceList = usbManager.getDeviceList();
 
         Iterator<UsbDevice> deviceIterator = deviceList.values().iterator();
 
+        // get first device
         if (!deviceIterator.hasNext()) {
             return -1;
         }
         UsbDevice usbDevice = deviceIterator.next();
 
-        usbManager.requestPermission(usbDevice, PendingIntent.getActivity(this.context.getApplicationContext(), 0, new Intent("com.tomst.lolly.core"), PendingIntent.FLAG_MUTABLE));
+        // get permission
+        if (!usbManager.hasPermission(usbDevice)) {
+            usbManager.requestPermission(usbDevice, permissionIntent);
+        }
+
+        UsbInterface intf = usbDevice.getInterface(0);
+        UsbEndpoint endpoint = intf.getEndpoint(0);
+        Log.i("||| DEBUG |||", intf.getName());
+        Log.i("||| DEBUG |||", endpoint.toString());
+        UsbDeviceConnection connection = usbManager.openDevice(usbDevice);
+        connection.claimInterface(intf, true);
+        int fileDescriptor = connection.getFileDescriptor();
+        Log.i("||| DEBUG |||", "claimed");
 
         // get native fileDescriptor and transfer over JNI
-        UsbDeviceConnection usbDeviceConnection = usbManager.openDevice(usbDevice);
-        int fileDescriptor = usbDeviceConnection.getFileDescriptor();
+//        UsbDeviceConnection usbDeviceConnection = usbManager.openDevice(usbDevice);
+//        int fileDescriptor = usbDeviceConnection.getFileDescriptor();
 
-        Toast.makeText(DeviceUARTContext, String.format("file desc: %d", fileDescriptor), Toast.LENGTH_LONG).show();
+        Toast.makeText(DeviceUARTContext, String.format("file desc: %d", fileDescriptor), Toast.LENGTH_SHORT).show();
         Log.i("||| DEBUG |||", String.valueOf(fileDescriptor));
 
         return fileDescriptor;
     };
 
     private native int getDeviceCount(int fileDescriptor);
+    private native int setNativeDescriptor(int fileDescriptor);
+
+    // =======================================================
 
     public void ConnectDevice(){
         DevCount = 0;
         DoInitFTDI(context);
 
         int fileDesc = getUSBPermissionForLibUSB();
-        DevCount = fileDesc == -1 ? 0 : getDeviceCount(fileDesc);
+        DevCount = fileDesc == -1 ? 0 : setNativeDescriptor(fileDesc);
         Toast.makeText(DeviceUARTContext, String.format("Device Count retrieved: %d", DevCount), Toast.LENGTH_LONG).show();
 
         if(DevCount > 0)
