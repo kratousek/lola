@@ -570,14 +570,14 @@ public class GraphFragment extends Fragment
         if (numDataSets > 3)
         {
             if (headerIndex < 3) {
-                set.setColor(Color.rgb(headerIndex * colorStep, 127, 127));
+                set.setColor(Color.rgb(headerIndex * colorStep, 0, 127));
             } else if (headerIndex < 6) {
-                set.setColor(Color.rgb(127, (headerIndex - 3) * colorStep, 127));
+                set.setColor(Color.rgb(127, (headerIndex - 3) * colorStep, 0));
             } else {
-                set.setColor(Color.rgb(127, 127, (headerIndex - 6) * colorStep));
+                set.setColor(Color.rgb(0, 127, (headerIndex - 6) * colorStep));
             }
         }
-        else     //maximum differential for 1 to 3 datasets
+        else     //maximum color differential for 1 to 3 datasets
         {
             if (headerIndex == 0)
             {
