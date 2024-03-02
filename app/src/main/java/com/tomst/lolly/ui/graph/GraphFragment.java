@@ -67,8 +67,7 @@ public class GraphFragment extends Fragment
 
 
     // constants for merging CSV files
-    private static final int SERIAL_NUMBER_LINE_LENGTH = 3;
-
+    private static final int HEADER_LINE_LENGTH = 3;
 
     // constants for loading measurements
     private static final byte TEMP1_INDEX = 3;
@@ -515,33 +514,34 @@ public class GraphFragment extends Fragment
             dataSetCnt += Integer.parseInt(currentLine.split(";")[0]);
             // read serial number(s) is always first line in data set
             while((currentLine = csvFile.readLine())
-                    .split(";").length == SERIAL_NUMBER_LINE_LENGTH
+                    .split(";").length == HEADER_LINE_LENGTH
             ) {
-                header += currentLine + "\n";
+                    header += currentLine + "\n";
             }
             // write serial number
-            tempFile.write(currentLine + "\n");
-            // read data
-            while ((currentLine = csvFile.readLine()) != "")
+            tempFile = CSVFile.open(tempFileName, CSVFile.APPEND_MODE);
+            tempFile.write(currentLine + "\n");   //write serial
+
+            while((currentLine = csvFile.readLine()).contains(";"))
             {
                 tempFile.write(currentLine + "\n");
             }
+            csvFile.close();
         }
         tempFile.close();
 
         header = dataSetCnt + ";\n" + header;
-        Log.d("GRAPH", "Header =\n" + header);
 
-        CSVFile mergedFile = CSVFile.create(mergedFileName);
-        tempFile = CSVFile.open(tempFileName, CSVFile.READ_MODE);
+        CSVFile mergedFile = CSVFile.open(mergedFileName, CSVFile.APPEND_MODE);
         mergedFile.write(header);
 
+        tempFile = CSVFile.open(tempFileName, CSVFile.READ_MODE);
         String line = "";
         while ((line = tempFile.readLine()) != "")
         {
             mergedFile.write(line + "\n");
         }
-
+        mergedFile.close();
         tempFile.close();
         CSVFile.delete(parentDir + "temp.csv");
 
@@ -552,7 +552,8 @@ public class GraphFragment extends Fragment
     @RequiresApi(api = Build.VERSION_CODES.O)
     private LineDataSet SetLine(ArrayList<Entry> vT, TPhysValue val)
     {
-        int colorStep=0;
+        int colorStep=127;   // 255/2=127  3 colors (0,127,254) in each rgb value
+
         //LineData d = new LineData();
         LineDataSet set =
                 new LineDataSet(vT, "DataSet " + (val.ordinal() + 1));
@@ -565,32 +566,42 @@ public class GraphFragment extends Fragment
         set.setLabel(val.valToString(val));
         set.setAxisDependency(YAxis.AxisDependency.LEFT);
 
-        if (headerIndex<4 && numDataSets<=4)
+        //differentiating datasets by color (supports max 9 datasets)
+        if (numDataSets > 3)
         {
-            if (numDataSets>1) colorStep = 255 / (numDataSets-1);
-            set.setColor(Color.rgb(headerIndex * colorStep, 128, 128));
+            if (headerIndex < 3) {
+                set.setColor(Color.rgb(headerIndex * colorStep, 127, 127));
+            } else if (headerIndex < 6) {
+                set.setColor(Color.rgb(127, (headerIndex - 3) * colorStep, 127));
+            } else {
+                set.setColor(Color.rgb(127, 127, (headerIndex - 6) * colorStep));
+            }
         }
-        else if (headerIndex<8 && numDataSets<=8)
+        else     //maximum differential for 1 to 3 datasets
         {
-            colorStep = 255/3;
-            set.setColor(Color.rgb(128, (headerIndex-4) * colorStep, 128));
-        }
-        else
-        {
-            colorStep = 255/3;
-            set.setColor(Color.rgb(128, 128, (headerIndex-8) * colorStep));
+            if (headerIndex == 0)
+            {
+                set.setColor(Color.rgb(200, 0, 0));
+            }
+            else if (headerIndex == 1)
+            {
+                set.setColor(Color.rgb(0, 0, 200));
+            }
+            else
+            {
+                set.setColor(Color.rgb(0, 200, 0));
+            }
         }
 
+        //differentiating values by different dash patterns
         switch (val)
         {
             case vT1:
-                //set.setColor(Color.BLUE);
                 set.enableDashedLine(10f, 10f, 0);
                 set.setFormLineDashEffect(new DashPathEffect(intervals, 0));
                 break;
 
             case vT2:
-                //set.setColor(Color.MAGENTA);
                 set.enableDashedLine(25f, 25f, 0);
                 intervals[0]=25f;
                 intervals[1]=25f;
@@ -598,7 +609,6 @@ public class GraphFragment extends Fragment
                 break;
 
             case vT3:
-                //set.setColor(Color.GREEN);
                 set.enableDashedLine(50f, 10f, 0);
                 intervals[0]=50f;
                 set.setFormLineDashEffect(new DashPathEffect(intervals, 0));
