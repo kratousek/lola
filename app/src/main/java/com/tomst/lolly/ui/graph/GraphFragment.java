@@ -2,6 +2,7 @@ package com.tomst.lolly.ui.graph;
 
 
 import android.graphics.Color;
+import android.graphics.DashPathEffect;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -208,11 +209,6 @@ public class GraphFragment extends Fragment
         {
             currentLine = csv.readLine();
             String[] lineOfFile = currentLine.split(";");
-            Log.d("GRAPH", "Line = ");
-            for (String line : lineOfFile)
-            {
-                Log.d("GRAPH", line);
-            }
 
             String serial = lineOfFile[SERIAL_INDEX];
             Long longitude = Long.parseLong(lineOfFile[LONGITUDE_INDEX]);
@@ -235,6 +231,10 @@ public class GraphFragment extends Fragment
             {
                 headerIndex++;
                 valueIndex=0;
+                if (headerIndex < numDataSets)
+                {
+                    dendroInfos.get(headerIndex).serial = mer.Serial;
+                }
             }
             else {
                 dendroInfos.get(headerIndex).mers.add(mer);
@@ -433,8 +433,9 @@ public class GraphFragment extends Fragment
         chart.setPinchZoom(false);
         // get the legend (only possible after setting data)
         Legend l = chart.getLegend();
-        /*
+
         l.setWordWrapEnabled(true);
+        /*
         l.setVerticalAlignment(Legend.LegendVerticalAlignment.BOTTOM);
         l.setHorizontalAlignment(Legend.LegendHorizontalAlignment.CENTER);
         l.setOrientation(Legend.LegendOrientation.HORIZONTAL);
@@ -442,9 +443,12 @@ public class GraphFragment extends Fragment
         l.setEnabled(false);
         */
         l.setForm(Legend.LegendForm.LINE);
+        l.setFormSize(100f);
         //l.setTypeface(tfLight);
         l.setTextSize(11f);
         l.setTextColor(Color.BLACK);
+        l.setXEntrySpace(200f);  //makes legend a column
+        l.setYEntrySpace(1f);
         l.setVerticalAlignment(Legend.LegendVerticalAlignment.BOTTOM);
         l.setHorizontalAlignment(Legend.LegendHorizontalAlignment.LEFT);
         l.setOrientation(Legend.LegendOrientation.HORIZONTAL);
@@ -500,7 +504,7 @@ public class GraphFragment extends Fragment
         }
         mergedFileName += ".csv";
 
-        int numDataSets = 0;
+        int dataSetCnt = 0;
         String header = "";
         CSVFile tempFile = CSVFile.create(tempFileName);
         for (String fileName : fileNames)
@@ -508,7 +512,7 @@ public class GraphFragment extends Fragment
             CSVFile csvFile = CSVFile.open(fileName, CSVFile.READ_MODE);
             // count the data sets
             String currentLine = csvFile.readLine();
-            numDataSets += Integer.parseInt(currentLine.split(";")[0]);
+            dataSetCnt += Integer.parseInt(currentLine.split(";")[0]);
             // read serial number(s) is always first line in data set
             while((currentLine = csvFile.readLine())
                     .split(";").length == SERIAL_NUMBER_LINE_LENGTH
@@ -525,7 +529,7 @@ public class GraphFragment extends Fragment
         }
         tempFile.close();
 
-        header = numDataSets + ";\n" + header;
+        header = dataSetCnt + ";\n" + header;
         Log.d("GRAPH", "Header =\n" + header);
 
         CSVFile mergedFile = CSVFile.create(mergedFileName);
@@ -548,40 +552,61 @@ public class GraphFragment extends Fragment
     @RequiresApi(api = Build.VERSION_CODES.O)
     private LineDataSet SetLine(ArrayList<Entry> vT, TPhysValue val)
     {
+        int colorStep=0;
         //LineData d = new LineData();
         LineDataSet set =
                 new LineDataSet(vT, "DataSet " + (val.ordinal() + 1));
-
+        float[] intervals = new float[] { 10f, 10f };
         set.setLineWidth(2f);
         set.setDrawValues(false);
         set.setDrawCircles(false);
         set.setMode(LineDataSet.Mode.LINEAR);
         set.setDrawFilled(false);
-        set.setLabel(val.valToString(val)+" "+(headerIndex+1));
-
+        set.setLabel(val.valToString(val));
         set.setAxisDependency(YAxis.AxisDependency.LEFT);
+
+        if (headerIndex<4 && numDataSets<=4)
+        {
+            if (numDataSets>1) colorStep = 255 / (numDataSets-1);
+            set.setColor(Color.rgb(headerIndex * colorStep, 128, 128));
+        }
+        else if (headerIndex<8 && numDataSets<=8)
+        {
+            colorStep = 255/3;
+            set.setColor(Color.rgb(128, (headerIndex-4) * colorStep, 128));
+        }
+        else
+        {
+            colorStep = 255/3;
+            set.setColor(Color.rgb(128, 128, (headerIndex-8) * colorStep));
+        }
 
         switch (val)
         {
             case vT1:
                 //set.setColor(Color.BLUE);
-                set.setColor(Color.rgb(68, colorStep, 163));
+                set.enableDashedLine(10f, 10f, 0);
+                set.setFormLineDashEffect(new DashPathEffect(intervals, 0));
                 break;
 
             case vT2:
                 //set.setColor(Color.MAGENTA);
-                set.setColor(Color.rgb(colorStep, 156, 53));
+                set.enableDashedLine(25f, 25f, 0);
+                intervals[0]=25f;
+                intervals[1]=25f;
+                set.setFormLineDashEffect(new DashPathEffect(intervals, 0));
                 break;
 
             case vT3:
                 //set.setColor(Color.GREEN);
-                set.setColor(Color.rgb(150, 128, colorStep));
+                set.enableDashedLine(50f, 10f, 0);
+                intervals[0]=50f;
+                set.setFormLineDashEffect(new DashPathEffect(intervals, 0));
                 break;
 
             case vHum:
-                set.setColor(Color.rgb(200, colorStep, 200));
+                set.setLineWidth(3f);
             case vAD:
-                set.setColor(Color.rgb(200, colorStep, 200));
 
             case vMicro:
                 //set.setColor(Color.BLACK);
@@ -592,6 +617,7 @@ public class GraphFragment extends Fragment
             default:
                 throw new UnsupportedOperationException("Not yet implemented");
         }
+
 
         return set;
     }
