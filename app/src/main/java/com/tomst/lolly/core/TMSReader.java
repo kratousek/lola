@@ -674,20 +674,29 @@ public class TMSReader extends Thread {
         return fileDescriptor;
     };
 
-    private native int getDeviceCount(int fileDescriptor);
+    private native int getDeviceCountC(int fileDescriptor);
     private native int setNativeDescriptor(int fileDescriptor);
+
+    private int getDeviceCount() {
+        // obtain USB permissions
+        UsbManager usbManager = (UsbManager) this.context.getApplicationContext().getSystemService(Context.USB_SERVICE);
+        HashMap<String, UsbDevice> deviceList = usbManager.getDeviceList();
+
+        return deviceList.size();
+    };
 
     // =======================================================
 
     public void ConnectDevice(){
-        DevCount = 0;
+        int ftdiDevCount;
+
         DoInitFTDI(context);
 
-        int fileDesc = getUSBPermissionForLibUSB();
-        DevCount = fileDesc == -1 ? 0 : setNativeDescriptor(fileDesc);
-        Toast.makeText(DeviceUARTContext, String.format("Device Count retrieved: %d", DevCount), Toast.LENGTH_LONG).show();
+//        int fileDesc = getUSBPermissionForLibUSB();
+        ftdiDevCount = getDeviceCount();
+        Toast.makeText(DeviceUARTContext, String.format("Device Count retrieved: %d", ftdiDevCount), Toast.LENGTH_LONG).show();
 
-        if(DevCount > 0)
+        if(ftdiDevCount > 0)
         {
             connectFunction();
             int baudRate = 500000;

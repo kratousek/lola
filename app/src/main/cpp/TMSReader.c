@@ -36,7 +36,7 @@ Java_com_tomst_lolly_core_TMSReader_setNativeDescriptor(JNIEnv *env, jobject thi
 
 // get device count using libftdi
 JNIEXPORT jint JNICALL
-Java_com_tomst_lolly_core_TMSReader_getDeviceCount(JNIEnv *env, jobject thiz,
+Java_com_tomst_lolly_core_TMSReader_getDeviceCountC(JNIEnv *env, jobject thiz,
                                                    jint fileDescriptor) {
     __android_log_write(ANDROID_LOG_ERROR, "|||DEBUG|||", "start");
     int VID = 0x0403;
