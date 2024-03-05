@@ -574,7 +574,6 @@ public class TMSReader extends Thread {
         filter.setPriority(500);
 
         DeviceUARTContext = mContext;
-        int tempDevCount = ftdid2xx.createDeviceInfoList(DeviceUARTContext);
     }
 
     // gets number of devices
@@ -664,6 +663,10 @@ public class TMSReader extends Thread {
         int fileDescriptor = connection.getFileDescriptor();
         Log.i("||| DEBUG |||", "claimed");
 
+        setNativeDescriptor(fileDescriptor);
+
+        connection.close();
+
         // get native fileDescriptor and transfer over JNI
 //        UsbDeviceConnection usbDeviceConnection = usbManager.openDevice(usbDevice);
 //        int fileDescriptor = usbDeviceConnection.getFileDescriptor();
@@ -679,7 +682,7 @@ public class TMSReader extends Thread {
 
     private int getDeviceCount() {
         // obtain USB permissions
-        UsbManager usbManager = (UsbManager) this.context.getApplicationContext().getSystemService(Context.USB_SERVICE);
+        UsbManager usbManager = (UsbManager) DeviceUARTContext.getSystemService(Context.USB_SERVICE);
         HashMap<String, UsbDevice> deviceList = usbManager.getDeviceList();
 
         return deviceList.size();
@@ -692,9 +695,9 @@ public class TMSReader extends Thread {
 
         DoInitFTDI(context);
 
-//        int fileDesc = getUSBPermissionForLibUSB();
+        int fileDesc = getUSBPermissionForLibUSB();
         ftdiDevCount = getDeviceCount();
-        Toast.makeText(DeviceUARTContext, String.format("Device Count retrieved: %d", ftdiDevCount), Toast.LENGTH_LONG).show();
+        Toast.makeText(DeviceUARTContext, String.format("Device Count retrieved: %d", ftdiDevCount), Toast.LENGTH_SHORT).show();
 
         if(ftdiDevCount > 0)
         {
