@@ -91,7 +91,7 @@ public class GraphFragment extends Fragment
     // graphing
     private CombinedChart chart;
     private CombinedData combinedData;
-    private int colorStep=0;
+    private int colorStep = 0;
 
     private SeekBar seekBarX;
     private TextView tvX;
@@ -175,9 +175,8 @@ public class GraphFragment extends Fragment
 
             //refresh datasets array??
 
-
             headerIndex++;
-            colorStep += 255/numDataSets;
+            colorStep += 255 / numDataSets;
         }
         while (headerIndex < numDataSets);
 
@@ -235,7 +234,8 @@ public class GraphFragment extends Fragment
                     dendroInfos.get(headerIndex).serial = mer.Serial;
                 }
             }
-            else {
+            else
+            {
                 dendroInfos.get(headerIndex).mers.add(mer);
                 dendroInfos.get(headerIndex).vT1.add(
                         new Entry(valueIndex, (float) mer.t1)
@@ -503,6 +503,11 @@ public class GraphFragment extends Fragment
         }
         mergedFileName += ".csv";
 
+        if (CSVFile.exists(mergedFileName))
+        {
+            CSVFile.delete(mergedFileName);
+        }
+
         int dataSetCnt = 0;
         String header = "";
         CSVFile tempFile = CSVFile.create(tempFileName);
@@ -519,8 +524,7 @@ public class GraphFragment extends Fragment
                     header += currentLine + "\n";
             }
             // write serial number
-            tempFile = CSVFile.open(tempFileName, CSVFile.APPEND_MODE);
-            tempFile.write(currentLine + "\n");   //write serial
+            tempFile.write(currentLine + "\n");
 
             while((currentLine = csvFile.readLine()).contains(";"))
             {
@@ -532,9 +536,8 @@ public class GraphFragment extends Fragment
 
         header = dataSetCnt + ";\n" + header;
 
-        CSVFile mergedFile = CSVFile.open(mergedFileName, CSVFile.APPEND_MODE);
+        CSVFile mergedFile = CSVFile.create(mergedFileName);
         mergedFile.write(header);
-
         tempFile = CSVFile.open(tempFileName, CSVFile.READ_MODE);
         String line = "";
         while ((line = tempFile.readLine()) != "")

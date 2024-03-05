@@ -102,6 +102,15 @@ public class CSVFile
 
 
     /**
+     *
+     */
+    public static boolean exists(String path)
+    {
+        return (new File(path)).exists();
+    }
+
+
+    /**
      * Opens a file for IO operations. The file specified must exist.
      *
      * @param path The path at which to open the file, include the file name
