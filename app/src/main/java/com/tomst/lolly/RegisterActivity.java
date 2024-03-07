@@ -28,7 +28,8 @@ public class RegisterActivity extends AppCompatActivity
     Button buttonReg;
     FirebaseAuth mAuth;
     ProgressBar progressBar;
-    TextView textView;
+    TextView textViewLogin;
+    TextView textViewBack;
 
     @Override
     public void onStart() {
@@ -52,15 +53,25 @@ public class RegisterActivity extends AppCompatActivity
         editTextPassword = findViewById(R.id.password);
         buttonReg = findViewById(R.id.btnRegister);
         progressBar = findViewById(R.id.progressBar);
-        textView = findViewById(R.id.loginNow);
+        textViewLogin = findViewById(R.id.loginNow);
+        textViewBack = findViewById(R.id.backTextRegister);
 
-        textView.setOnClickListener(new View.OnClickListener()
+        textViewLogin.setOnClickListener(new View.OnClickListener()
         {
             @Override
             public void onClick(View view)
             {
                 Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
                 startActivity(intent);
+                finish();
+            }
+        });
+
+        textViewBack.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
                 finish();
             }
         });
