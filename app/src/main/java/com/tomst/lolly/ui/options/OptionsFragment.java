@@ -12,6 +12,8 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +21,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -34,6 +37,11 @@ import com.tomst.lolly.databinding.FragmentOptionsBinding;
 
 import com.tomst.lolly.utils.Tools;
 import com.tomst.lolly.utils.ViewAnimation;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.util.Date;
 
 
 public class OptionsFragment extends Fragment implements AdapterView.OnItemSelectedListener {
@@ -108,6 +116,10 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
         return new OptionsFragment();
     }
 
+    public final int SPI_DOWNLOAD_NONE = 0;
+    public final int SPI_DOWNLOAD_ALL = 1;
+    public final int SPI_DOWNLOAD_BOOKMARK = 2;
+    public final int SPI_DOWNLOAD_DATE = 3;
 
     /*
     private CheckBoxState checkedStatus() {
@@ -221,6 +233,19 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
         String s = String.valueOf(binding.Deci.getText());
         editor.putString("decimalseparator",s);
 
+        // bookmark days value
+        String bookmarkStr = String.valueOf(binding.bookmarkDeci.getText());
+        if (binding.bookmark.isChecked() && !bookmarkStr.equals("")) {
+            int bookmarkVal = Integer.parseInt(bookmarkStr);
+            editor.putInt("bookmarkVal", bookmarkVal);
+        }
+
+        // from date value
+        String dateStr = String.valueOf(binding.fromDate.getText());
+        if (!dateStr.equals("")) {
+            editor.putString("fromDate", dateStr);
+        }
+
         //editor.putString("decimalseparator",",");
         //editor.putString("decimalseparator",",");
 
@@ -257,6 +282,13 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
 
         String s = sharedPref.getString("decimalseparator",",");  // desetinny oddelovac
         binding.Deci.setText(s);
+
+        // bookmark and fromDate
+        int bookmarkVal = sharedPref.getInt("bookmarkVal", 0);
+        String bookmarkStr = bookmarkVal == 0 ? "" : String.valueOf(bookmarkVal);
+        String dateStr = sharedPref.getString("fromDate", "");
+        binding.bookmarkDeci.setText(bookmarkStr);
+        binding.fromDate.setText(dateStr);
     }
 
 
@@ -328,7 +360,36 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
         adaDownload.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         adaDownload.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spiDownload.setAdapter(adaDownload); // Apply the adapter to the spinner
-        spiDownload.setOnItemSelectedListener(this);
+        spiDownload.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
+                LinearLayout bookmarkLayout = (LinearLayout) root.findViewById(R.id.bookmarkLayout);
+                LinearLayout fromDateLayout = (LinearLayout) root.findViewById(R.id.fromDateLayout);
+
+                switch (position) {
+                    case SPI_DOWNLOAD_BOOKMARK:
+                        bookmarkLayout.setVisibility(View.VISIBLE);
+                        fromDateLayout.setVisibility(View.GONE);
+                        break;
+
+                    case SPI_DOWNLOAD_DATE:
+                        bookmarkLayout.setVisibility(View.GONE);
+                        fromDateLayout.setVisibility(View.VISIBLE);
+                        break;
+
+                    case SPI_DOWNLOAD_NONE:
+                    case SPI_DOWNLOAD_ALL:
+                        bookmarkLayout.setVisibility(View.GONE);
+                        fromDateLayout.setVisibility(View.GONE);
+                        break;
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+                // nothing
+            }
+        });
         down_desc = res.getStringArray(R.array.download_array);
 
         // vzdalenost mezi merenimi
