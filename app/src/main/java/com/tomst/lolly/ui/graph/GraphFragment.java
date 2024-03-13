@@ -24,7 +24,10 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoField;
+import java.time.temporal.TemporalField;
 import java.util.ArrayList;
 
 import com.github.mikephil.charting.animation.Easing;
@@ -56,10 +59,12 @@ import com.tomst.lolly.core.DmdViewModel;
 import java.io.File;
 
 
+@RequiresApi(api = Build.VERSION_CODES.O)
 public class GraphFragment extends Fragment
 {
     // constants for loading CSV files
-    private static final String DATE_PATTERN = "dd.MM.yyyy HH:mm";
+    private static final String DATE_PATTERN = "yyyy.MM.dd HH:mm";
+    private DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_PATTERN);
     private static final byte SERIAL_INDEX = 0;
     private static final byte LONGITUDE_INDEX = 1;
     private static final byte LATITUDE_INDEX = 2;
@@ -70,6 +75,7 @@ public class GraphFragment extends Fragment
     private static final int HEADER_LINE_LENGTH = 3;
 
     // constants for loading measurements
+    private static final byte DATETIME_INDEX = 1;
     private static final byte TEMP1_INDEX = 3;
     private static final byte TEMP2_INDEX = 4;
     private static final byte TEMP3_INDEX = 5;
@@ -80,6 +86,7 @@ public class GraphFragment extends Fragment
     // CSV loading
     public int headerIndex = 0;
     public int numDataSets = 0;
+    private long originDate;
 
 
     // visualization data holders
@@ -140,8 +147,6 @@ public class GraphFragment extends Fragment
         super.onStop();
     }
 
-
-    @RequiresApi(api = Build.VERSION_CODES.O)
     private void DisplayData()
     {
         int ogHeaderIndex = headerIndex;
@@ -190,11 +195,11 @@ public class GraphFragment extends Fragment
         headerIndex = ogHeaderIndex;
     }
 
-
-    @RequiresApi(api = Build.VERSION_CODES.O)
     private void loadCSVFile(String fileName)
     {
         long valueIndex = 0;
+        float dateNum;
+        boolean firstDate = true;
         String currentLine = "";
         CSVFile csv = CSVFile.open(fileName, CSVFile.READ_MODE);
 
@@ -224,7 +229,7 @@ public class GraphFragment extends Fragment
         while ((currentLine = csv.readLine()) != "")
         {
             TMereni mer = processLine(currentLine);
-
+            String[] lineOfFile = currentLine.split(";");
             if (mer.Serial != null)
             {
                 headerIndex++;
@@ -236,9 +241,21 @@ public class GraphFragment extends Fragment
             }
             else
             {
+                //get origin date (first date of file)
+                if ( firstDate && lineOfFile[0].equals("0"))
+                {
+                    originDate = mer.dtm.toEpochSecond(ZoneOffset.MAX);
+                    firstDate = false;
+                }
+
+                //number of minutes from the first date plotted
+                dateNum = (mer.dtm.toEpochSecond(ZoneOffset.MAX) - originDate) / 60;
+                Log.d("DATENUM", dateNum + "");
+                Log.d("ORIGIN", originDate+"");
+
                 dendroInfos.get(headerIndex).mers.add(mer);
                 dendroInfos.get(headerIndex).vT1.add(
-                        new Entry(valueIndex, (float) mer.t1)
+                        new Entry(dateNum, (float) mer.t1)
                 );
                 dendroInfos.get(headerIndex).vT2.add(
                         new Entry(valueIndex, (float) mer.t2)
@@ -247,7 +264,7 @@ public class GraphFragment extends Fragment
                         new Entry(valueIndex, (float) mer.t3)
                 );
                 dendroInfos.get(headerIndex).vHA.add(
-                        new Entry(valueIndex, (float) mer.hum)
+                        new Entry(dateNum, (float) mer.hum)
                 );
 
                 valueIndex++;
@@ -255,11 +272,9 @@ public class GraphFragment extends Fragment
         }
     }
 
-
-    @RequiresApi(api = Build.VERSION_CODES.O)
     private TMereni processLine(String line)
     {
-        int currDay = 0;
+        long currTime;
         String[] lineOfFile = line.split(";");
         LocalDateTime dateTime = null;
         LocalDateTime currDate;
@@ -271,22 +286,26 @@ public class GraphFragment extends Fragment
         }
         else
         {
-            /*   THIS DOESNT WORK ALSO USELESS AS OF NOW
+            //must fix date parser
             try
             {
-                DateTimeFormatter formatter =
-                        DateTimeFormatter.ofPattern(DATE_PATTERN);
-                dateTime = LocalDateTime.parse(lineOfFile[1], formatter);
+                dateTime = LocalDateTime.parse(lineOfFile[DATETIME_INDEX], formatter);
                 mer.dtm = dateTime;
                 mer.day = dateTime.getDayOfMonth();
-                System.out.println(mer.dtm);
-                System.out.println(mer.day);
+/*
+                if (lineOfFile[0].equals("0"))
+                {
+                    currTime = dateTime.toEpochSecond(ZoneOffset.MAX);
+                    Log.d("CURRTIME", currTime + "");
+                    setEarliestTime(currTime);
+                }
+*/
             }
             catch (Exception e)
             {
                 System.out.println(e);
             }
-            */
+
             // replaces all occurrences of 'a' to 'e'
             String T1 = lineOfFile[TEMP1_INDEX]
                     .replace(',', '.');
@@ -333,13 +352,12 @@ public class GraphFragment extends Fragment
         super.onCreate(savedInstanceState);
     }
 
-
-    @RequiresApi(api = Build.VERSION_CODES.O)
     public View onCreateView(
             @NonNull LayoutInflater inflater,
             ViewGroup container,
             Bundle savedInstanceState
     ) {
+        Log.d("MERGECALL", "MERGE IS CALLED");
         GraphViewModel readerViewModel =
                 new ViewModelProvider(this).get(GraphViewModel.class);
         binding = FragmentGraphBinding.inflate(
@@ -470,10 +488,10 @@ public class GraphFragment extends Fragment
         XAxis xAxis = chart.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.TOP_INSIDE);
         xAxis.setTextSize(10f);
-        xAxis.setTextColor(Color.WHITE);
         xAxis.setDrawAxisLine(true);
         xAxis.setDrawGridLines(true);
-        xAxis.setTextColor(Color.rgb(255, 192, 56));
+        xAxis.setTextColor(Color.BLACK);
+        xAxis.setTextSize(10f);
         xAxis.setCenterAxisLabels(true);
         xAxis.setGranularity(1f); // one hour
 
@@ -484,9 +502,13 @@ public class GraphFragment extends Fragment
         return root;
     }
 
-
     private String mergeCSVFiles(String[] fileNames)
     {
+        Log.d("MERGECALL", "Merge is called");
+        String[] strArr;
+        LocalDateTime dateTime;
+        long currTime;
+
         final String LAST_OCCURENCE = ".*/";
         // final String parent_dir = file_names[0].split(LAST_OCCURENCE)[0];
         // for testing purposes only
@@ -513,6 +535,7 @@ public class GraphFragment extends Fragment
         CSVFile tempFile = CSVFile.create(tempFileName);
         for (String fileName : fileNames)
         {
+            Log.d("MERGECALL", "Enters merge loop");
             CSVFile csvFile = CSVFile.open(fileName, CSVFile.READ_MODE);
             // count the data sets
             String currentLine = csvFile.readLine();
@@ -528,6 +551,17 @@ public class GraphFragment extends Fragment
 
             while((currentLine = csvFile.readLine()).contains(";"))
             {
+/*
+                strArr = currentLine.split(";");
+                if (strArr[0].equals("0"))
+                {
+                    dateTime = LocalDateTime.parse(strArr[DATETIME_INDEX], formatter);
+                    currTime = dateTime.toEpochSecond(ZoneOffset.MAX);
+                    Log.d("MERGETIME", "currtime:"+currTime+" earliest: "+earliestTime );
+                    //set earliest time
+                    setEarliestTime(currTime);
+                }
+*/
                 tempFile.write(currentLine + "\n");
             }
             csvFile.close();
@@ -551,8 +585,6 @@ public class GraphFragment extends Fragment
         return mergedFileName;
     }
 
-
-    @RequiresApi(api = Build.VERSION_CODES.O)
     private LineDataSet SetLine(ArrayList<Entry> vT, TPhysValue val)
     {
         int colorStep=127;   // 255/2=127  3 colors (0,127,254) in each rgb value
@@ -697,7 +729,7 @@ public class GraphFragment extends Fragment
          ViewModel
         2) Shrink definition
      */
-    @RequiresApi(api = Build.VERSION_CODES.O)
+
     private void LoadDmdData()
     {
         LineDataSet d = null;
