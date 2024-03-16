@@ -1,45 +1,26 @@
 {
   "project_info": {
-    "project_number": "563982025396",
-    "firebase_url": "https://dendro-dawgz-default-rtdb.firebaseio.com",
-    "project_id": "dendro-dawgz",
-    "storage_bucket": "dendro-dawgz.appspot.com"
+    "project_number": "699298216355",
+    "project_id": "dendro-doggie",
+    "storage_bucket": "dendro-doggie.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:563982025396:android:fe78aa0a1c8882f1714de1",
+        "mobilesdk_app_id": "1:699298216355:android:a76240d85ff5b56c740216",
         "android_client_info": {
           "package_name": "com.tomst.lolly"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "563982025396-79bivbd7730hu6fd8m1dq262v4bc9fev.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.tomst.lolly",
-            "certificate_hash": "ee6f05c66e693fadc3411dd5b3d9e60361fa202c"
-          }
-        },
-        {
-          "client_id": "563982025396-f9ko97qodgi646095v6606usnmqar060.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDDeK9-yndeDp2AAnR1dTG0REIafXwEPdM"
+          "current_key": "AIzaSyBumSXa19a7o1XzpxIShdZbouCCFhfxzec"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "563982025396-f9ko97qodgi646095v6606usnmqar060.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
+          "other_platform_oauth_client": []
         }
       }
     }
