@@ -532,6 +532,14 @@
                             android:paddingRight="@dimen/spacing_medium">
 
                             <Button
+                                android:id="@+id/btnLoginOptions"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginLeft="40px"
+                                android:layout_marginBottom="10px"
+                                android:text="Log In" />
+
+                            <Button
                                 android:id="@+id/btnLogout"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"

@@ -26,6 +26,7 @@ import android.widget.Toast;
 import com.google.android.material.radiobutton.MaterialRadioButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.tomst.lolly.MainActivity;
 import com.tomst.lolly.LoginActivity;
 import com.tomst.lolly.R;
 import com.tomst.lolly.RegisterActivity;
@@ -270,6 +271,7 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
 
         // user auth
         Button buttonLogout = root.findViewById(R.id.btnLogout);
+        Button buttonLogin = root.findViewById(R.id.btnLoginOptions);
         TextView textView = root.findViewById(R.id.userDetails);
 
         FirebaseAuth auth = FirebaseAuth.getInstance();
@@ -285,10 +287,37 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
             @Override
             public void onClick(View v)
             {
-                FirebaseAuth.getInstance().signOut();
-                Intent intent = new Intent(getActivity(), LoginActivity.class);
-                startActivity(intent);
-                getActivity().finish();
+                if (user != null) {
+
+                    FirebaseAuth.getInstance().signOut();
+                    Intent intent = new Intent(getActivity(), LoginActivity.class);
+                    startActivity(intent);
+                    getActivity().finish();
+                }
+                else
+                {
+                    Toast.makeText(v.getContext(), "Not Logged In",
+                            Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        buttonLogin.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                if (user == null)
+                {
+                    Intent intent = new Intent(getActivity(), LoginActivity.class);
+                    startActivity(intent);
+                    getActivity().finish();
+                }
+                else
+                {
+                    Toast.makeText(v.getContext(), "Already Logged In",
+                            Toast.LENGTH_SHORT).show();
+                }
             }
         });
 

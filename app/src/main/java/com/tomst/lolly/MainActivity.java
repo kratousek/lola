@@ -300,13 +300,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         auth = FirebaseAuth.getInstance();
         user = auth.getCurrentUser();
 
-
+        /*
         if (user == null)
         {
             Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
             startActivity(intent);
             finish();
         }
+        */
 
         // permissionManager = new PermissionManager(this);
 
