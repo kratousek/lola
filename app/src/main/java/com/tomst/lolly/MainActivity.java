@@ -29,6 +29,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.github.mikephil.charting.data.Entry;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -70,6 +71,7 @@ import com.tomst.lolly.ui.options.OptionsFragment;
 import org.w3c.dom.Text;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 
@@ -93,6 +95,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public MainActivity(){
         fopen = new FileOpener(this);
     }
+
+    /*
+    private void loadDataToDB()
+    {
+        ArrayList<Entry> vT1 = new ArrayList<>();
+        ArrayList<Entry> vT2 = new ArrayList<>();
+        ArrayList<Entry> vT3 = new ArrayList<>();
+        ArrayList<Entry> vHA = new ArrayList<>();
+
+        vT1.add(dmdViewModel.getT1());
+        vT2.add(dmdViewModel.getT2());
+        vT3.add(dmdViewModel.getT3());
+        vHA.add(dmdViewModel.getHA());
+    }
+    */
 
     private ServiceConnection connection = new ServiceConnection() {
         private boolean bound;
