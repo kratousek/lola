@@ -20,10 +20,10 @@ public enum TPhysValue {
     public String valToString(TPhysValue val){
         String s = "";
         switch (val){
-            case vT1: s = "T1"; break;
-            case vT2: s ="T2"; break;
-            case vT3: s = "T3"; break;
-            case vHum: s="Hum"; break;
+            case vT1: s = "Temp 1"; break;
+            case vT2: s = "Temp 2"; break;
+            case vT3: s = "Temp 3"; break;
+            case vHum: s = "Growth"; break;    //humidity
             case vAD: s = "AD"; break;
             case vMicro: s = "Micro"; break;
         }
