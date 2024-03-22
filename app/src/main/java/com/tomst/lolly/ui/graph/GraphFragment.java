@@ -761,4 +761,5 @@ public class GraphFragment extends Fragment
         super.onDestroyView();
         binding = null;
     }
+
 }
