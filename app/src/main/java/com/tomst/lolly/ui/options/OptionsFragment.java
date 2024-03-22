@@ -4,6 +4,7 @@ import androidx.core.widget.NestedScrollView;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.os.Bundle;
@@ -19,10 +20,16 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.material.radiobutton.MaterialRadioButton;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.tomst.lolly.MainActivity;
+import com.tomst.lolly.LoginActivity;
 import com.tomst.lolly.R;
+import com.tomst.lolly.RegisterActivity;
 import com.tomst.lolly.databinding.FragmentOptionsBinding;
 
 import com.tomst.lolly.utils.Tools;
@@ -252,6 +259,7 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
         binding.Deci.setText(s);
     }
 
+
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
@@ -260,6 +268,58 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
         View root = binding.getRoot();
 
         Resources res = getResources();
+
+        // user auth
+        Button buttonLogout = root.findViewById(R.id.btnLogout);
+        Button buttonLogin = root.findViewById(R.id.btnLoginOptions);
+        TextView textView = root.findViewById(R.id.userDetails);
+
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        FirebaseUser user = auth.getCurrentUser();
+
+        if (user != null)
+        {
+            textView.setText(user.getEmail());
+        }
+
+        buttonLogout.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                if (user != null) {
+
+                    FirebaseAuth.getInstance().signOut();
+                    Intent intent = new Intent(getActivity(), LoginActivity.class);
+                    startActivity(intent);
+                    getActivity().finish();
+                }
+                else
+                {
+                    Toast.makeText(v.getContext(), "Not Logged In",
+                            Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        buttonLogin.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                if (user == null)
+                {
+                    Intent intent = new Intent(getActivity(), LoginActivity.class);
+                    startActivity(intent);
+                    getActivity().finish();
+                }
+                else
+                {
+                    Toast.makeText(v.getContext(), "Already Logged In",
+                            Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
 
         // odkud vycitam
         Spinner spiDownload = (Spinner) root.findViewById(R.id.spiDownload);

@@ -27,6 +27,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/spacing_small" />
 
+
+
         <!-- Druhy radek, OBRAZEK LIZATKA, TEPLOTY, PAMET/BATERKA,REZIM -->
         <LinearLayout
             android:layout_width="match_parent"
@@ -572,8 +574,6 @@
 
 
         </LinearLayout>
-
-
 
         </LinearLayout>
 

@@ -1,5 +1,6 @@
 package com.tomst.lolly.ui.viewfile;
 
+
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 import static android.app.Activity.RESULT_CANCELED;
@@ -13,11 +14,13 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.StatFs;
 import android.util.Log;
+import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.MimeTypeMap;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -49,19 +52,23 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
 
-public class ListFragment extends Fragment {
 
+public class ListFragment extends Fragment
+{
     private FragmentViewerBinding binding;
     View rootView = null;
 
     private int mywidth;
 
-    private Bitmap fileImage, pictureImage, audioImage, videoImage, unknownImage, archiveImage, folderImage;
+    private Bitmap fileImage, pictureImage, audioImage,
+            videoImage, unknownImage, archiveImage,
+            folderImage;
 
 
     private PermissionManager permissionManager;
@@ -92,9 +99,9 @@ public class ListFragment extends Fragment {
         //View rootView = binding.getRoot();
         rootView = binding.getRoot();
 
-        Button btn = binding.buttonZipall;
-        btn.setText("Upload Zip");
-        btn.setOnClickListener(new View.OnClickListener() {
+        Button zip_btn = binding.buttonZipall;
+        zip_btn.setText("Upload Zip");
+        zip_btn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 //Log.d("BUTTONS", "User tapped the Supabutton");
                 ZipFiles zipFiles = new ZipFiles();
@@ -155,45 +162,72 @@ public class ListFragment extends Fragment {
         return rootView;
     }
 
-    private void loadAllFiles(){
+    private void loadAllFiles()
+    {
+        // will most likely not exceed number of datasets on device
+        ArrayList<String> filenames = new ArrayList<String>();
         ListView mListView = (ListView) rootView.findViewById(R.id.listView);
-
-        // 2. vytvoreni adapteru
-        final FileViewerAdapter friendsAdapter = new FileViewerAdapter(getContext(), fFriends);
-
-        // 3. Set the adapter
+        FileViewerAdapter friendsAdapter = new FileViewerAdapter(
+                getContext(), fFriends
+        );
         mListView.setAdapter(friendsAdapter);
-
-        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener()
+        {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                //Toast.makeText(getContext(), friendsAdapter.getShortName(position) + " is a friend", Toast.LENGTH_SHORT).show();
-                dmd.sendMessageToGraph(friendsAdapter.getFullName(position));
+            public void onItemClick(
+                    AdapterView<?> parent,
+                    View view,
+                    int position,
+                    long id
+            ) {
+                filenames.add(friendsAdapter.getFullName(position));
+            }
+        });
+
+        // add listener for loading selected datasets to graph fragment
+        Button select_sets_btn = binding.selectSets;
+        select_sets_btn.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                String filenames_msg = "";
+                for (String filename : filenames)
+                {
+                    filenames_msg += filename + ";";
+                }
+
+                dmd.sendMessageToGraph(filenames_msg);
                 switchToGraphFragment();
             }
         });
     }
 
-    private void switchToGraphFragment(){
+    private void switchToGraphFragment()
+    {
         BottomNavigationView bottomNavigationView;
-        bottomNavigationView = (BottomNavigationView) getActivity().findViewById(R.id.nav_view);
+        bottomNavigationView = (BottomNavigationView) getActivity()
+                .findViewById(R.id.nav_view);
         View view = bottomNavigationView.findViewById(R.id.navigation_graph);
         view.performClick();
     }
 
 
 
-    private void setupDriveList(final File[] rootDirectories) {
+    private void setupDriveList(final File[] rootDirectories)
+    {
         //final LinearLayout list = rootView.findViewById(R.id.drive_list);
         final LinearLayout list = null;
 
-        if (list == null) {
+        if (list == null)
+        {
             return;
         }
 
         list.removeAllViews();
 
-        for (File file : rootDirectories) {
+        for (File file : rootDirectories)
+        {
             final Button entry = new Button(getContext());
             entry.setLayoutParams(
                     new LinearLayout.LayoutParams(
@@ -202,7 +236,8 @@ public class ListFragment extends Fragment {
                     )
             );
             entry.setText(file.getPath());
-            entry.setOnClickListener(v -> {
+            entry.setOnClickListener(v ->
+            {
                 //executor.execute(() -> listItem(file));
                 //setViewVisibility(R.id.drive_list, View.GONE);
             });
@@ -211,31 +246,54 @@ public class ListFragment extends Fragment {
         list.setVisibility(View.GONE);
     }
 
-    private boolean checkPermission() {
 
-        permissionManager.getPermission(READ_EXTERNAL_STORAGE, "Storage access is required", false);
-        permissionManager.getPermission(WRITE_EXTERNAL_STORAGE, "Storage access is required", false);
+    private boolean checkPermission()
+    {
+        permissionManager.getPermission(
+                READ_EXTERNAL_STORAGE,
+                "Storage access is required",
+                false
+        );
+        permissionManager.getPermission(
+                WRITE_EXTERNAL_STORAGE,
+                "Storage access is required",
+                false
+        );
 
-        return
-          permissionManager.havePermission(new String[]{READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE});
+        return permissionManager
+                .havePermission(new String[] {
+                        READ_EXTERNAL_STORAGE,
+                        WRITE_EXTERNAL_STORAGE
+                });
     }
 
-    private boolean folderAccessible(final File folder) {
-        try {
+
+    private boolean folderAccessible(final File folder)
+    {
+        try
+        {
             return folder.canRead();
-        } catch (SecurityException e) {
+        }
+        catch (SecurityException e)
+        {
             return false;
         }
     }
 
-    private void sort(final File[] items) {
+
+    private void sort(final File[] items)
+    {
         // for every item
-        for (int i = 0; i < items.length; i++) {
+        for (int i = 0; i < items.length; i++)
+        {
             // j = for every next item
-            for (int j = i + 1; j < items.length; j++) {
+            for (int j = i + 1; j < items.length; j++)
+            {
                 // if larger than next
-                if (items[i].toString()
-                        .compareToIgnoreCase(items[j].toString()) > 0) {
+                if (
+                    items[i].toString()
+                            .compareToIgnoreCase(items[j].toString()) > 0
+                ) {
                     File temp = items[i];
                     items[i] = items[j];
                     items[j] = temp;
@@ -244,38 +302,54 @@ public class ListFragment extends Fragment {
         }
     }
 
-    private void addDialog(final String dialog, final int textSize) {
+
+    private void addDialog(final String dialog, final int textSize)
+    {
         //addIdDialog(dialog, textSize, View.NO_ID);
         Log.d(TAG,dialog);
     }
 
-    private void addDirectory(final File folder) {
+
+    private void addDirectory(final File folder)
+    {
        // addItem(getImageView(folderImage), folder);
         Log.d(TAG,folder.getName());
 
     }
 
+
     //private void addItem(final ImageView imageView, final File file) {
-    private void addItem(int iconID,File file){
+    private void addItem(int iconID,File file)
+    {
        // new Item(imageView, file);
         String fName= file.getName();
         if (fName.contains(".txf"))
+        {
             iconID = 0;
-        fFriends.add(new FileDetail(file.getName(),file.getAbsolutePath(),  iconID));
+        }
+        fFriends.add(new FileDetail(
+                file.getName(),
+                file.getAbsolutePath(),
+                iconID
+        ));
         Log.d(TAG,file.getName());
     }
 
-    private void AddDirName(String DirName){
+    private void AddDirName(String DirName)
+    {
         //fFriends.add(new FileDetail(DirName,R.drawable.ic_mood_white_24dp));
         fFriends.add(new FileDetail(DirName,R.drawable.folder));
     }
 
-    private void AddFileName(String FileName){
+
+    private void AddFileName(String FileName)
+    {
         fFriends.add(new FileDetail(FileName,R.drawable.file));
     }
 
 
-    private ImageView getImageView(final Bitmap bitmap) {
+    private ImageView getImageView(final Bitmap bitmap)
+    {
         final ImageView imageView = new ImageView(getContext());
         imageView.setImageBitmap(bitmap);
         final int width10 = mywidth / 8;
@@ -289,10 +363,13 @@ public class ListFragment extends Fragment {
     }
 
 
-    public static String getFileType(File file) {
+    public static String getFileType(File file)
+    {
         final int lastDot = file.getName().lastIndexOf('.');
-        if (lastDot >= 0) {
-            final String extension = file.getName().substring(lastDot + 1);
+        if (lastDot >= 0)
+        {
+            final String extension =
+                    file.getName().substring(lastDot + 1);
             final String mime = MimeTypeMap
                     .getSingleton()
                     .getMimeTypeFromExtension(extension);
@@ -301,67 +378,97 @@ public class ListFragment extends Fragment {
         return "application/octet-stream";
     }
 
-    private void listItem(final File folder) {
+    private void listItem(final File folder)
+    {
         String info = "Name: " + folder.getName() + "\n";
-        if (Build.VERSION.SDK_INT >= 9) {
+        if (Build.VERSION.SDK_INT >= 9)
+        {
             StatFs stat = new StatFs(folder.getPath());
             long bytesAvailable = Build.VERSION.SDK_INT >= 18 ?
                     stat.getBlockSizeLong() * stat.getAvailableBlocksLong() :
                     (long) stat.getBlockSize() * stat.getAvailableBlocks();
-            info += "Available size: " + FileOperation.getReadableMemorySize(bytesAvailable) + "\n";
-            if (Build.VERSION.SDK_INT >= 18) {
+            info += "Available size: "
+                    + FileOperation.getReadableMemorySize(bytesAvailable)
+                    + "\n";
+            if (Build.VERSION.SDK_INT >= 18)
+            {
                 bytesAvailable = stat.getTotalBytes();
-                info += "Capacity size: " + FileOperation.getReadableMemorySize(bytesAvailable) + "\n";
+                info += "Capacity size: "
+                        + FileOperation.getReadableMemorySize(bytesAvailable)
+                        + "\n";
             }
         }
 
         parent = folder.getParentFile();
         filePath = folder.getPath();
 
-        if (folderAccessible(folder)) {
+        if (folderAccessible(folder))
+        {
             final File[] items = folder.listFiles();
             assert items != null;
             sort(items);
-            if (items.length == 0) {
+            if (items.length == 0)
+            {
                 addDialog("Empty folder!", 16);
-            } else {
+            }
+            else
+            {
                 String lastLetter = "";
                 boolean hasFolders = false;
-                for (File item : items) {
-                    if (item.isDirectory()) {
-                        if (!hasFolders) {
+                for (File item : items)
+                {
+                    if (item.isDirectory())
+                    {
+                        if (!hasFolders)
+                        {
                             addDialog("Folders:", 18);
                             hasFolders = true;
                         }
-                        if (item.getName().substring(0, 1)
-                                .compareToIgnoreCase(lastLetter) > 0) {
-                            lastLetter = item.getName().substring(0, 1).toUpperCase();
+                        if (
+                            item.getName()
+                                    .substring(0, 1)
+                                    .compareToIgnoreCase(lastLetter) > 0
+                        ) {
+                            lastLetter = item.getName()
+                                    .substring(0, 1).toUpperCase();
                             addDialog(lastLetter, 16);
                         }
                         addDirectory(item);
                         AddDirName(item.getName());
                     }
                 }
+
                 lastLetter = "";
                 boolean hasFiles = false;
                 boolean showFile = false;
                 for (File item : items)
-                    if (item.isFile()) {
-                        if (!hasFiles) {
+                {
+                    if (item.isFile())
+                    {
+                        if (!hasFiles)
+                        {
                             addDialog("Files:", 18);
                             hasFiles = true;
                         }
-                        if (item.getName().substring(0, 1)
-                                .compareToIgnoreCase(lastLetter) > 0) {
-                            lastLetter = item.getName().substring(0, 1).toUpperCase();
+                        if (item.getName()
+                                .substring(0, 1)
+                                .compareToIgnoreCase(lastLetter) > 0)
+                        {
+                            lastLetter = item.getName()
+                                    .substring(0, 1)
+                                    .toUpperCase();
                             addDialog(lastLetter, 16);
                         }
 
-                        showFile = item.getName().contains(".csv"); //|| item.getName().contains(".zip");
+                        showFile = item.getName()
+                                .contains(".csv"); //|| item.getName().contains(".zip");
                         if (!showFile)
-                          continue;
+                        {
+                            continue;
+                        }
 
-                        switch (getFileType(item).split("/")[0]) {
+                        switch (getFileType(item).split("/")[0])
+                        {
                             case "image":
                                 addItem(R.drawable.picture, item);
                                 break;//addItem(getImageView(pictureImage), item);
@@ -371,14 +478,16 @@ public class ListFragment extends Fragment {
                             case "audio":
                                 addItem(R.drawable.audio, item);
                                 break;   //addItem(getImageView(audioImage), item);
-                            case "application": {
+                            case "application":
+                            {
                                 if (getFileType(item).contains("application/octet-stream"))
                                     addItem(R.drawable.unknown, item);//addItem(getImageView(unknownImage), item);
                                 else
                                     addItem(R.drawable.archive, item);//addItem(getImageView(archiveImage), item);
                                 break;
                             }
-                            case "text": {
+                            case "text":
+                            {
                                 // sem pujdou jenom csv soubory
                                 addItem(R.drawable.file, item);
                                 break;//addItem(getImageView(fileImage), item);
@@ -387,20 +496,34 @@ public class ListFragment extends Fragment {
                                 addItem(R.drawable.unknown, item);
                                 break; //addItem(getImageView(unknownImage), item);
                         }
-
                     }
+                }
             }
-        } else {
-            if (filePath.contains("Android/data") || filePath.contains("Android/obb")) {
-                addDialog("For android 11 or higher, Android/data and Android/obb is refused access.\n", 16);
-            } else addDialog("Access Denied", 16);
+        }
+        else
+        {
+            if (
+                filePath.contains("Android/data")
+                || filePath.contains("Android/obb")
+            ) {
+                addDialog(
+                    "For android 11 or higher, Android/data and"
+                        + " Android/obb is refused access.\n",
+                    16
+                );
+            }
+            else
+            {
+                addDialog("Access Denied", 16);
+            }
         }
        // runOnUiThread(() -> ll.removeView(findViewById(LOADING_VIEW_ID)));
     }
 
 
     @Override
-    public void onStart(){
+    public void onStart()
+    {
         super.onStart();
 
         File[] rootDirectories = FileOperation.getAllStorages(getContext());
@@ -410,19 +533,29 @@ public class ListFragment extends Fragment {
         //File[] rootDirectories = directory.listFiles();
         File rootDir = new File(filePath);
         if (rootDir.isFile())
+        {
             rootDir = rootDir.getParentFile();
-
+        }
 
         setupDriveList(rootDirectories);
 
-        if (filePath != null) {
+        if (filePath != null)
+        {
             if (checkPermission())
+            {
                 listItem(rootDir);
-                //listItem(new File(filePath));
-        } else {
-            for (File folder : rootDirectories) {
+            }
+            // listItem(new File(filePath));
+        }
+        else
+        {
+            for (File folder : rootDirectories)
+            {
                 if (checkPermission())
-                     listItem(folder);
+                {
+                    listItem(folder);
+                }
+
                 break;
             }
         };
@@ -442,19 +575,19 @@ public class ListFragment extends Fragment {
                 }
             }
         });
-         */
+        */
     }
 
 
-
-    private List<FileDetail> setFiles(String path){
-
+    private List<FileDetail> setFiles(String path)
+    {
         List<FileDetail> fil = new ArrayList<>();
 
         File directory = new File(path);
         File[] files = directory.listFiles();
 
-        for (File pathname : files){
+        for (File pathname : files)
+        {
             System.out.println(pathname);
         }
 
@@ -462,8 +595,8 @@ public class ListFragment extends Fragment {
     };
 
 
-    private List<FileDetail> setFriends() {
-
+    private List<FileDetail> setFriends()
+    {
         String[] names = getResources().getStringArray(R.array.friends);
         int[] iconID = {
                 R.drawable.ic_mood_white_24dp,
@@ -474,10 +607,10 @@ public class ListFragment extends Fragment {
                 R.drawable.ic_sentiment_very_dissatisfied_white_24dp,
                 R.drawable.ic_sentiment_very_satisfied_white_24dp,
         };
-
         List<FileDetail> friends = new ArrayList<>();
 
-        for (int i = 0; i < names.length; i++) {
+        for (int i = 0; i < names.length; i++)
+        {
             friends.add(new FileDetail(names[i], iconID[i]));
         }
 
@@ -485,27 +618,36 @@ public class ListFragment extends Fragment {
     }
 
 
-    private void setupBitmaps() {
+    private void setupBitmaps()
+    {
         mywidth = Resources.getSystem().getDisplayMetrics().widthPixels;
-        folderImage = BitmapFactory.decodeResource(getResources(),
-                R.drawable.folder);
-        fileImage = BitmapFactory.decodeResource(getResources(),
-                R.drawable.file);
-        archiveImage = BitmapFactory.decodeResource(getResources(),
-                R.drawable.archive);
-        audioImage = BitmapFactory.decodeResource(getResources(),
-                R.drawable.audio);
-        videoImage = BitmapFactory.decodeResource(getResources(),
-                R.drawable.video);
-        pictureImage = BitmapFactory.decodeResource(getResources(),
-                R.drawable.picture);
-        unknownImage = BitmapFactory.decodeResource(getResources(),
-                R.drawable.unknown);
+        folderImage = BitmapFactory.decodeResource(
+                getResources(), R.drawable.folder
+        );
+        fileImage = BitmapFactory.decodeResource(
+                getResources(), R.drawable.file
+        );
+        archiveImage = BitmapFactory.decodeResource(
+                getResources(), R.drawable.archive
+        );
+        audioImage = BitmapFactory.decodeResource(
+                getResources(), R.drawable.audio
+        );
+        videoImage = BitmapFactory.decodeResource(
+                getResources(), R.drawable.video
+        );
+        pictureImage = BitmapFactory.decodeResource(
+                getResources(), R.drawable.picture
+        );
+        unknownImage = BitmapFactory.decodeResource(
+                getResources(), R.drawable.unknown
+        );
     }
 
 
     @Override
-    public void onDestroyView() {
+    public void onDestroyView()
+    {
         super.onDestroyView();
         binding = null;
     }

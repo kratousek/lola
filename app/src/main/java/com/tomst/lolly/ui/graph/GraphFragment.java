@@ -1,5 +1,6 @@
 package com.tomst.lolly.ui.graph;
 
+
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
@@ -37,6 +38,7 @@ import com.github.mikephil.charting.data.LineDataSet;
 
 import com.github.mikephil.charting.utils.ColorTemplate;
 import com.tomst.lolly.core.CSVReader;
+import com.tomst.lolly.core.CSVFile;
 import com.tomst.lolly.core.Constants;
 import com.tomst.lolly.core.OnProListener;
 import com.tomst.lolly.core.TMereni;
@@ -45,10 +47,12 @@ import com.tomst.lolly.databinding.FragmentGraphBinding;
 import com.tomst.lolly.core.DmdViewModel;
 
 
-public class GraphFragment extends Fragment  {
+import java.io.File;
 
+
+public class GraphFragment extends Fragment
+{
     private final int barCount = 12;
-    private String CsvFileName;
     private CombinedChart chart;
     private CombinedData combinedData;
 
@@ -76,9 +80,12 @@ public class GraphFragment extends Fragment  {
 
     private Integer fIdx=0;
 
-    protected Handler handler = new Handler(Looper.getMainLooper()) {
+
+    protected Handler handler = new Handler(Looper.getMainLooper())
+    {
         @Override
-        public void handleMessage(Message msg) {
+        public void handleMessage(Message msg)
+        {
             TMereni mer = (TMereni) msg.obj;
             //Log.d(TAG,String.valueOf(mer.idx));
             dmd.AddMereni(mer);
@@ -86,14 +93,18 @@ public class GraphFragment extends Fragment  {
         }
     };
 
+
     @Override
-    public void onDestroy() {
+    public void onDestroy()
+    {
         super.onDestroy();
         //dmd.sendMessageToGraph("");
     }
 
+
     @Override
-    public void onStop() {
+    public void onStop()
+    {
         dmd.sendMessageToGraph("");
         dmd.ClearMereni();
 
@@ -101,112 +112,154 @@ public class GraphFragment extends Fragment  {
     }
 
 
-    private void LoadCsvFile(String AFileName){
-        if (AFileName == "")
+    private void LoadCsvFile(String fileName)
+    {
+        if (fileName == "")
+        {
             return;
+        }
 
-        CsvFileName = AFileName;
-        // sem se dostanu po prepnuti na formu grafu
-        Log.d(Constants.TAG,"Message from ListFragment: "+AFileName);
-        csv = new CSVReader(getContext());
-        csv.SetHandler(handler);
-        csv.SetTxf(false); // ano zapisuju Tomasuv zkraceny soubor
-        csv.setFileName(AFileName);
-        csv.SetBarListener(new OnProListener() {
+        Log.d(Constants.TAG, "Received " + fileName);
+
+        csv.SetBarListener(new OnProListener()
+        {
             @Override
-            public void OnProEvent(long Pos) {
+            public void OnProEvent(long Pos)
+            {
                 if  (binding == null)
+                {
                     return;
+                }
 
-                if (Pos<0) {
+                if (Pos < 0)
+                {
                     fIdx = 0;
                     vT1.clear();
                     binding.proBar.setMax((int) -Pos);
                 }
                 else
+                {
                     binding.proBar.setProgress((int) Pos);
+                }
             }
         });
 
-        // konec vycitani
-        csv.SetFinListener(new OnProListener() {
+        csv.SetFinListener(new OnProListener()
+        {
             @Override
-            public void OnProEvent(long Pos) {
+            public void OnProEvent(long Pos)
+            {
                 binding.proBar.setProgress(0);
                 //CopyDataToChart(vT1);
                 LoadDmdData();
             }
         });
-        csv.start(); // pustim thread
     }
 
 
-    private void DoBtnClick(View view){
+    private void DoBtnClick(View view)
+    {
         boolean checked = ((CheckBox) view).isChecked();
         Object ob = ((CheckBox) view).getTag();
         int tag = Integer.valueOf(ob.toString());
         if (tag<=0)
-            throw new UnsupportedOperationException("Selected linedataset doesnt exists");
+        {
+            throw new UnsupportedOperationException(
+                    "Selected line dataset doesn't exists"
+            );
+        }
 
         ((LineDataSet) dataSets.get(tag-1)).setVisible(checked);
         chart.invalidate();
     }
 
+
     // nahraje data pridane TMD adapterem ve fragmentu HomeFragment
     @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
+    public void onCreate(@Nullable Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
     }
 
-    public View onCreateView(@NonNull LayoutInflater inflater,
-                             ViewGroup container, Bundle savedInstanceState) {
 
-        GraphViewModel readerViewModel =  new ViewModelProvider(this).get(GraphViewModel.class);
-        binding = FragmentGraphBinding.inflate(inflater, container, false);
+    public View onCreateView(
+            @NonNull LayoutInflater inflater,
+            ViewGroup container,
+            Bundle savedInstanceState
+    ) {
+        GraphViewModel readerViewModel =
+                new ViewModelProvider(this).get(GraphViewModel.class);
+        binding = FragmentGraphBinding.inflate(
+                inflater, container, false
+        );
         View root = binding.getRoot();
 
         dmd = new ViewModelProvider(getActivity()).get(DmdViewModel.class);
 
         // sem me dostane observer nastaveny v prohlizecce souboru
-        dmd.getMessageContainerGraph().observe(getViewLifecycleOwner(), AFileName -> {
-            if (AFileName.equals("TMD"))
-               LoadDmdData();  // vytahne data z dmd, ktere sem poslal TMD adapter
-            else
-               LoadCsvFile(AFileName);
+        // observer message for TMD adapter
+        dmd.getMessageContainerGraph()
+                .observe(getViewLifecycleOwner(), msg ->
+                {
+                    if (msg.equals("TMD"))
+                    {
+                        // vytahne data z dmd, ktere sem poslal TMD adapter
+                        // pulls data from dendrometer
+                        LoadDmdData();
+                    }
+                    else
+                    {
+                        String[] fileNames = msg.split(";");
 
-           dmd.getMessageContainerGraph().removeObservers(getViewLifecycleOwner());
-        });
+                        if (fileNames.length > 1)
+                        {
+                            String mergedFileName = mergeCSVFiles(fileNames);
+                            Log.d(
+                                    "GRAPH",
+                                    "Merged file name = "
+                                            + mergedFileName
+                            );
+
+//                            LoadCsvFile(mergedFileName);
+                        }
+                        else
+                        {
+                            LoadCsvFile(fileNames[0]);
+                        }
+                    }
+
+                    dmd.getMessageContainerGraph()
+                            .removeObservers(getViewLifecycleOwner());
+                });
 
         CheckBox cbT1 = binding.vT1;
         cbT1.setChecked(true);
-        cbT1.setOnClickListener(view -> {
-           DoBtnClick(view);
+        cbT1.setOnClickListener(view ->
+        {
+            DoBtnClick(view);
         });
-
-
         CheckBox cbT2 = binding.vT2;
         cbT2.setChecked(true);
-        cbT2.setOnClickListener(view -> {
+        cbT2.setOnClickListener(view ->
+        {
             DoBtnClick(view);
         });
-
         CheckBox cbT3 = binding.vT3;
         cbT3.setChecked(true);
-        cbT3.setOnClickListener(view -> {
+        cbT3.setOnClickListener(view ->
+        {
             DoBtnClick(view);
         });
-
         CheckBox cbHum = binding.vHum;
         cbHum.setChecked(true);
-        cbHum.setOnClickListener(view -> {
+        cbHum.setOnClickListener(view ->
+        {
             DoBtnClick(view);
         });
-
 
         getActivity().setTitle("Lolly 4");
         chart = binding.chart1;
-
-        //chart.getDescription().setText(CsvFileName);
+        // chart.getDescription().setText(CsvFileName);
         chart.setTouchEnabled(true);
         chart.setDragDecelerationFrictionCoef(0.9f);
 
@@ -217,13 +270,11 @@ public class GraphFragment extends Fragment  {
         chart.setHighlightPerDragEnabled(true);
 
         // set an alternative background color
-       // chart.setBackgroundColor(Color.WHITE);
+        // chart.setBackgroundColor(Color.WHITE);
         chart.setViewPortOffsets(0f, 0f, 0f, 0f);
-
         // if disabled, scaling can be done on x- and y-axis separately
         chart.setPinchZoom(false);
-
-         // get the legend (only possible after setting data)
+        // get the legend (only possible after setting data)
         Legend l = chart.getLegend();
         /*
         l.setWordWrapEnabled(true);
@@ -233,7 +284,6 @@ public class GraphFragment extends Fragment  {
         l.setDrawInside(false);
         l.setEnabled(false);
         */
-
         l.setForm(Legend.LegendForm.LINE);
         //l.setTypeface(tfLight);
         l.setTextSize(11f);
@@ -242,7 +292,6 @@ public class GraphFragment extends Fragment  {
         l.setHorizontalAlignment(Legend.LegendHorizontalAlignment.LEFT);
         l.setOrientation(Legend.LegendOrientation.HORIZONTAL);
         l.setDrawInside(true);
-
 
         // osa humidit
         YAxis rightAxis = chart.getAxisRight();
@@ -275,10 +324,65 @@ public class GraphFragment extends Fragment  {
         return root;
     }
 
-    private LineDataSet SetLine(ArrayList<Entry> vT, TPhysValue val){
 
+    private String mergeCSVFiles(String[] fileNames)
+    {
+        final String LAST_OCCURENCE = ".*/";
+        // final String parent_dir = file_names[0].split(LAST_OCCURENCE)[0];
+        // for testing purposes only
+        final String parentDir = "/storage/emulated/0/Documents/";
+        String tempFileName = parentDir + "temp.csv";
+        String mergedFileName = parentDir + fileNames[0]
+                .split(LAST_OCCURENCE)[1]
+                .replace(".csv", "");
+        for (int i = 1; i < fileNames.length; i += 1)
+        {
+            mergedFileName += "-" + fileNames[i]
+                    .split(LAST_OCCURENCE)[1]
+                    .replace(".csv", "");
+        }
+        mergedFileName += ".csv";
+
+        CSVFile tempFile = CSVFile.create(tempFileName);
+        String header = fileNames.length + ";\n";
+        long datasetStartLine = fileNames.length + 1;
+        for (String fileName : fileNames)
+        {
+            CSVFile csvFile = CSVFile.open(fileName, CSVFile.READ_MODE);
+            String line = csvFile.readLine();
+            // serial number is always first line in data set
+            header += line + datasetStartLine + "\n";
+
+            while ((line = csvFile.readLine()) != "")
+            {
+                tempFile.write(line + "\n");
+                datasetStartLine += 1;
+            }
+        }
+        tempFile.close();
+
+        CSVFile mergedFile = CSVFile.create(mergedFileName);
+        tempFile = CSVFile.open(tempFileName, CSVFile.READ_MODE);
+        mergedFile.write(header);
+
+        String line = "";
+        while ((line = tempFile.readLine()) != "")
+        {
+            mergedFile.write(line + "\n");
+        }
+
+        tempFile.close();
+        CSVFile.delete(parentDir + "temp.csv");
+
+        return mergedFileName;
+    }
+
+
+    private LineDataSet SetLine(ArrayList<Entry> vT, TPhysValue val)
+    {
         //LineData d = new LineData();
-        LineDataSet set= new LineDataSet(vT, "DataSet " + (val.ordinal() + 1));
+        LineDataSet set =
+                new LineDataSet(vT, "DataSet " + (val.ordinal() + 1));
 
         set.setLineWidth(2f);
         set.setDrawValues(false);
@@ -287,23 +391,25 @@ public class GraphFragment extends Fragment  {
         set.setDrawFilled(false);
         set.setLabel(val.valToString(val));
 
-
         set.setAxisDependency(YAxis.AxisDependency.LEFT);
 
-        switch (val){
+        switch (val)
+        {
             case vT1:
                 //set.setColor(Color.BLUE);
                 set.setColor(Color.rgb(68, 102, 163));
-
                 break;
+
             case vT2:
                 //set.setColor(Color.MAGENTA);
                 set.setColor(Color.rgb(243, 156, 53));
                 break;
+
             case vT3:
                 //set.setColor(Color.GREEN);
                 set.setColor(Color.rgb(0, 128, 0));
                 break;
+
             case vHum:
             case vAD:
             case vMicro:
@@ -311,28 +417,37 @@ public class GraphFragment extends Fragment  {
                 set.setColor(Color.rgb(128, 0, 0));
                 set.setAxisDependency(YAxis.AxisDependency.RIGHT);
                 break;
+
             default:
                 throw new UnsupportedOperationException("Not yet implemented");
         }
 
-
         return set;
     }
 
-    protected float getRandom(float range, float start) {
+
+    protected float getRandom(float range, float start)
+    {
         return (float) (Math.random() * range) + start;
     }
 
-    private BarData generateBarData() {
 
+    private BarData generateBarData()
+    {
         ArrayList<BarEntry> entries1 = new ArrayList<>();
         ArrayList<BarEntry> entries2 = new ArrayList<>();
 
-        for (int index = 0; index < barCount; index++) {
+        for (int index = 0; index < barCount; index++)
+        {
             entries1.add(new BarEntry(0, getRandom(25, 25)));
 
             // stacked
-            entries2.add(new BarEntry(0, new float[]{getRandom(13, 12), getRandom(13, 12)}));
+            entries2.add(new BarEntry(
+                    0,
+                    new float[] {
+                            getRandom(13, 12),
+                            getRandom(13, 12)
+                    }));
         }
 
         BarDataSet set1 = new BarDataSet(entries1, "Bar 1");
@@ -343,11 +458,13 @@ public class GraphFragment extends Fragment  {
 
         BarDataSet set2 = new BarDataSet(entries2, "");
         set2.setStackLabels(new String[]{"Stack 1", "Stack 2"});
-        set2.setColors(Color.rgb(61, 165, 255), Color.rgb(23, 197, 255));
+        set2.setColors(
+                Color.rgb(61, 165, 255),
+                Color.rgb(23, 197, 255)
+        );
         set2.setValueTextColor(Color.rgb(61, 165, 255));
         set2.setValueTextSize(10f);
         set2.setAxisDependency(YAxis.AxisDependency.LEFT);
-
 
         float groupSpace = 0.06f;
         float barSpace = 0.02f; // x2 dataset
@@ -364,7 +481,8 @@ public class GraphFragment extends Fragment  {
     }
 
 
-    private void LoadDmdData(){
+    private void LoadDmdData()
+    {
         LineDataSet d = null;
 
         // **** linearni graf
@@ -379,9 +497,7 @@ public class GraphFragment extends Fragment  {
         dataSets.add(d);
         LineData lines = new LineData(dataSets);
         combinedData.setData(lines);
-
-        //
-       // combinedData.setData(generateBarData());
+        // combinedData.setData(generateBarData());
         chart.setData(combinedData);
         chart.getAxisLeft().setEnabled(true);
         chart.getAxisRight().setEnabled(true);
@@ -396,7 +512,8 @@ public class GraphFragment extends Fragment  {
 
 
     @Override
-    public void onDestroyView() {
+    public void onDestroyView()
+    {
         super.onDestroyView();
         binding = null;
     }
