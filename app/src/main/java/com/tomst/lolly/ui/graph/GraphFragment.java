@@ -2,6 +2,7 @@ package com.tomst.lolly.ui.graph;
 
 
 import android.graphics.Color;
+import android.graphics.ColorSpace;
 import android.graphics.DashPathEffect;
 import android.os.Build;
 import android.os.Bundle;
@@ -33,6 +34,7 @@ import java.util.ArrayList;
 import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.CombinedChart;
 import com.github.mikephil.charting.components.Legend;
+import com.github.mikephil.charting.components.LegendEntry;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.BarData;
@@ -93,6 +95,7 @@ public class GraphFragment extends Fragment
     private final int barCount = 12;
     private ArrayList<ILineDataSet> dataSets = new ArrayList<>();
     private ArrayList<TDendroInfo> dendroInfos = new ArrayList<>();
+    private ArrayList<LegendEntry> LegendEntrys = new ArrayList<>();
 
 
     // graphing
@@ -149,6 +152,7 @@ public class GraphFragment extends Fragment
 
     private void DisplayData()
     {
+        boolean firstOfItsKind = true;
         int ogHeaderIndex = headerIndex;
         LineDataSet d = null;
         LineData lines;
@@ -178,13 +182,19 @@ public class GraphFragment extends Fragment
             // startup animation
             chart.animateX(2000, Easing.EaseInCubic);
 
-            //refresh datasets array??
+            Legend l = chart.getLegend();
+
+            LegendEntry legendEntry = new LegendEntry();
+            legendEntry.label = dendroInfos.get(headerIndex).serial;
+            legendEntry.formColor = dendroInfos.get(headerIndex).color;
+            LegendEntrys.add(legendEntry);
 
             headerIndex++;
             colorStep += 255 / numDataSets;
         }
         while (headerIndex < numDataSets);
-
+        Legend l = chart.getLegend();
+        l.setCustom(LegendEntrys);
         // sets view to start of graph and zooms into x axis by 7x
         chart.zoomAndCenterAnimated(
                 7f, 1f,
@@ -250,8 +260,6 @@ public class GraphFragment extends Fragment
 
                 //number of minutes from the first date plotted
                 dateNum = (mer.dtm.toEpochSecond(ZoneOffset.MAX) - originDate) / 60;
-                Log.d("DATENUM", dateNum + "");
-                Log.d("ORIGIN", originDate+"");
 
                 dendroInfos.get(headerIndex).mers.add(mer);
                 dendroInfos.get(headerIndex).vT1.add(
@@ -447,19 +455,20 @@ public class GraphFragment extends Fragment
         chart.setViewPortOffsets(0f, 0f, 0f, 0f);
         // if disabled, scaling can be done on x- and y-axis separately
         chart.setPinchZoom(false);
+
+/*
         // get the legend (only possible after setting data)
         Legend l = chart.getLegend();
 
         l.setWordWrapEnabled(true);
-        /*
+
         l.setVerticalAlignment(Legend.LegendVerticalAlignment.BOTTOM);
         l.setHorizontalAlignment(Legend.LegendHorizontalAlignment.CENTER);
         l.setOrientation(Legend.LegendOrientation.HORIZONTAL);
         l.setDrawInside(false);
         l.setEnabled(false);
-        */
-        l.setForm(Legend.LegendForm.LINE);
-        l.setFormSize(100f);
+
+        l.setForm(Legend.LegendForm.SQUARE);
         //l.setTypeface(tfLight);
         l.setTextSize(11f);
         l.setTextColor(Color.BLACK);
@@ -469,7 +478,7 @@ public class GraphFragment extends Fragment
         l.setHorizontalAlignment(Legend.LegendHorizontalAlignment.LEFT);
         l.setOrientation(Legend.LegendOrientation.HORIZONTAL);
         l.setDrawInside(true);
-
+*/
         // osa humidit
         YAxis rightAxis = chart.getAxisRight();
         rightAxis.setDrawGridLines(false);
@@ -626,6 +635,8 @@ public class GraphFragment extends Fragment
                 set.setColor(Color.rgb(0, 200, 0));
             }
         }
+        dendroInfos.get(headerIndex).color = set.getColor();
+        Log.d("COLOR SET", "DATASET " + headerIndex +": set color to" + dendroInfos.get(headerIndex).color);
 
         //differentiating values by different dash patterns
         switch (val)
