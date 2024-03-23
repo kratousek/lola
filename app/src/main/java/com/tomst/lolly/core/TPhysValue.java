@@ -23,9 +23,15 @@ public enum TPhysValue {
             case vT1: s = "Temp 1"; break;
             case vT2: s = "Temp 2"; break;
             case vT3: s = "Temp 3"; break;
-            case vHum: s = "Growth"; break;    //humidity
-            case vAD: s = "AD"; break;
-            case vMicro: s = "Micro"; break;
+
+            case vHum:
+            case vAD:
+            case vMicro:
+                //if dendrometer csv
+                s = "Growth";     //humidity
+                //if soil mesurement csv
+                //s = "Humidity; break;
+                break;
         }
         return (s);
     }

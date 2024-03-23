@@ -292,14 +292,6 @@ public class GraphFragment extends Fragment
                 dateTime = LocalDateTime.parse(lineOfFile[DATETIME_INDEX], formatter);
                 mer.dtm = dateTime;
                 mer.day = dateTime.getDayOfMonth();
-/*
-                if (lineOfFile[0].equals("0"))
-                {
-                    currTime = dateTime.toEpochSecond(ZoneOffset.MAX);
-                    Log.d("CURRTIME", currTime + "");
-                    setEarliestTime(currTime);
-                }
-*/
             }
             catch (Exception e)
             {
@@ -340,8 +332,12 @@ public class GraphFragment extends Fragment
             );
         }
 
-        ((LineDataSet) dataSets.get(tag - 1)).setVisible(checked);
-        chart.invalidate();
+        do {
+            dataSets.get(tag - 1).setVisible(checked);
+            chart.invalidate();
+            tag+=2;            //temporary 2: this is how many lines are added to the graph per dataset
+        } while ( tag <= dataSets.size());
+
     }
 
 
@@ -412,6 +408,7 @@ public class GraphFragment extends Fragment
         {
             DoBtnClick(view);
         });
+        /*
         CheckBox cbT2 = binding.vT2;
         cbT2.setChecked(true);
         cbT2.setOnClickListener(view ->
@@ -424,7 +421,9 @@ public class GraphFragment extends Fragment
         {
             DoBtnClick(view);
         });
-        CheckBox cbHum = binding.vHum;
+
+         */
+        CheckBox cbHum = binding.vGrowth;
         cbHum.setChecked(true);
         cbHum.setOnClickListener(view ->
         {
@@ -673,7 +672,7 @@ public class GraphFragment extends Fragment
         return (float) (Math.random() * range) + start;
     }
 
-
+/*
     private BarData generateBarData()
     {
         ArrayList<BarEntry> entries1 = new ArrayList<>();
@@ -721,7 +720,7 @@ public class GraphFragment extends Fragment
 
         return d;
     }
-
+*/
 
     /*
     TODO:

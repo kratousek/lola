@@ -28,38 +28,34 @@
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:layout_weight="9"
-                    android:buttonTint="@color/vT1"
-                    android:text="T1"/>
+                    android:text="Temp"/>
+
+<!--                <CheckBox-->
+<!--                    android:id="@+id/vT2"-->
+<!--                    android:tag = "2"-->
+<!--                    android:checked="true"-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="match_parent"-->
+<!--                    android:layout_weight="9"-->
+<!--                    android:text="T2"/>-->
+
+<!--                <CheckBox-->
+<!--                    android:id="@+id/vT3"-->
+<!--                    android:tag = "3"-->
+<!--                    android:checked="true"-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="match_parent"-->
+<!--                    android:layout_weight="9"-->
+<!--                    android:text="T3"/>-->
 
                 <CheckBox
-                    android:id="@+id/vT2"
+                    android:id="@+id/vGrowth"
                     android:tag = "2"
                     android:checked="true"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:layout_weight="9"
-                    android:buttonTint="@color/vT2"
-                    android:text="T2"/>
-
-                <CheckBox
-                    android:id="@+id/vT3"
-                    android:tag = "3"
-                    android:checked="true"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_weight="9"
-                    android:buttonTint="@color/vT3"
-                    android:text="T3"/>
-
-                <CheckBox
-                    android:id="@+id/vHum"
-                    android:tag = "4"
-                    android:checked="true"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_weight="9"
-                    android:buttonTint="@color/vHum"
-                    android:text="Hum/AD"/>
+                    android:text="Growth"/>
         </LinearLayout>
 
         <LinearLayout
