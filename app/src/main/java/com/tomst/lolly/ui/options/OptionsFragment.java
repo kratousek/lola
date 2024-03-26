@@ -216,7 +216,7 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
 //        b = binding.bookmark.isChecked();
 //        editor.putBoolean("bookmark",b);
 
-        editor.putBoolean("bookmark",binding.bookmark.isChecked());
+//        editor.putBoolean("bookmark",binding.bookmark.isChecked());
         editor.putBoolean("showgraph",binding.showgraph.isChecked());
         editor.putBoolean("noledlight",binding.noledlight.isChecked());
         editor.putBoolean("showmicro",binding.showmicro.isChecked());
@@ -228,7 +228,8 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
 
         // bookmark days value
         String bookmarkStr = String.valueOf(binding.bookmarkDeci.getText());
-        if (binding.bookmark.isChecked() && !bookmarkStr.equals("")) {
+//        if (binding.bookmark.isChecked() && !bookmarkStr.equals("")) {
+        if (!bookmarkStr.equals("")) {
             int bookmarkVal = Integer.parseInt(bookmarkStr);
             editor.putInt("bookmarkVal", bookmarkVal);
         }
@@ -266,8 +267,8 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
         binding.spiInterval.setSelection(i);
 
         // nastav checkboxy
-        boolean b = sharedPref.getBoolean("bookmark",false);
-        binding.bookmark.setChecked(b);
+//        boolean b = sharedPref.getBoolean("bookmark",false);
+//        binding.bookmark.setChecked(b);
         binding.showgraph.setChecked(sharedPref.getBoolean("showgraph",false));
         binding.noledlight.setChecked(sharedPref.getBoolean("noledlight",false));
         binding.showmicro.setChecked(sharedPref.getBoolean("showmicro",false));
