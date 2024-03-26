@@ -663,13 +663,12 @@ public class TMSReader extends Thread {
         int fileDescriptor = connection.getFileDescriptor();
         Log.i("||| DEBUG |||", "claimed");
 
-        setNativeDescriptor(fileDescriptor);
+//        setNativeDescriptor(fileDescriptor);
+
+        int ftdiCheck = getDeviceCountC(fileDescriptor);
+        Toast.makeText(DeviceUARTContext, String.format("C Check value: %d", ftdiCheck), Toast.LENGTH_SHORT).show();
 
         connection.close();
-
-        // get native fileDescriptor and transfer over JNI
-//        UsbDeviceConnection usbDeviceConnection = usbManager.openDevice(usbDevice);
-//        int fileDescriptor = usbDeviceConnection.getFileDescriptor();
 
         Toast.makeText(DeviceUARTContext, String.format("file desc: %d", fileDescriptor), Toast.LENGTH_SHORT).show();
         Log.i("||| DEBUG |||", String.valueOf(fileDescriptor));

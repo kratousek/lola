@@ -120,43 +120,30 @@ JNIEXPORT jint JNICALL
 Java_com_tomst_lolly_core_TMSReader_getDeviceCountC(JNIEnv *env, jobject thiz,
                                                    jint fileDescriptor) {
     __android_log_write(ANDROID_LOG_ERROR, "|||DEBUG|||", "start");
-    int VID = 0x0403;
-    int PID = 0xada1;
 
-    jint devCount = 20;
-    int openResult;
-//    struct ftdi_context *ftdi;
-//    struct ftdi_device_list *devList;
-//
-//    ftdi = ftdi_new();
-//
-//    if (ftdi == NULL) {
-//        __android_log_write(ANDROID_LOG_ERROR, "TMSReader", "ftdi_new failed");
-//
-//        return -1;
-//    }
+    int ret;
+    struct ftdi_context *ftdi;
 
+    ftdi = ftdi_new((intptr_t)fileDescriptor);
 
+    if (ftdi == NULL) {
+        __android_log_write(ANDROID_LOG_ERROR, "TMSReader", "ftdi_new failed");
+
+        return -101;
+    }
+
+    __android_log_write(ANDROID_LOG_ERROR, "||| DEBUG |||", "ftdi_new passed");
+
+    libusb_device *dev = libusb_get_device(ftdi->usb_dev);
+    __android_log_write(ANDROID_LOG_ERROR, "||| DEBUG |||", "after libusb get device");
+
+    ret = ftdi_usb_open_dev(ftdi, dev);
+    __android_log_write(ANDROID_LOG_ERROR, "||| DEBUG |||", "after ftdi usb open dev");
+
+    // cleanup
+    ftdi_free(ftdi);
 
     return -23;
-
-//    __android_log_write(ANDROID_LOG_ERROR, "||| DEBUG |||", "ftdi_new passed, about to get devCount");
-//
-//    openResult = ftdi_usb_open(ftdi, VID, PID);
-//
-//    if (openResult == 0) {
-//        devCount++;
-//    }
-//
-//    __android_log_write(ANDROID_LOG_ERROR, "||| DEBUG |||", "devCount");
-//
-//    // are now able to iterate through the list of devices if desired
-//
-//    // cleanup
-//    ftdi_list_free(&devList);
-//    ftdi_free(ftdi);
-//
-//    return devCount;
 }
 
 
