@@ -101,7 +101,6 @@ public class GraphFragment extends Fragment
     // graphing
     private CombinedChart chart;
     private CombinedData combinedData;
-    private int colorStep = 0;
 
     private SeekBar seekBarX;
     private TextView tvX;
@@ -158,7 +157,6 @@ public class GraphFragment extends Fragment
         LineData lines;
 
         headerIndex = 0;
-        colorStep=0;
         do
         {
             // line graph
@@ -182,15 +180,12 @@ public class GraphFragment extends Fragment
             // startup animation
             chart.animateX(2000, Easing.EaseInCubic);
 
-            Legend l = chart.getLegend();
-
             LegendEntry legendEntry = new LegendEntry();
             legendEntry.label = dendroInfos.get(headerIndex).serial;
             legendEntry.formColor = dendroInfos.get(headerIndex).color;
             LegendEntrys.add(legendEntry);
 
             headerIndex++;
-            colorStep += 255 / numDataSets;
         }
         while (headerIndex < numDataSets);
         Legend l = chart.getLegend();
@@ -207,7 +202,6 @@ public class GraphFragment extends Fragment
 
     private void loadCSVFile(String fileName)
     {
-        long valueIndex = 0;
         float dateNum;
         boolean firstDate = true;
         String currentLine = "";
@@ -266,16 +260,14 @@ public class GraphFragment extends Fragment
                         new Entry(dateNum, (float) mer.t1)
                 );
                 dendroInfos.get(headerIndex).vT2.add(
-                        new Entry(valueIndex, (float) mer.t2)
+                        new Entry(dateNum, (float) mer.t2)
                 );
                 dendroInfos.get(headerIndex).vT3.add(
-                        new Entry(valueIndex, (float) mer.t3)
+                        new Entry(dateNum, (float) mer.t3)
                 );
                 dendroInfos.get(headerIndex).vHA.add(
                         new Entry(dateNum, (float) mer.hum)
                 );
-
-                valueIndex++;
             }
         }
     }
@@ -559,17 +551,6 @@ public class GraphFragment extends Fragment
 
             while((currentLine = csvFile.readLine()).contains(";"))
             {
-/*
-                strArr = currentLine.split(";");
-                if (strArr[0].equals("0"))
-                {
-                    dateTime = LocalDateTime.parse(strArr[DATETIME_INDEX], formatter);
-                    currTime = dateTime.toEpochSecond(ZoneOffset.MAX);
-                    Log.d("MERGETIME", "currtime:"+currTime+" earliest: "+earliestTime );
-                    //set earliest time
-                    setEarliestTime(currTime);
-                }
-*/
                 tempFile.write(currentLine + "\n");
             }
             csvFile.close();
