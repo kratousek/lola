@@ -545,17 +545,40 @@ public class GraphFragment extends Fragment
         {
             Log.d("MERGECALL", "Enters merge loop");
             CSVFile csvFile = CSVFile.open(fileName, CSVFile.READ_MODE);
-            // count the data sets
+
+            // read in first line of file
             String currentLine = csvFile.readLine();
-            dataSetCnt += Integer.parseInt(currentLine.split(";")[0]);
-            // read serial number(s) is always first line in data set
-            while((currentLine = csvFile.readLine())
-                    .split(";").length == HEADER_LINE_LENGTH
-            ) {
+
+            // if first line is dataset count (only one value)
+            if (currentLine.split(";").length == 1) {
+                // file has header
+                // count the data sets
+                dataSetCnt += Integer.parseInt(currentLine.split(";")[0]);
+                // read serial number(s) is always first line in data set
+                while ((currentLine = csvFile.readLine())
+                        .split(";").length == HEADER_LINE_LENGTH
+                ) {
                     header += currentLine + "\n";
+                }
+                // write serial number
+                tempFile.write(currentLine + "\n");
             }
-            // write serial number
-            tempFile.write(currentLine + "\n");
+            else { // otherwise the file being merged does not have a header
+                // file does not have a header
+                dataSetCnt += 1;
+
+                // filename should look like "data_92221411_2023_09_26_0.csv"
+                // serial number should be the second value. No other way to get the serial number
+                String serialNumber = fileName.split("_")[1];
+                String headerLine = serialNumber + ";0;0;\n";
+                header += headerLine;
+
+                // write the serial number
+                tempFile.write(serialNumber + "\n");
+
+                // write the first line of the dataset
+                tempFile.write(currentLine + "\n");
+            }
 
             while((currentLine = csvFile.readLine()).contains(";"))
             {
