@@ -210,36 +210,59 @@ public class GraphFragment extends Fragment
         long valueIndex = 0;
         float dateNum;
         boolean firstDate = true;
+        boolean hasHeader = true;
         String currentLine = "";
         CSVFile csv = CSVFile.open(fileName, CSVFile.READ_MODE);
 
-        // count data sets
         currentLine = csv.readLine();
-        numDataSets = Integer.parseInt(currentLine.split(";")[0]);
 
-        // read file header
-        while (headerIndex < numDataSets)
-        {
+        // length 1 if dataset count is first line
+        if (currentLine.split(";").length == 1) {
+            // file has a header
+            // count data sets
+            numDataSets = Integer.parseInt(currentLine.split(";")[0]);
+
+            // read file header
+            while (headerIndex < numDataSets) {
+                currentLine = csv.readLine();
+                String[] lineOfFile = currentLine.split(";");
+
+                String serial = lineOfFile[SERIAL_INDEX];
+                Long longitude = Long.parseLong(lineOfFile[LONGITUDE_INDEX]);
+                Long latitude = Long.parseLong(lineOfFile[LATITUDE_INDEX]);
+                TDendroInfo dendroInfo = new TDendroInfo(
+                        serial, longitude, latitude
+                );
+                dendroInfos.add(headerIndex, dendroInfo);
+
+                headerIndex++;
+            }
+
+            // get first line of datasets
             currentLine = csv.readLine();
-            String[] lineOfFile = currentLine.split(";");
+        }
+        else { // file does not have a header
+            hasHeader = false;
 
-            String serial = lineOfFile[SERIAL_INDEX];
-            Long longitude = Long.parseLong(lineOfFile[LONGITUDE_INDEX]);
-            Long latitude = Long.parseLong(lineOfFile[LATITUDE_INDEX]);
-            TDendroInfo dendroInfo = new TDendroInfo(
-                    serial, longitude, latitude
+            numDataSets = 1;
+
+            TDendroInfo defaultDendroInfo = new TDendroInfo(
+                    null, null, null
             );
-            dendroInfos.add(headerIndex, dendroInfo);
-
-            headerIndex++;
+            dendroInfos.add(headerIndex, defaultDendroInfo);
         }
 
         // read data
         headerIndex = -1;
-        while ((currentLine = csv.readLine()) != "")
+        while (currentLine != "")
         {
             TMereni mer = processLine(currentLine);
             String[] lineOfFile = currentLine.split(";");
+
+            if (!hasHeader) {
+                headerIndex = 0;
+            }
+
             if (mer.Serial != null)
             {
                 headerIndex++;
@@ -277,6 +300,9 @@ public class GraphFragment extends Fragment
 
                 valueIndex++;
             }
+
+            // move to next line
+            currentLine = csv.readLine();
         }
     }
 
