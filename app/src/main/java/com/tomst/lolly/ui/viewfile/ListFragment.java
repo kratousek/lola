@@ -26,6 +26,7 @@ import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.core.content.FileProvider;
@@ -33,7 +34,13 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.tomst.lolly.R;
 import com.tomst.lolly.core.CSVReader;
 import com.tomst.lolly.core.Constants;
@@ -55,9 +62,14 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 public class ListFragment extends Fragment
@@ -74,6 +86,8 @@ public class ListFragment extends Fragment
     private final String TAG = "TOMST";
     public FileOpener fopen;
     private  DmdViewModel dmd;
+
+    FirebaseFirestore db;
 
     List<FileDetail> fFriends = null;
 
@@ -134,6 +148,20 @@ public class ListFragment extends Fragment
 
                 // Start the intent using startActivity() or startActivityForResult()
                 startActivity(sendIntent);
+            }
+        });
+
+        // database stuff
+        db = FirebaseFirestore.getInstance();
+
+        Button uploadBtn = binding.btnUploadToDB;
+
+        uploadBtn.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                uploadDataToDB();
             }
         });
 
@@ -204,6 +232,38 @@ public class ListFragment extends Fragment
                 .findViewById(R.id.nav_view);
         View view = bottomNavigationView.findViewById(R.id.navigation_graph);
         view.performClick();
+    }
+
+    private void uploadDataToDB()
+    {
+        FileViewerAdapter friendsAdapter = new FileViewerAdapter(
+                getContext(), fFriends
+        );
+
+        ArrayList<String> fileNames = friendsAdapter.collectSelected();
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        FirebaseUser user = auth.getCurrentUser();
+
+        for (String fileName : fileNames) {
+            Map<String, Object> data = new HashMap<>();
+            data.put("File", fileName);
+            data.put("User", user.getEmail());
+
+            db.collection("Files")
+                    .add(data)
+                    .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                        @Override
+                        public void onSuccess(DocumentReference documentReference) {
+                            Toast.makeText(rootView.getContext(), "Data Uploaded Successfully", Toast.LENGTH_SHORT).show();
+                        }
+                    }).addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Toast.makeText(rootView.getContext(), "Data Upload Failed", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+        }
+
     }
 
 
