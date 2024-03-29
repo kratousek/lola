@@ -196,7 +196,8 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
      */
 
 
-    private void SaveForm(){
+    private void SaveForm()
+    {
         Context context = getContext();
         SharedPreferences sharedPref = context.getSharedPreferences(getString(R.string.save_options), context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
@@ -219,10 +220,6 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
         int spiInterval = (int) binding.spiInterval.getSelectedItemId();
         editor.putInt("mode",spiInterval);
 
-        // nastav zatrzitka
-//        b = binding.bookmark.isChecked();
-//        editor.putBoolean("bookmark",b);
-
         editor.putBoolean("bookmark",binding.bookmark.isChecked());
         editor.putBoolean("showgraph",binding.showgraph.isChecked());
         editor.putBoolean("noledlight",binding.noledlight.isChecked());
@@ -236,14 +233,16 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
         // bookmark days value
         String bookmarkStr = String.valueOf(binding.bookmarkDeci.getText());
 //        if (binding.bookmark.isChecked() && !bookmarkStr.equals("")) {
-        if (!bookmarkStr.equals("")) {
+        if (!bookmarkStr.isEmpty())
+        {
             int bookmarkVal = Integer.parseInt(bookmarkStr);
             editor.putInt("bookmarkVal", bookmarkVal);
         }
 
         // from date value
         String dateStr = String.valueOf(binding.fromDate.getText());
-        if (!dateStr.equals("")) {
+        if (!dateStr.isEmpty())
+        {
             editor.putString("fromDate", dateStr);
         }
 
@@ -253,7 +252,8 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
         editor.apply();
     }
 
-    private void ReadForm(){
+    private void ReadForm()
+    {
         Context context = getContext();
         SharedPreferences sharedPref = context.getSharedPreferences(getString(R.string.save_options), context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
@@ -294,9 +294,11 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
 
 
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
-
+    public View onCreateView(
+            @NonNull LayoutInflater inflater,
+            @Nullable ViewGroup container,
+            @Nullable Bundle savedInstanceState)
+    {
         binding = FragmentOptionsBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
