@@ -322,8 +322,8 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
             @Override
             public void onClick(View v)
             {
-                if (user != null) {
-
+                if (user != null)
+                {
                     FirebaseAuth.getInstance().signOut();
                     Intent intent = new Intent(getActivity(), LoginActivity.class);
                     startActivity(intent);
@@ -493,6 +493,4 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
         mViewModel = new ViewModelProvider(this).get(OptionsViewModel.class);
         // TODO: Use the ViewModel
     }
-
-
 }

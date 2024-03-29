@@ -836,6 +836,9 @@ public class TMSReader extends Thread {
 
                     break;
 
+                case tReadFromBookmark:
+                    break;
+
                 case tCheckTMSFirmware:
                     break;
             }
