@@ -1,5 +1,6 @@
 package com.tomst.lolly.ui.options;
 
+import androidx.annotation.RequiresApi;
 import androidx.core.widget.NestedScrollView;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -7,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
+import android.os.Build;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -33,6 +35,7 @@ import com.tomst.lolly.MainActivity;
 import com.tomst.lolly.LoginActivity;
 import com.tomst.lolly.R;
 import com.tomst.lolly.RegisterActivity;
+import com.tomst.lolly.core.TMSReader;
 import com.tomst.lolly.databinding.FragmentOptionsBinding;
 
 import com.tomst.lolly.utils.Tools;
@@ -230,18 +233,16 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
         String s = String.valueOf(binding.Deci.getText());
         editor.putString("decimalseparator",s);
 
-        // bookmark days value
         String bookmarkStr = String.valueOf(binding.bookmarkDeci.getText());
-//        if (binding.bookmark.isChecked() && !bookmarkStr.equals("")) {
+        String dateStr = String.valueOf(binding.fromDate.getText());
+        // check for bookmarked days before
         if (!bookmarkStr.isEmpty())
         {
             int bookmarkVal = Integer.parseInt(bookmarkStr);
             editor.putInt("bookmarkVal", bookmarkVal);
         }
-
-        // from date value
-        String dateStr = String.valueOf(binding.fromDate.getText());
-        if (!dateStr.isEmpty())
+        // otherwise, check for a date from the user
+        else if (!dateStr.isEmpty())
         {
             editor.putString("fromDate", dateStr);
         }
@@ -258,9 +259,15 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
         SharedPreferences sharedPref = context.getSharedPreferences(getString(R.string.save_options), context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
         // vytahnu si cislo resource ze strings.xml
-        boolean r1 = sharedPref.getBoolean("read_all",false);  // false je default, kdyz neexistuje
-        boolean r2 = sharedPref.getBoolean("read_bookmark",false);  // false je default, kdyz neexistuje
-        boolean r3 = sharedPref.getBoolean("read_date",false);  // false je default, kdyz neexistuje
+        boolean r1 = sharedPref.getBoolean(
+                "read_all", false
+        );  // false je default, kdyz neexistuje
+        boolean r2 = sharedPref.getBoolean(
+                "read_bookmark", false
+        );  // false je default, kdyz neexistuje
+        boolean r3 = sharedPref.getBoolean(
+                "read_date", false
+        );  // false je default, kdyz neexistuje
         //if (r1) binding.readAll.setChecked(true);
         //if (r2) binding.readBookmark.setChecked(true);
         //if (r3) binding.readDate.setChecked(true);
@@ -294,6 +301,7 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
 
 
     @Override
+    @RequiresApi(api = Build.VERSION_CODES.O)
     public View onCreateView(
             @NonNull LayoutInflater inflater,
             @Nullable ViewGroup container,
@@ -358,8 +366,12 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
 
         // odkud vycitam
         Spinner spiDownload = (Spinner) root.findViewById(R.id.spiDownload);
-        ArrayAdapter<CharSequence> adaDownload = ArrayAdapter.createFromResource(
-                this.getContext(), R.array.download_array, android.R.layout.simple_spinner_item);
+        ArrayAdapter<CharSequence> adaDownload =
+                ArrayAdapter.createFromResource(
+                        this.getContext(),
+                        R.array.download_array,
+                        android.R.layout.simple_spinner_item
+                );
         adaDownload.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         adaDownload.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spiDownload.setAdapter(adaDownload); // Apply the adapter to the spinner
@@ -422,11 +434,13 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
         ReadForm();
 
         ImageButton bt_save_form = root.findViewById(R.id.bt_save_form);
-        bt_save_form.setOnClickListener(new View.OnClickListener() {
-             @Override
-            public void onClick(View view){
-                 SaveForm();
-             }
+        bt_save_form.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                SaveForm();
+            }
         });
         /*
         lyt_sub = root.findViewById(R.id.lyt_sub);

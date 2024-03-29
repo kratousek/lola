@@ -3,6 +3,7 @@ package com.tomst.lolly.core;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.hardware.usb.UsbManager;
 import android.os.Build;
 import android.os.Handler;
@@ -27,7 +28,8 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 
 
-public class TMSReader extends Thread {
+public class TMSReader extends Thread
+{
     // vystupy ven z tridy
     public int capUsed = 0;  // kapacita v %
     public long delta = 0;  // rozdil mezi casem v telefonu a v TMS
@@ -175,7 +177,8 @@ public class TMSReader extends Thread {
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
-    public void run() {
+    public void run()
+    {
         Looper.prepare();
         mLoop();
     }
@@ -199,7 +202,8 @@ public class TMSReader extends Thread {
         return subStr;
     }
 
-    public boolean ParseHeader(String line){
+    public boolean ParseHeader(String line)
+    {
         // @ =&93^33%01.80 TMS-A   // dendrometr
         // @ =&93^A0%01.80 TMSx1#
         boolean result = false;
@@ -263,7 +267,8 @@ public class TMSReader extends Thread {
         return rfir.Result;
     }
 
-    public  void clearMer(){
+    public  void clearMer()
+    {
         mer.t1  = 0;
         mer.t2  = 0;
         mer.t3  = 0;
@@ -279,13 +284,15 @@ public class TMSReader extends Thread {
     }
 
 
-    public  byte con(String str, byte pos){
+    public  byte con(String str, byte pos)
+    {
         String s = str.substring(pos,pos+1);
         byte r  = (byte)Integer.parseInt(s,16);
         return r;
     }
 
-    public boolean convertMereni(String line) {
+    public boolean convertMereni(String line)
+    {
         String[] str = line.split(";");
         // 00F;ADC;FF3;183;2
         if (str[1].equals("ADC")) {
@@ -347,7 +354,8 @@ public class TMSReader extends Thread {
         return true;
     }
 
-    public  double con (int b1){
+    public  double con (int b1)
+    {
         double result = 0;
         int bx = b1 & 8;
 
@@ -610,32 +618,39 @@ public class TMSReader extends Thread {
         }
     }
 
-    private int copyByte(String line,int i, int count){
+    private int copyByte(String line,int i, int count)
+    {
         int hi = Integer.parseInt(line.substring(i-1,i-1+count));
         return (hi);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    private void mLoop(){
-        String s= "";
+    private void mLoop()
+    {
+        String s = "";
         TInfo info;
         info = new TInfo();
 
-        devState = TDevState.tStart;
+//        devState = TDevState.tStart;
         lollyTime = Instant.MIN;
+        devState = TDevState.tReadFromBookmark;
 
-        if (fHer==null) {
+        if (fHer==null)
+        {
             //throw new UnsupportedOperationException("Communication is not ready");
             SendMeasure(TDevState.tNoHardware, "fHer==null !");
             return;
         }
 
-        while (( devState != TDevState.tFinal ) && (devState != TDevState.tError) && (mRunning==true)){
+        while (( devState != TDevState.tFinal )
+                && (devState != TDevState.tError)
+                && (mRunning==true))
+        {
             // devState
-            Log.e(TAG,devState.toString());
+            Log.e(TAG, devState.toString());
 
-            switch (devState) {
-
+            switch (devState)
+            {
                 case tStart:
                     SendMeasure(TDevState.tStart, "test");
                     if (startFTDI())
@@ -664,10 +679,11 @@ public class TMSReader extends Thread {
                         break;
                     }
                     // seriove cislo
-                    s = aft(s,"=");
+                    s = aft(s, "=");
 
                     // duplicita
-                    if (s.compareToIgnoreCase(SerialNumber) > 0) {
+                    if (s.compareToIgnoreCase(SerialNumber) > 0)
+                    {
                        SendMeasure(TDevState.tSerialDuplicity,"s");
                        break;
                     }
@@ -749,7 +765,7 @@ public class TMSReader extends Thread {
                     float d = Float.valueOf(lastAddress) / Float.valueOf(0x3FFFFF) * 100;
                     capUsed  = Math.round(d);
                     mer.msg = String.valueOf(capUsed);
-                    SendMeasure(TDevState.tCapacity,mer.msg);
+                    SendMeasure(TDevState.tCapacity, mer.msg);
                     devState = TDevState.tGetTime;
 
                     break;
@@ -758,7 +774,7 @@ public class TMSReader extends Thread {
                     s = fHer.doCommand("C");
                     lollyTime = parseDateTime(s);   // dostanu utc cas + zonu, bez letniho casu
                     mer.msg = lollyTimeString;      // lollyTimeString nastavuju v parseDateTime
-                    SendMeasure(TDevState.tGetTime,mer.msg);
+                    SendMeasure(TDevState.tGetTime, mer.msg);
 
                     devState = TDevState.tCompareTime;
                     break;
@@ -836,15 +852,12 @@ public class TMSReader extends Thread {
 
                     break;
 
-                case tReadFromBookmark:
-                    break;
-
                 case tCheckTMSFirmware:
                     break;
             }
         }
 
-        Log.e("TOMST",devState.toString());
+        Log.e("TOMST", devState.toString());
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -916,12 +929,18 @@ public class TMSReader extends Thread {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    private boolean ReadData(){
+    private boolean ReadData()
+    {
+        String res = "";
         pars parser = new pars();
         pars.SetHandler(datahandler);
         pars.SetDeviceType(rfir.DeviceType);
 
-
+        SharedPreferences prefs = context.getSharedPreferences(
+                "save_options", Context.MODE_PRIVATE
+        );
+        int bookmarkDay = prefs.getInt("bookmarkVal", 0);
+        String bookmarkDate = prefs.getString("fromDate", "");
 
         if (ftDev == null)
         {
@@ -930,40 +949,56 @@ public class TMSReader extends Thread {
             return false;
         }
 
-        if (ftDev.isOpen() == false) {
+        if (ftDev.isOpen() == false)
+        {
             Log.e("j2xx", "SendMessage: device not open");
             return false;
         }
 
-        // pointer na bookmark
+        // check for a number of days bookmark
+        if (bookmarkDay > 0)
+        {
+            // do something
+        }
+        // check for a specific date
+        else if (!bookmarkDate.isEmpty())
+        {
+            res = fHer.doCommand("B=$FFFFFF");
+            Log.d(TAG, res);
 
-
-        // pointer na nulu
-        String respond = fHer.doCommand("S=$000000");
-        Log.d("Sendmessage", respond);
+            res = fHer.doCommand("S=$" + res);
+            Log.d("SendMessage", res);
+        }
+        // otherwise, get from beginning of time measuring
+        else
+        {
+            res = fHer.doCommand("S=$000000");
+            Log.d("Sendmessage", res);
+        }
 
         // napocitej pocet cyklu z posledni adresy
-        respond = fHer.doCommand("P");
-        int lastAddress = getaddr(respond);
+        res = fHer.doCommand("P");
+        int lastAddress = getaddr(res);
         DoProgress(-lastAddress); // celkovy pocet bytu
 
         fAddr = 0;
 
         String ss = "";
-        while ((fAddr < lastAddress) && (mRunning==true)) {
+        while ((fAddr < lastAddress) && (mRunning==true))
+        {
             // performing operation
 
-            respond = fHer.doCommand("D");
-            if (respond.length()>1) {
-                ss = parser.dpacket(respond);
-                Log.i(TAG,respond);
+            res = fHer.doCommand("D");
+            if (res.length()>1) {
+                ss = parser.dpacket(res);
+                Log.i(TAG,res);
             };
 
             // jakou mam aktualne adresu
-            respond = fHer.doCommand("S");
+            res = fHer.doCommand("S");
 
-            if (respond.length()>1)
-              fAddr = getaddr(respond);
+            if (res.length()>1)
+              fAddr = getaddr(res);
 
             // Updating the progress bar
 
