@@ -20,12 +20,18 @@ public enum TPhysValue {
     public String valToString(TPhysValue val){
         String s = "";
         switch (val){
-            case vT1: s = "T1"; break;
-            case vT2: s ="T2"; break;
-            case vT3: s = "T3"; break;
-            case vHum: s="Hum"; break;
-            case vAD: s = "AD"; break;
-            case vMicro: s = "Micro"; break;
+            case vT1: s = "Temp 1"; break;
+            case vT2: s = "Temp 2"; break;
+            case vT3: s = "Temp 3"; break;
+
+            case vHum:
+            case vAD:
+            case vMicro:
+                //if dendrometer csv
+                s = "Growth";     //humidity
+                //if soil mesurement csv
+                //s = "Humidity; break;
+                break;
         }
         return (s);
     }

@@ -4,6 +4,7 @@ import androidx.core.widget.NestedScrollView;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.os.Bundle;
@@ -22,10 +23,16 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.material.radiobutton.MaterialRadioButton;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.tomst.lolly.MainActivity;
+import com.tomst.lolly.LoginActivity;
 import com.tomst.lolly.R;
+import com.tomst.lolly.RegisterActivity;
 import com.tomst.lolly.databinding.FragmentOptionsBinding;
 
 import com.tomst.lolly.utils.Tools;
@@ -189,7 +196,8 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
      */
 
 
-    private void SaveForm(){
+    private void SaveForm()
+    {
         Context context = getContext();
         SharedPreferences sharedPref = context.getSharedPreferences(getString(R.string.save_options), context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
@@ -212,11 +220,7 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
         int spiInterval = (int) binding.spiInterval.getSelectedItemId();
         editor.putInt("mode",spiInterval);
 
-        // nastav zatrzitka
-//        b = binding.bookmark.isChecked();
-//        editor.putBoolean("bookmark",b);
-
-//        editor.putBoolean("bookmark",binding.bookmark.isChecked());
+        editor.putBoolean("bookmark",binding.bookmark.isChecked());
         editor.putBoolean("showgraph",binding.showgraph.isChecked());
         editor.putBoolean("noledlight",binding.noledlight.isChecked());
         editor.putBoolean("showmicro",binding.showmicro.isChecked());
@@ -229,14 +233,16 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
         // bookmark days value
         String bookmarkStr = String.valueOf(binding.bookmarkDeci.getText());
 //        if (binding.bookmark.isChecked() && !bookmarkStr.equals("")) {
-        if (!bookmarkStr.equals("")) {
+        if (!bookmarkStr.isEmpty())
+        {
             int bookmarkVal = Integer.parseInt(bookmarkStr);
             editor.putInt("bookmarkVal", bookmarkVal);
         }
 
         // from date value
         String dateStr = String.valueOf(binding.fromDate.getText());
-        if (!dateStr.equals("")) {
+        if (!dateStr.isEmpty())
+        {
             editor.putString("fromDate", dateStr);
         }
 
@@ -246,7 +252,8 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
         editor.apply();
     }
 
-    private void ReadForm(){
+    private void ReadForm()
+    {
         Context context = getContext();
         SharedPreferences sharedPref = context.getSharedPreferences(getString(R.string.save_options), context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
@@ -285,14 +292,69 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
         binding.fromDate.setText(dateStr);
     }
 
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
 
+    @Override
+    public View onCreateView(
+            @NonNull LayoutInflater inflater,
+            @Nullable ViewGroup container,
+            @Nullable Bundle savedInstanceState)
+    {
         binding = FragmentOptionsBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
         Resources res = getResources();
+
+        // user auth
+        Button buttonLogout = root.findViewById(R.id.btnLogout);
+        Button buttonLogin = root.findViewById(R.id.btnLoginOptions);
+        TextView textView = root.findViewById(R.id.userDetails);
+
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        FirebaseUser user = auth.getCurrentUser();
+
+        if (user != null)
+        {
+            textView.setText(user.getEmail());
+        }
+
+        buttonLogout.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                if (user != null)
+                {
+                    FirebaseAuth.getInstance().signOut();
+                    Intent intent = new Intent(getActivity(), LoginActivity.class);
+                    startActivity(intent);
+                    getActivity().finish();
+                }
+                else
+                {
+                    Toast.makeText(v.getContext(), "Not Logged In",
+                            Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        buttonLogin.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                if (user == null)
+                {
+                    Intent intent = new Intent(getActivity(), LoginActivity.class);
+                    startActivity(intent);
+                    getActivity().finish();
+                }
+                else
+                {
+                    Toast.makeText(v.getContext(), "Already Logged In",
+                            Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
 
         // odkud vycitam
         Spinner spiDownload = (Spinner) root.findViewById(R.id.spiDownload);
@@ -431,6 +493,4 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
         mViewModel = new ViewModelProvider(this).get(OptionsViewModel.class);
         // TODO: Use the ViewModel
     }
-
-
 }

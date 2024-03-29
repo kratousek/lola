@@ -4,15 +4,36 @@
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
         android:orientation="vertical"
         tools:context=".ui.graph.GraphFragment">
 
         <com.github.mikephil.charting.charts.CombinedChart
             android:id="@+id/chart1"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="6500dp"
             android:layout_weight="9"
-            android:textAlignment="center" />
+            android:textAlignment="center"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+                <TextView
+                    android:id="@+id/temp_line"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="9"
+                    android:text="Temp: - - - - - - - - - - - -"/>
+
+                <TextView
+                    android:id="@+id/growth_line"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="9"
+                    android:text="Growth: ━━━━━━━━━"/>
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -26,39 +47,57 @@
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:layout_weight="9"
-                    android:buttonTint="@color/vT1"
-                    android:text="T1"/>
+                    android:text="Temp"/>
+
+<!--                <CheckBox-->
+<!--                    android:id="@+id/vT2"-->
+<!--                    android:tag = "2"-->
+<!--                    android:checked="true"-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="match_parent"-->
+<!--                    android:layout_weight="9"-->
+<!--                    android:text="T2"/>-->
+
+<!--                <CheckBox-->
+<!--                    android:id="@+id/vT3"-->
+<!--                    android:tag = "3"-->
+<!--                    android:checked="true"-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="match_parent"-->
+<!--                    android:layout_weight="9"-->
+<!--                    android:text="T3"/>-->
 
                 <CheckBox
-                    android:id="@+id/vT2"
+                    android:id="@+id/vGrowth"
                     android:tag = "2"
                     android:checked="true"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:layout_weight="9"
-                    android:buttonTint="@color/vT2"
-                    android:text="T2" />
+                    android:text="Growth"/>
+        </LinearLayout>
 
-                <CheckBox
-                    android:id="@+id/vT3"
-                    android:tag = "3"
-                    android:checked="true"
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/add_layer"
                     android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_weight="9"
-                    android:buttonTint="@color/vT3"
-                    android:text="T3" />
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Add Layer"
+                    android:textAlignment="center"/>
 
-                <CheckBox
-                    android:id="@+id/vHum"
-                    android:tag = "4"
-                    android:checked="true"
+                <Button
+                    android:id="@+id/export"
                     android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_weight="9"
-                    android:buttonTint="@color/vHum"
-                    android:text="Hum/AD"/>
-
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="150dp"
+                    android:layout_weight="1"
+                    android:text="Export"
+                    android:textAlignment="center"/>
         </LinearLayout>
 
         <ProgressBar
@@ -68,9 +107,5 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_gravity="bottom"
-            android:layout_marginBottom="60dp"
-            />
-
-
-
+            android:layout_marginBottom="60dp"/>
 </LinearLayout>
