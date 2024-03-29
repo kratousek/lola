@@ -75,6 +75,8 @@ public class GraphFragment extends Fragment
 
     // constants for merging CSV files
     private static final int HEADER_LINE_LENGTH = 3;
+    private static final int SERIAL_NUMBER_INDEX = 1;
+    private static final String DEFAULT_SERIAL_NUMBER_VALUE = "Unknown";
 
     // constants for loading measurements
     private static final byte DATETIME_INDEX = 1;
@@ -204,28 +206,49 @@ public class GraphFragment extends Fragment
     {
         float dateNum;
         boolean firstDate = true;
+        boolean hasHeader = true;
         String currentLine = "";
         CSVFile csv = CSVFile.open(fileName, CSVFile.READ_MODE);
 
-        // count data sets
         currentLine = csv.readLine();
-        numDataSets = Integer.parseInt(currentLine.split(";")[0]);
 
-        // read file header
-        while (headerIndex < numDataSets)
-        {
+        // length 1 if dataset count is first line
+        if (currentLine.split(";").length == 1) {
+            // file has a header
+            // count data sets
+            numDataSets = Integer.parseInt(currentLine.split(";")[0]);
+
+            // read file header
+            while (headerIndex < numDataSets) {
+                currentLine = csv.readLine();
+                String[] lineOfFile = currentLine.split(";");
+
+                String serial = lineOfFile[SERIAL_INDEX];
+                Long longitude = Long.parseLong(lineOfFile[LONGITUDE_INDEX]);
+                Long latitude = Long.parseLong(lineOfFile[LATITUDE_INDEX]);
+                TDendroInfo dendroInfo = new TDendroInfo(
+                        serial, longitude, latitude
+                );
+                dendroInfos.add(headerIndex, dendroInfo);
+
+                headerIndex++;
+            }
+
+            // get first line of datasets
             currentLine = csv.readLine();
-            String[] lineOfFile = currentLine.split(";");
+        }
+        else { // file does not have a header
+            hasHeader = false;
 
-            String serial = lineOfFile[SERIAL_INDEX];
-            Long longitude = Long.parseLong(lineOfFile[LONGITUDE_INDEX]);
-            Long latitude = Long.parseLong(lineOfFile[LATITUDE_INDEX]);
-            TDendroInfo dendroInfo = new TDendroInfo(
-                    serial, longitude, latitude
+            numDataSets = 1;
+
+            // serial number is unknown. Get from filename if possible
+            String serialNumber = getSerialNumberFromFileName(fileName);
+
+            TDendroInfo defaultDendroInfo = new TDendroInfo(
+                    serialNumber, null, null
             );
-            dendroInfos.add(headerIndex, dendroInfo);
-
-            headerIndex++;
+            dendroInfos.add(headerIndex, defaultDendroInfo);
         }
         if (numDataSets == 0)              //handles graphing single CSV without header
         {
@@ -240,11 +263,16 @@ public class GraphFragment extends Fragment
         }
         // read data
         headerIndex = -1;
-        while ((currentLine = csv.readLine()) != "")
+        while (currentLine != "")
         {
             TMereni mer = processLine(currentLine);
             String[] lineOfFile = currentLine.split(";");
-            if (mer.Serial != null)
+
+            if (!hasHeader) {
+                headerIndex = 0;
+            }
+
+            if (hasHeader && mer.Serial != null)
             {
                 headerIndex++;
 
@@ -283,6 +311,9 @@ public class GraphFragment extends Fragment
                         new Entry(dateNum, (float) mer.hum)
                 );
             }
+
+            // move to next line
+            currentLine = csv.readLine();
         }
     }
 
@@ -516,6 +547,25 @@ public class GraphFragment extends Fragment
         return root;
     }
 
+    private String getSerialNumberFromFileName(String fileName) {
+        // filename should look like "data_92221411_2023_09_26_0.csv"
+        // serial number should be the second value. No other way to get the serial number
+        // if not in the title, just use a default value
+        String[] titleSplit = fileName.split("_");
+        String serialNumber;
+        if (titleSplit.length > SERIAL_NUMBER_INDEX) {
+            serialNumber = fileName.split("_")[SERIAL_NUMBER_INDEX];
+        }
+        else {
+            // could theoretically add a dataset count to the end of this unknown
+            // but then it becomes an issue when merging several unknown datasets together
+            // would end up looking like: unknown1, unknown2, unknown1
+            serialNumber = DEFAULT_SERIAL_NUMBER_VALUE;
+        }
+
+        return serialNumber;
+    }
+
     private String mergeCSVFiles(String[] fileNames)
     {
         Log.d("MERGECALL", "Merge is called");
@@ -551,17 +601,40 @@ public class GraphFragment extends Fragment
         {
             Log.d("MERGECALL", "Enters merge loop");
             CSVFile csvFile = CSVFile.open(fileName, CSVFile.READ_MODE);
-            // count the data sets
+
+            // read in first line of file
             String currentLine = csvFile.readLine();
-            dataSetCnt += Integer.parseInt(currentLine.split(";")[0]);
-            // read serial number(s) is always first line in data set
-            while((currentLine = csvFile.readLine())
-                    .split(";").length == HEADER_LINE_LENGTH
-            ) {
+
+            // if first line is dataset count (only one value)
+            if (currentLine.split(";").length == 1) {
+                // file has header
+                // count the data sets
+                dataSetCnt += Integer.parseInt(currentLine.split(";")[0]);
+                // read serial number(s) is always first line in data set
+                while ((currentLine = csvFile.readLine())
+                        .split(";").length == HEADER_LINE_LENGTH
+                ) {
                     header += currentLine + "\n";
+                }
+                // write serial number
+                tempFile.write(currentLine + "\n");
             }
-            // write serial number
-            tempFile.write(currentLine + "\n");
+            else { // otherwise the file being merged does not have a header
+                // file does not have a header
+                dataSetCnt += 1;
+
+                // serial number is unknown. Get from filename if possible
+                String serialNumber = getSerialNumberFromFileName(fileName);
+
+                String headerLine = serialNumber + ";0;0;\n";
+                header += headerLine;
+
+                // write the serial number
+                tempFile.write(serialNumber + "\n");
+
+                // write the first line of the dataset
+                tempFile.write(currentLine + "\n");
+            }
 
             while((currentLine = csvFile.readLine()).contains(";"))
             {
