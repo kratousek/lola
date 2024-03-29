@@ -45,6 +45,9 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageMetadata;
+import com.google.firebase.storage.StorageReference;
 import com.tomst.lolly.R;
 import com.tomst.lolly.core.CSVReader;
 import com.tomst.lolly.core.Constants;
@@ -165,7 +168,7 @@ public class ListFragment extends Fragment
             @Override
             public void onClick(View view)
             {
-                uploadDataToDB();
+                uploadDataToStorage();
             }
         });
 
@@ -230,40 +233,37 @@ public class ListFragment extends Fragment
 
     }
 
-    private void loadFromDB()
+    private void loadFromStorage()
     {
         FirebaseAuth auth = FirebaseAuth.getInstance();
         FirebaseUser user = auth.getCurrentUser();
-        String userEmail = "Null";
+        String userId = user != null ? user.getUid() : "unknown";
 
-        if (user != null)
-        {
-            userEmail = user.getEmail();
-        }
-
-        // load files from database
-        db.collection("Files")
-                .whereEqualTo("User", userEmail)
-                .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>()
-                {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task)
-                    {
-                        if (task.isSuccessful())
-                        {
-                            for (QueryDocumentSnapshot document : task.getResult())
-                            {
-                                Log.d(TAG, document.getId() + "=> " + document.get("File").toString());
+        // load files from storage
+        StorageReference storageRef = FirebaseStorage.getInstance().getReference().child("Files");
+        storageRef.listAll()
+                .addOnSuccessListener(listResult -> {
+                    for (StorageReference fileRef : listResult.getItems()) {
+                        fileRef.getMetadata().addOnSuccessListener(storageMetadata -> {
+                            String fileUserId = storageMetadata.getCustomMetadata("userId");
+                            if (fileUserId != null && fileUserId.equals(userId)) {
+                                // file belongs to the current user, add it to the list
+                                String fileName = fileRef.getName();
+                                String filePath = fileRef.getPath();
                                 fFriends.add(new FileDetail(
-                                        document.getId().toString(),
-                                        document.get("File").toString(),
+                                        fileName,
+                                        filePath,
                                         2131230889
                                 ));
                             }
                             loadAllFiles();
-                        }
+                        }).addOnFailureListener(e -> {
+                            Log.e(TAG, "Failed to get metadata: " + e.getMessage());
+                        });
                     }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Failed to list files: " + e.getMessage());
                 });
     }
 
@@ -276,7 +276,7 @@ public class ListFragment extends Fragment
         view.performClick();
     }
 
-    private void uploadDataToDB()
+    private void uploadDataToStorage()
     {
         FileViewerAdapter friendsAdapter = new FileViewerAdapter(
                 getContext(), fFriends
@@ -286,27 +286,29 @@ public class ListFragment extends Fragment
         FirebaseAuth auth = FirebaseAuth.getInstance();
         FirebaseUser user = auth.getCurrentUser();
 
-        for (String fileName : fileNames) {
-            Map<String, Object> data = new HashMap<>();
-            data.put("File", fileName);
-            data.put("User", user.getEmail());
+        for (String fileName : fileNames)
+        {
+            Uri fileUri = Uri.fromFile(new File(fileName));
+            String userId = user != null ? user.getUid() : "unknown";
 
-            db.collection("Files")
-                    .add(data)
-                    .addOnSuccessListener(new OnSuccessListener<DocumentReference>()
-                    {
-                        @Override
-                        public void onSuccess(DocumentReference documentReference)
-                        {
+            StorageReference storageRef = FirebaseStorage.getInstance().getReference();
+            StorageReference fileRef = storageRef.child("Files/" + fileUri.getLastPathSegment());
+
+            fileRef.putFile(fileUri)
+                    .addOnSuccessListener(taskSnapshot -> {
+                        // Update the file's metadata to include the user Id
+                        fileRef.updateMetadata(
+                                new StorageMetadata.Builder()
+                                        .setCustomMetadata("userId", userId)
+                                        .build()
+                        ).addOnSuccessListener(aVoid -> {
                             Toast.makeText(rootView.getContext(), "Data Uploaded Successfully", Toast.LENGTH_SHORT).show();
-                        }
-                    }).addOnFailureListener(new OnFailureListener()
-                    {
-                        @Override
-                        public void onFailure(@NonNull Exception e)
-                        {
-                            Toast.makeText(rootView.getContext(), "Data Upload Failed", Toast.LENGTH_SHORT).show();
-                        }
+                        }).addOnFailureListener(e -> {
+                            Toast.makeText(rootView.getContext(), "Failed to update metadata: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        });
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(rootView.getContext(), "Data Upload Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                     });
         }
 
@@ -433,10 +435,6 @@ public class ListFragment extends Fragment
         ));
 
         Log.d(TAG, file.getName());
-
-        Log.d(TAG, "NAME" + "=>" + file.getName());
-        Log.d(TAG, "PATH" + "=>" + file.getAbsolutePath());
-        Log.d(TAG, "ID" + "=>" + iconID);
     }
 
 
@@ -667,7 +665,7 @@ public class ListFragment extends Fragment
             }
         };
 
-        loadFromDB();
+        loadFromStorage();
         loadAllFiles();
 
         /*
