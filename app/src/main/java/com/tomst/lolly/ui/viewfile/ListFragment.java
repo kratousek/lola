@@ -12,6 +12,7 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.StatFs;
 import android.util.Log;
 import android.util.SparseBooleanArray;
@@ -250,13 +251,16 @@ public class ListFragment extends Fragment
                                 // file belongs to the current user, add it to the list
                                 String fileName = fileRef.getName();
                                 String filePath = fileRef.getPath();
+                                /*
                                 fFriends.add(new FileDetail(
                                         fileName,
                                         filePath,
                                         2131230889
                                 ));
+                                */
+                                downloadCSVFile(fileName, filePath);
                             }
-                            loadAllFiles();
+                            //loadAllFiles();
                         }).addOnFailureListener(e -> {
                             Log.e(TAG, "Failed to get metadata: " + e.getMessage());
                         });
@@ -264,6 +268,22 @@ public class ListFragment extends Fragment
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Failed to list files: " + e.getMessage());
+                });
+    }
+
+    private void downloadCSVFile(String fileName, String filePath)
+    {
+        File localFile = new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DOCUMENTS), fileName);
+
+        StorageReference storageRef = FirebaseStorage.getInstance().getReference().child(filePath);
+
+        storageRef.getFile(localFile)
+                .addOnSuccessListener(taskSnapshot -> {
+                    Log.d(TAG, "File downloaded to " + localFile.getAbsolutePath());
+                })
+                .addOnFailureListener(exception -> {
+                    Log.e(TAG, "Failed to download file: " + exception.getMessage());
                 });
     }
 
