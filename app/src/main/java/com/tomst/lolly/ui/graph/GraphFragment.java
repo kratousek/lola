@@ -75,6 +75,8 @@ public class GraphFragment extends Fragment
 
     // constants for merging CSV files
     private static final int HEADER_LINE_LENGTH = 3;
+    private static final int SERIAL_NUMBER_INDEX = 1;
+    private static final String DEFAULT_SERIAL_NUMBER_VALUE = "Unknown";
 
     // constants for loading measurements
     private static final byte DATETIME_INDEX = 1;
@@ -246,8 +248,11 @@ public class GraphFragment extends Fragment
 
             numDataSets = 1;
 
+            // serial number is unknown. Get from filename if possible
+            String serialNumber = getSerialNumberFromFileName(fileName);
+
             TDendroInfo defaultDendroInfo = new TDendroInfo(
-                    null, null, null
+                    serialNumber, null, null
             );
             dendroInfos.add(headerIndex, defaultDendroInfo);
         }
@@ -263,7 +268,7 @@ public class GraphFragment extends Fragment
                 headerIndex = 0;
             }
 
-            if (mer.Serial != null)
+            if (hasHeader && mer.Serial != null)
             {
                 headerIndex++;
                 valueIndex=0;
@@ -536,6 +541,25 @@ public class GraphFragment extends Fragment
         return root;
     }
 
+    private String getSerialNumberFromFileName(String fileName) {
+        // filename should look like "data_92221411_2023_09_26_0.csv"
+        // serial number should be the second value. No other way to get the serial number
+        // if not in the title, just use a default value
+        String[] titleSplit = fileName.split("_");
+        String serialNumber;
+        if (titleSplit.length > SERIAL_NUMBER_INDEX) {
+            serialNumber = fileName.split("_")[SERIAL_NUMBER_INDEX];
+        }
+        else {
+            // could theoretically add a dataset count to the end of this unknown
+            // but then it becomes an issue when merging several unknown datasets together
+            // would end up looking like: unknown1, unknown2, unknown1
+            serialNumber = DEFAULT_SERIAL_NUMBER_VALUE;
+        }
+
+        return serialNumber;
+    }
+
     private String mergeCSVFiles(String[] fileNames)
     {
         Log.d("MERGECALL", "Merge is called");
@@ -593,9 +617,9 @@ public class GraphFragment extends Fragment
                 // file does not have a header
                 dataSetCnt += 1;
 
-                // filename should look like "data_92221411_2023_09_26_0.csv"
-                // serial number should be the second value. No other way to get the serial number
-                String serialNumber = fileName.split("_")[1];
+                // serial number is unknown. Get from filename if possible
+                String serialNumber = getSerialNumberFromFileName(fileName);
+
                 String headerLine = serialNumber + ";0;0;\n";
                 header += headerLine;
 
