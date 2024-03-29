@@ -34,13 +34,17 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.tomst.lolly.R;
 import com.tomst.lolly.core.CSVReader;
 import com.tomst.lolly.core.Constants;
@@ -223,6 +227,44 @@ public class ListFragment extends Fragment
                 switchToGraphFragment();
             }
         });
+
+    }
+
+    private void loadFromDB()
+    {
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        FirebaseUser user = auth.getCurrentUser();
+        String userEmail = "Null";
+
+        if (user != null)
+        {
+            userEmail = user.getEmail();
+        }
+
+        // load files from database
+        db.collection("Files")
+                .whereEqualTo("User", userEmail)
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>()
+                {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task)
+                    {
+                        if (task.isSuccessful())
+                        {
+                            for (QueryDocumentSnapshot document : task.getResult())
+                            {
+                                Log.d(TAG, document.getId() + "=> " + document.get("File").toString());
+                                fFriends.add(new FileDetail(
+                                        document.getId().toString(),
+                                        document.get("File").toString(),
+                                        2131230889
+                                ));
+                            }
+                            loadAllFiles();
+                        }
+                    }
+                });
     }
 
     private void switchToGraphFragment()
@@ -251,14 +293,18 @@ public class ListFragment extends Fragment
 
             db.collection("Files")
                     .add(data)
-                    .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                    .addOnSuccessListener(new OnSuccessListener<DocumentReference>()
+                    {
                         @Override
-                        public void onSuccess(DocumentReference documentReference) {
+                        public void onSuccess(DocumentReference documentReference)
+                        {
                             Toast.makeText(rootView.getContext(), "Data Uploaded Successfully", Toast.LENGTH_SHORT).show();
                         }
-                    }).addOnFailureListener(new OnFailureListener() {
+                    }).addOnFailureListener(new OnFailureListener()
+                    {
                         @Override
-                        public void onFailure(@NonNull Exception e) {
+                        public void onFailure(@NonNull Exception e)
+                        {
                             Toast.makeText(rootView.getContext(), "Data Upload Failed", Toast.LENGTH_SHORT).show();
                         }
                     });
@@ -385,7 +431,12 @@ public class ListFragment extends Fragment
             file.getAbsolutePath(),
             iconID
         ));
+
         Log.d(TAG, file.getName());
+
+        Log.d(TAG, "NAME" + "=>" + file.getName());
+        Log.d(TAG, "PATH" + "=>" + file.getAbsolutePath());
+        Log.d(TAG, "ID" + "=>" + iconID);
     }
 
 
@@ -616,6 +667,7 @@ public class ListFragment extends Fragment
             }
         };
 
+        loadFromDB();
         loadAllFiles();
 
         /*
