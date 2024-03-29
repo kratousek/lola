@@ -210,36 +210,59 @@ public class GraphFragment extends Fragment
         long valueIndex = 0;
         float dateNum;
         boolean firstDate = true;
+        boolean hasHeader = true;
         String currentLine = "";
         CSVFile csv = CSVFile.open(fileName, CSVFile.READ_MODE);
 
-        // count data sets
         currentLine = csv.readLine();
-        numDataSets = Integer.parseInt(currentLine.split(";")[0]);
 
-        // read file header
-        while (headerIndex < numDataSets)
-        {
+        // length 1 if dataset count is first line
+        if (currentLine.split(";").length == 1) {
+            // file has a header
+            // count data sets
+            numDataSets = Integer.parseInt(currentLine.split(";")[0]);
+
+            // read file header
+            while (headerIndex < numDataSets) {
+                currentLine = csv.readLine();
+                String[] lineOfFile = currentLine.split(";");
+
+                String serial = lineOfFile[SERIAL_INDEX];
+                Long longitude = Long.parseLong(lineOfFile[LONGITUDE_INDEX]);
+                Long latitude = Long.parseLong(lineOfFile[LATITUDE_INDEX]);
+                TDendroInfo dendroInfo = new TDendroInfo(
+                        serial, longitude, latitude
+                );
+                dendroInfos.add(headerIndex, dendroInfo);
+
+                headerIndex++;
+            }
+
+            // get first line of datasets
             currentLine = csv.readLine();
-            String[] lineOfFile = currentLine.split(";");
+        }
+        else { // file does not have a header
+            hasHeader = false;
 
-            String serial = lineOfFile[SERIAL_INDEX];
-            Long longitude = Long.parseLong(lineOfFile[LONGITUDE_INDEX]);
-            Long latitude = Long.parseLong(lineOfFile[LATITUDE_INDEX]);
-            TDendroInfo dendroInfo = new TDendroInfo(
-                    serial, longitude, latitude
+            numDataSets = 1;
+
+            TDendroInfo defaultDendroInfo = new TDendroInfo(
+                    null, null, null
             );
-            dendroInfos.add(headerIndex, dendroInfo);
-
-            headerIndex++;
+            dendroInfos.add(headerIndex, defaultDendroInfo);
         }
 
         // read data
         headerIndex = -1;
-        while ((currentLine = csv.readLine()) != "")
+        while (currentLine != "")
         {
             TMereni mer = processLine(currentLine);
             String[] lineOfFile = currentLine.split(";");
+
+            if (!hasHeader) {
+                headerIndex = 0;
+            }
+
             if (mer.Serial != null)
             {
                 headerIndex++;
@@ -277,6 +300,9 @@ public class GraphFragment extends Fragment
 
                 valueIndex++;
             }
+
+            // move to next line
+            currentLine = csv.readLine();
         }
     }
 
@@ -545,17 +571,40 @@ public class GraphFragment extends Fragment
         {
             Log.d("MERGECALL", "Enters merge loop");
             CSVFile csvFile = CSVFile.open(fileName, CSVFile.READ_MODE);
-            // count the data sets
+
+            // read in first line of file
             String currentLine = csvFile.readLine();
-            dataSetCnt += Integer.parseInt(currentLine.split(";")[0]);
-            // read serial number(s) is always first line in data set
-            while((currentLine = csvFile.readLine())
-                    .split(";").length == HEADER_LINE_LENGTH
-            ) {
+
+            // if first line is dataset count (only one value)
+            if (currentLine.split(";").length == 1) {
+                // file has header
+                // count the data sets
+                dataSetCnt += Integer.parseInt(currentLine.split(";")[0]);
+                // read serial number(s) is always first line in data set
+                while ((currentLine = csvFile.readLine())
+                        .split(";").length == HEADER_LINE_LENGTH
+                ) {
                     header += currentLine + "\n";
+                }
+                // write serial number
+                tempFile.write(currentLine + "\n");
             }
-            // write serial number
-            tempFile.write(currentLine + "\n");
+            else { // otherwise the file being merged does not have a header
+                // file does not have a header
+                dataSetCnt += 1;
+
+                // filename should look like "data_92221411_2023_09_26_0.csv"
+                // serial number should be the second value. No other way to get the serial number
+                String serialNumber = fileName.split("_")[1];
+                String headerLine = serialNumber + ";0;0;\n";
+                header += headerLine;
+
+                // write the serial number
+                tempFile.write(serialNumber + "\n");
+
+                // write the first line of the dataset
+                tempFile.write(currentLine + "\n");
+            }
 
             while((currentLine = csvFile.readLine()).contains(";"))
             {
