@@ -223,7 +223,7 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
 //        b = binding.bookmark.isChecked();
 //        editor.putBoolean("bookmark",b);
 
-//        editor.putBoolean("bookmark",binding.bookmark.isChecked());
+        editor.putBoolean("bookmark",binding.bookmark.isChecked());
         editor.putBoolean("showgraph",binding.showgraph.isChecked());
         editor.putBoolean("noledlight",binding.noledlight.isChecked());
         editor.putBoolean("showmicro",binding.showmicro.isChecked());
