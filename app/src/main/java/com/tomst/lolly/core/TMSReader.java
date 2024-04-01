@@ -933,15 +933,25 @@ public class TMSReader extends Thread {
         }
 
         // pointer na bookmark
+//        String respond = fHer.doCommand("B");
+//        Log.d("||| DEBUG B |||", respond);
+//
+//        Log.d("||| DEBUG B |||", String.valueOf(getaddr(respond)));
+        // 047f20
 
 
         // pointer na nulu
         String respond = fHer.doCommand("S=$000000");
+//        String respond = fHer.doCommand("S=$047f20");
         Log.d("Sendmessage", respond);
+
+        Log.d("||| DEBUG S |||", String.valueOf(getaddr(respond)));
 
         // napocitej pocet cyklu z posledni adresy
         respond = fHer.doCommand("P");
+        Log.d("||| DEBUG P |||", respond);
         int lastAddress = getaddr(respond);
+        Log.d("||| DEBUG P |||", String.valueOf(lastAddress));
         DoProgress(-lastAddress); // celkovy pocet bytu
 
         fAddr = 0;
