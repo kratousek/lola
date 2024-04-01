@@ -140,6 +140,20 @@ public class pars {
         return(i);
     }
 
+    // very temporary fix, just so that the dendrometer won't crash when it reads "A8" and other non-ints
+    // somehow A8 is -28. I know this for certain, phoenix time zone is -28 quarters from UTC
+    // -28 is temp fix, not accurate for any other time zone
+    public static int copyIntGTM(String reply,int start, int count)
+    {
+        int i = -28;
+        //i = Integer.parseInt(reply.substring(start,start+count));
+        String s = reply.substring(start-1,start+count-1);
+        if (Character.isDigit(s.charAt(0))) {
+            i = Integer.parseInt(s);
+        }
+        return(i);
+    }
+
     private static int copyHex(String reply, int start, int count)
     {
         String s = reply.substring(start-1,start+count-1);
@@ -159,7 +173,7 @@ public class pars {
         Mereni.hh    = copyInt(reply,11,2);
         Mereni.mm    = copyInt(reply,13,2);
         Mereni.ss    = copyInt(reply,15,2);
-        Mereni.gtm   = copyInt(reply,17,2);
+        Mereni.gtm   = copyIntGTM(reply,17,2);
     }
 
     public String copys(String reply,int start,int count){

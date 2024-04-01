@@ -209,6 +209,7 @@ public class GraphFragment extends Fragment
 
     private void loadCSVFile(String fileName)
     {
+        Toast.makeText(getContext(), "loading", Toast.LENGTH_SHORT).show();
         long valueIndex = 0;
         float dateNum;
         boolean firstDate = true;
@@ -708,8 +709,10 @@ public class GraphFragment extends Fragment
                 set.setColor(Color.rgb(0, 200, 0));
             }
         }
-        dendroInfos.get(headerIndex).color = set.getColor();
-        Log.d("COLOR SET", "DATASET " + headerIndex +": set color to" + dendroInfos.get(headerIndex).color);
+        if (!dendroInfos.isEmpty()) {
+            dendroInfos.get(headerIndex).color = set.getColor();
+            Log.d("COLOR SET", "DATASET " + headerIndex + ": set color to" + dendroInfos.get(headerIndex).color);
+        }
 
         //differentiating values by different dash patterns
         switch (val)
