@@ -137,20 +137,32 @@ public class pars {
         //i = Integer.parseInt(reply.substring(start,start+count));
         String s = reply.substring(start-1,start+count-1);
         i = Integer.parseInt(s);
+
         return(i);
     }
 
-    // very temporary fix, just so that the dendrometer won't crash when it reads "A8" and other non-ints
-    // somehow A8 is -28. I know this for certain, phoenix time zone is -28 quarters from UTC
-    // -28 is temp fix, not accurate for any other time zone
     public static int copyIntGTM(String reply,int start, int count)
     {
-        int i = -28;
+        int i;
         //i = Integer.parseInt(reply.substring(start,start+count));
         String s = reply.substring(start-1,start+count-1);
-        if (Character.isDigit(s.charAt(0))) {
-            i = Integer.parseInt(s);
+
+        // if hex value, convert to int
+        // A8 in here equals 108, not 168 like in normal hex!
+        // A = 10  8 = 8    10 + 8 = 108
+        // second char will always be a digit
+        if (Character.isLetter(s.charAt(0))) {
+            int firstChar = Integer.parseInt(s.substring(0, 1), 16);
+            s = String.valueOf(firstChar) + s.charAt(1);
         }
+
+        i = Integer.parseInt(s);
+
+        // negative UTC offsets are greater than 80
+        if (i > 80) {
+            i = (i - 80) * -1;
+        }
+
         return(i);
     }
 
