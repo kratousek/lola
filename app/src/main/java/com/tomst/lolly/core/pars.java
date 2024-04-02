@@ -147,19 +147,11 @@ public class pars {
         //i = Integer.parseInt(reply.substring(start,start+count));
         String s = reply.substring(start-1,start+count-1);
 
-        // if hex value, convert to int
-        // A8 in here equals 108, not 168 like in normal hex!
-        // A = 10  8 = 8    10 + 8 = 108
-        // second char will always be a digit
-        if (Character.isLetter(s.charAt(0))) {
-            int firstChar = Integer.parseInt(s.substring(0, 1), 16);
-            s = String.valueOf(firstChar) + s.charAt(1);
-        }
+        // hex value, convert to int
+        i = Integer.parseInt(s,16);
 
-        i = Integer.parseInt(s);
-
-        // negative UTC offsets are greater than 80
-        if (i > 80) {
+        // negative UTC offsets are greater than 0x80
+        if (i > 0x80) {
             i = (i - 80) * -1;
         }
 
