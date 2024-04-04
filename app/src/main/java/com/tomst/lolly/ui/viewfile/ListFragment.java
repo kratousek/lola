@@ -5,6 +5,7 @@ import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 import static android.app.Activity.RESULT_CANCELED;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -15,6 +16,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.StatFs;
+import android.text.InputType;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
@@ -25,6 +28,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -32,6 +36,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.FileProvider;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -193,22 +198,25 @@ public class ListFragment extends Fragment
 
         fFriends = new ArrayList<>();
 
-        Intent intent = getActivity().getIntent();
-        switch (intent.getAction())
+        Intent intent = getActivity() != null ? getActivity().getIntent() : null;
+        if (intent != null)
         {
-            case Intent.ACTION_GET_CONTENT:
-                fopen.isRequestDocument = true;
-                getActivity().setResult(RESULT_CANCELED);
-                break;
+            switch (intent.getAction())
+            {
+                case Intent.ACTION_GET_CONTENT:
+                    fopen.isRequestDocument = true;
+                    getActivity().setResult(RESULT_CANCELED);
+                    break;
 
-            case Intent.ACTION_OPEN_DOCUMENT : {
-                fopen.isRequestDocument = true;
-                getActivity().setResult(RESULT_CANCELED);
-                break;
+                case Intent.ACTION_OPEN_DOCUMENT : {
+                    fopen.isRequestDocument = true;
+                    getActivity().setResult(RESULT_CANCELED);
+                    break;
+                }
+
+                default :
+                    fopen.isRequestDocument = false;
             }
-
-            default :
-                 fopen.isRequestDocument = false;
         }
         setupBitmaps();
 
@@ -267,27 +275,35 @@ public class ListFragment extends Fragment
                     for (StorageReference fileRef : listResult.getItems())
                     {
                         fileRef.getMetadata().addOnSuccessListener(storageMetadata -> {
-                            String fileUser = storageMetadata.getCustomMetadata("user");
-                            if (fileUser != null && fileUser.equals(userEmail))
+                            String fileUsers = storageMetadata.getCustomMetadata("user");
+                            if (fileUsers != null)
                             {
-                                // file belongs to the current user, download it
-                                String fileName = fileRef.getName();  
-                                String filePath = fileRef.getPath();
-                                downloadCSVFile(fileName, filePath);
-
-                                // set the icon
-                                for (FileDetail fileDetail : fFriends)
+                                String[] users = fileUsers.split(",");
+                                for (String currentUser : users)
                                 {
-                                    if (fileDetail.getName().equals(fileName))
+                                    if (currentUser.equals(userEmail))
                                     {
-                                        fileDetail.setUploaded(true);
-                                        break;
+                                        // file belongs to the current user, download it
+                                        String fileName = fileRef.getName();
+                                        String filePath = fileRef.getPath();
+                                        downloadCSVFile(fileName, filePath);
+
+                                        // set the icon
+                                        for (FileDetail fileDetail : fFriends)
+                                        {
+                                            if (fileDetail.getName().equals(fileName))
+                                            {
+                                                fileDetail.setUploaded(true);
+                                                break;
+                                            }
+                                        }
+
+                                        // update list view with icons
+                                        ListView mListView = rootView.findViewById(R.id.listView);
+                                        mListView.setAdapter(friendsAdapter);
                                     }
                                 }
 
-                                // update list view with icons
-                                ListView mListView = rootView.findViewById(R.id.listView);
-                                mListView.setAdapter(friendsAdapter);
                             }
                         }).addOnFailureListener(e -> {
                             Log.e(TAG, "Failed to get metadata: " + e.getMessage());
@@ -409,7 +425,89 @@ public class ListFragment extends Fragment
 
     private void shareData()
     {
+        // create an alert dialog with an edit text field
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle("Enter Email Addresse(s)");
+        builder.setMessage("User a comma(,) to seperate emails");
 
+        final EditText input = new EditText(getContext());
+        input.setInputType(InputType.TYPE_CLASS_TEXT);
+        builder.setView(input);
+
+        // set up the buttons
+        builder.setPositiveButton("Share", new DialogInterface.OnClickListener()
+        {
+            @Override
+            public void onClick(DialogInterface dialog, int which)
+            {
+                String emails = input.getText().toString();
+                if (!TextUtils.isEmpty(emails))
+                {
+                    String[] emailArray = emails.split(",");
+                    updateMetadata(emailArray);
+                }
+                else
+                {
+                    Toast.makeText(getContext(), "Please enter at least one email", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener()
+        {
+            @Override
+            public void onClick(DialogInterface dialog, int which)
+            {
+                dialog.cancel();
+            }
+        });
+
+        builder.show();
+    }
+
+    private void updateMetadata(String[] emails) {
+        FileViewerAdapter friendsAdapter = new FileViewerAdapter(getContext(), fFriends);
+        ArrayList<String> selectedFiles = friendsAdapter.collectSelected();
+
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        FirebaseUser user = auth.getCurrentUser();
+        String userEmail = user != null ? user.getEmail() : "unknown";
+
+        for (String selectedFile : selectedFiles)
+        {
+            Uri fileUri = Uri.fromFile(new File(selectedFile));
+            StorageReference storageRef = FirebaseStorage.getInstance().getReference();
+            StorageReference fileRef = storageRef.child("Files/" + fileUri.getLastPathSegment());
+
+            // get current metadata
+            fileRef.getMetadata().addOnSuccessListener(metadata -> {
+                String currentUser = metadata.getCustomMetadata("user");
+                if (currentUser != null)
+                {
+                    // append new emails to the existing user metadata
+                    StringBuilder newUserMetadata = new StringBuilder(currentUser);
+                    for (String email : emails)
+                    {
+                        if (!newUserMetadata.toString().contains(email))
+                        {
+                            newUserMetadata.append(",").append(email);
+                        }
+                    }
+
+                    // update metadata
+                    fileRef.updateMetadata(new StorageMetadata.Builder()
+                                    .setCustomMetadata("user", newUserMetadata.toString())
+                                    .build())
+                            .addOnSuccessListener(aVoid -> {
+                                Toast.makeText(getContext(), "Shared data successfully", Toast.LENGTH_SHORT).show();
+                            })
+                            .addOnFailureListener(e -> {
+                                Toast.makeText(getContext(), "Failed to share data: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            });
+                }
+            }).addOnFailureListener(e -> {
+                Toast.makeText(getContext(), "Failed to get metadata: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            });
+        }
     }
 
 
