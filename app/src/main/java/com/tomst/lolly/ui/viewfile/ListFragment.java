@@ -368,6 +368,28 @@ public class ListFragment extends Fragment
             Uri fileUri = Uri.fromFile(new File(fileName));
             String userEmail = user != null ? user.getEmail() : "unknown";
 
+            // check if the file has already been uploaded
+            boolean isAlreadyUploaded = false;
+            for (FileDetail fileDetail : friendsAdapter.getAllFiles()) {
+                if (fileDetail.getFull().equals(fileName) && fileDetail.isUploaded()) {
+                    isAlreadyUploaded = true;
+                    break;
+                }
+            }
+
+            // file is already uploaded, skip it
+            if (isAlreadyUploaded) {
+                Toast.makeText(rootView.getContext(), fileUri.getLastPathSegment() + " Already Uploaded", Toast.LENGTH_SHORT).show();
+
+                filesUploaded.incrementAndGet();
+                // check if all files uploaded
+                if (filesUploaded.get() == totalFiles)
+                {
+                    progressBar.setVisibility(View.GONE);
+                }
+                continue;
+            }
+
             StorageReference storageRef = FirebaseStorage.getInstance().getReference();
             StorageReference fileRef = storageRef.child("Files/" + fileUri.getLastPathSegment());
 
