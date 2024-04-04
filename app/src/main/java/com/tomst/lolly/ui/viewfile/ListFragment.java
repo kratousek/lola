@@ -418,7 +418,7 @@ public class ListFragment extends Fragment
                                 mListView.setAdapter(friendsAdapter);
 
                                 progressBar.setVisibility(View.GONE);
-                                Toast.makeText(rootView.getContext(), "Data Uploaded Successfully", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(rootView.getContext(), fileUri.getLastPathSegment() + " Uploaded Successfully", Toast.LENGTH_SHORT).show();
                             }
                         }).addOnFailureListener(e -> {
                             Toast.makeText(rootView.getContext(), "Failed to update metadata: " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -447,6 +447,24 @@ public class ListFragment extends Fragment
 
     private void shareData()
     {
+        FileViewerAdapter friendsAdapter = new FileViewerAdapter(getContext(), fFriends);
+        ArrayList<String> selectedFiles = friendsAdapter.collectSelected();
+
+        boolean allUploaded = true;
+        for (String selectedFile : selectedFiles) {
+            for (FileDetail fileDetail : fFriends) {
+                if (fileDetail.getFull().equals(selectedFile) && !fileDetail.isUploaded()) {
+                    allUploaded = false;
+                    break;
+                }
+            }
+        }
+
+        if (!allUploaded) {
+            Toast.makeText(getContext(), "Please upload all files before sharing", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         // create an alert dialog with an edit text field
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         builder.setTitle("Enter Email Addresse(s)");
