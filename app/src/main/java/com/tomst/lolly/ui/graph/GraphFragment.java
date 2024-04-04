@@ -412,20 +412,9 @@ public class GraphFragment extends Fragment
                     Log.d("GRAPH", "Received: " + msg);
                     if (msg.equals("TMD"))
                     {
-                        Boolean showgraph = getContext()
-                                .getSharedPreferences(
-                                        "save_options",
-                                        Context.MODE_PRIVATE
-                                )
-                                .getBoolean("showgraph", false);
                         // vytahne data z dmd, ktere sem poslal TMD adapter
                         // pulls data from dendrometer
                         LoadDmdData();
-
-                        if (showgraph)
-                        {
-                            DisplayData();
-                        }
                     }
                     else
                     {

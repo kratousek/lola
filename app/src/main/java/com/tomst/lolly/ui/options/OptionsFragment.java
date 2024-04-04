@@ -241,8 +241,8 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
             int bookmarkVal = Integer.parseInt(bookmarkStr);
             editor.putInt("bookmarkVal", bookmarkVal);
         }
-        // otherwise, check for a date from the user
-        else if (!dateStr.isEmpty())
+        // check for a date from the user
+        if (!dateStr.isEmpty())
         {
             editor.putString("fromDate", dateStr);
         }

@@ -61,7 +61,6 @@ public class TMSReader extends Thread
     public String SerialNumber;
     public String AdapterNumber;
     public RFirmware rfir;
-    public boolean Writebookmark;
 
 
     private static volatile TDevState devState;
@@ -847,6 +846,8 @@ public class TMSReader extends Thread
                 case tFinishedData:
                     SendMeasure(TDevState.tFinishedData,"FINISHED!");
                     devState = TDevState.tWaitInLimbo;
+
+                    Toast.makeText(this.context, "Finished!", Toast.LENGTH_SHORT).show();
                     break;
 
                 case tWaitInLimbo:
@@ -937,6 +938,7 @@ public class TMSReader extends Thread
     private String getHexValueFromBookmark(int pValue, int bookmarkDays) {
         // subtract p value (current pointer) from days converted to int/hex
         int finalValue = pValue - (bookmarkDays * BOOKMARK_DAY_CONVERSION);
+        finalValue = Math.max(0, finalValue); // clamp to 0
         String hexString = Integer.toHexString(finalValue).toUpperCase();
 
         // pad the beginning of the string with 0's if less than 6 characters
@@ -982,9 +984,7 @@ public class TMSReader extends Thread
 
         // napocitej pocet cyklu z posledni adresy
         String pRespond = fHer.doCommand("P");
-        Log.d("||| DEBUG P |||", pRespond);
         int lastAddress = getaddr(pRespond);
-        Log.d("||| DEBUG P |||", String.valueOf(lastAddress));
         DoProgress(-lastAddress);  // celkovy pocet bytu
 
         switch (readFromSpinnerIndex) {
@@ -1007,11 +1007,14 @@ public class TMSReader extends Thread
 
                 break;
             case SPI_DOWNLOAD_DATE:
-                // find how many days from now to the read from date is
-                LocalDate fromDate = LocalDate.parse(readFromDate);
-                LocalDate todaysDate = LocalDate.now();
+                int daysBetween = 0;
+                if (!readFromDate.isEmpty()) {
+                    // find how many days from now to the read from date is
+                    LocalDate fromDate = LocalDate.parse(readFromDate);
+                    LocalDate todaysDate = LocalDate.now();
 
-                int daysBetween = (int) Math.abs(ChronoUnit.DAYS.between(fromDate, todaysDate));
+                    daysBetween = (int) Math.abs(ChronoUnit.DAYS.between(fromDate, todaysDate));
+                }
 
                 // find hex value based on days value
                 String sHexString = getHexValueFromBookmark(lastAddress, daysBetween);
@@ -1020,21 +1023,6 @@ public class TMSReader extends Thread
                 respond = fHer.doCommand("S=$" + sHexString);
                 Log.d("SendMessage", respond);
         }
-
-        // pointer na bookmark
-//        String respond = fHer.doCommand("B");
-//        Log.d("||| DEBUG B |||", respond);
-//
-//        Log.d("||| DEBUG B |||", String.valueOf(getaddr(respond)));
-        // 047f20
-
-
-        // pointer na nulu
-//        String respond = fHer.doCommand("S=$000000");
-//        String respond = fHer.doCommand("S=$047f20");
-//        Log.d("Sendmessage", respond);
-
-//        Log.d("||| DEBUG S |||", String.valueOf(getaddr(respond)));
 
         fAddr = 0;
 
