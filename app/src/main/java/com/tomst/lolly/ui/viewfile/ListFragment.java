@@ -248,6 +248,14 @@ public class ListFragment extends Fragment
 
     private void loadFromStorage()
     {
+        // show the loading icon
+        ProgressBar progressBar = rootView.findViewById(R.id.uploadProgressBar);
+        progressBar.setVisibility(View.VISIBLE);
+
+        FileViewerAdapter friendsAdapter = new FileViewerAdapter(
+                getContext(), fFriends
+        );
+
         FirebaseAuth auth = FirebaseAuth.getInstance();
         FirebaseUser user = auth.getCurrentUser();
         String userEmail = user != null ? user.getEmail() : "unknown";
@@ -256,21 +264,41 @@ public class ListFragment extends Fragment
         StorageReference storageRef = FirebaseStorage.getInstance().getReference().child("Files");
         storageRef.listAll()
                 .addOnSuccessListener(listResult -> {
-                    for (StorageReference fileRef : listResult.getItems()) {
+                    for (StorageReference fileRef : listResult.getItems())
+                    {
                         fileRef.getMetadata().addOnSuccessListener(storageMetadata -> {
                             String fileUser = storageMetadata.getCustomMetadata("user");
-                            if (fileUser != null && fileUser.equals(userEmail)) {
+                            if (fileUser != null && fileUser.equals(userEmail))
+                            {
                                 // file belongs to the current user, download it
                                 String fileName = fileRef.getName();  
                                 String filePath = fileRef.getPath();
                                 downloadCSVFile(fileName, filePath);
+
+                                // set the icon
+                                for (FileDetail fileDetail : fFriends)
+                                {
+                                    if (fileDetail.getName().equals(fileName))
+                                    {
+                                        fileDetail.setUploaded(true);
+                                        break;
+                                    }
+                                }
+
+                                // update list view with icons
+                                ListView mListView = rootView.findViewById(R.id.listView);
+                                mListView.setAdapter(friendsAdapter);
                             }
                         }).addOnFailureListener(e -> {
                             Log.e(TAG, "Failed to get metadata: " + e.getMessage());
                         });
                     }
+                    // hide loading icon
+                    progressBar.setVisibility(View.GONE);
                 })
                 .addOnFailureListener(e -> {
+                    // hide loading icon
+                    progressBar.setVisibility(View.GONE);
                     Log.e(TAG, "Failed to list files: " + e.getMessage());
                 });
     }
