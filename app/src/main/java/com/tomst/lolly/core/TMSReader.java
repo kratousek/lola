@@ -20,6 +20,7 @@ import com.ftdi.j2xx.FT_Device;
 
 import java.io.File;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
@@ -30,6 +31,12 @@ import java.time.temporal.ChronoUnit;
 
 public class TMSReader extends Thread
 {
+    public final int SPI_DOWNLOAD_NONE = 0;
+    public final int SPI_DOWNLOAD_ALL = 1;
+    public final int SPI_DOWNLOAD_BOOKMARK = 2;
+    public final int SPI_DOWNLOAD_DATE = 3;
+    private final int BOOKMARK_DAY_CONVERSION = 848;
+
     // vystupy ven z tridy
     public int capUsed = 0;  // kapacita v %
     public long delta = 0;  // rozdil mezi casem v telefonu a v TMS
@@ -631,9 +638,8 @@ public class TMSReader extends Thread
         TInfo info;
         info = new TInfo();
 
-//        devState = TDevState.tStart;
+        devState = TDevState.tStart;
         lollyTime = Instant.MIN;
-        devState = TDevState.tReadFromBookmark;
 
         if (fHer==null)
         {
@@ -928,6 +934,24 @@ public class TMSReader extends Thread
         return 0;
     }
 
+    private String getHexValueFromBookmark(int pValue, int bookmarkDays) {
+        // subtract p value (current pointer) from days converted to int/hex
+        int finalValue = pValue - (bookmarkDays * BOOKMARK_DAY_CONVERSION);
+        String hexString = Integer.toHexString(finalValue).toUpperCase();
+
+        // pad the beginning of the string with 0's if less than 6 characters
+        StringBuilder finalHexStringBuilder = new StringBuilder();
+        for (int i = 0; i < 6 - hexString.length(); i++) {
+            finalHexStringBuilder.append("0");
+        }
+        finalHexStringBuilder.append(hexString);
+        String finalHexString = finalHexStringBuilder.toString();
+
+        Log.d("Sendmessage", "Bookmark hex value: " + finalHexString);
+
+        return finalHexString;
+    }
+
     @RequiresApi(api = Build.VERSION_CODES.O)
     private boolean ReadData()
     {
@@ -939,8 +963,9 @@ public class TMSReader extends Thread
         SharedPreferences prefs = context.getSharedPreferences(
                 "save_options", Context.MODE_PRIVATE
         );
-        int bookmarkDay = prefs.getInt("bookmarkVal", 0);
-        String bookmarkDate = prefs.getString("fromDate", "");
+        int readFromSpinnerIndex = prefs.getInt("readFrom", SPI_DOWNLOAD_NONE);
+        int bookmarkDays = prefs.getInt("bookmarkVal", 0);
+        String readFromDate = prefs.getString("fromDate", "");
 
         if (ftDev == null)
         {
@@ -949,31 +974,51 @@ public class TMSReader extends Thread
             return false;
         }
 
-        if (ftDev.isOpen() == false)
+        if (!ftDev.isOpen())
         {
             Log.e("j2xx", "SendMessage: device not open");
             return false;
         }
 
-        // check for a number of days bookmark
-        if (bookmarkDay > 0)
-        {
-            // do something
-        }
-        // check for a specific date
-        else if (!bookmarkDate.isEmpty())
-        {
-            respond = fHer.doCommand("B=$FFFFFF");
-            Log.d(TAG, respond);
+        // napocitej pocet cyklu z posledni adresy
+        String pRespond = fHer.doCommand("P");
+        Log.d("||| DEBUG P |||", pRespond);
+        int lastAddress = getaddr(pRespond);
+        Log.d("||| DEBUG P |||", String.valueOf(lastAddress));
+        DoProgress(-lastAddress);  // celkovy pocet bytu
 
-            respond = fHer.doCommand("S=$" + respond);
-            Log.d("SendMessage", respond);
-        }
-        // otherwise, get from beginning of time measuring
-        else
-        {
-            respond = fHer.doCommand("S=$000000");
-            Log.d("Sendmessage", respond);
+        switch (readFromSpinnerIndex) {
+            case SPI_DOWNLOAD_NONE:
+            case SPI_DOWNLOAD_ALL:
+                respond = fHer.doCommand("S=$000000");
+                Log.d("Sendmessage", respond);
+                break;
+            case SPI_DOWNLOAD_BOOKMARK:
+                // find hex value for bookmark based on days value
+                String bHexString = getHexValueFromBookmark(lastAddress, bookmarkDays);
+
+                // do B command to set bookmark
+                respond = fHer.doCommand("B=$" + bHexString);
+                Log.d(TAG, respond);
+
+                // do S command with B value
+                respond = fHer.doCommand("S=$" + bHexString);
+                Log.d("SendMessage", respond);
+
+                break;
+            case SPI_DOWNLOAD_DATE:
+                // find how many days from now to the read from date is
+                LocalDate fromDate = LocalDate.parse(readFromDate);
+                LocalDate todaysDate = LocalDate.now();
+
+                int daysBetween = (int) Math.abs(ChronoUnit.DAYS.between(fromDate, todaysDate));
+
+                // find hex value based on days value
+                String sHexString = getHexValueFromBookmark(lastAddress, daysBetween);
+
+                // do S command with hex value
+                respond = fHer.doCommand("S=$" + sHexString);
+                Log.d("SendMessage", respond);
         }
 
         // pointer na bookmark
@@ -990,13 +1035,6 @@ public class TMSReader extends Thread
 //        Log.d("Sendmessage", respond);
 
 //        Log.d("||| DEBUG S |||", String.valueOf(getaddr(respond)));
-
-        // napocitej pocet cyklu z posledni adresy
-        respond = fHer.doCommand("P");
-        Log.d("||| DEBUG P |||", respond);
-        int lastAddress = getaddr(respond);
-        Log.d("||| DEBUG P |||", String.valueOf(lastAddress));
-        DoProgress(-lastAddress);  // celkovy pocet bytu
 
         fAddr = 0;
 
