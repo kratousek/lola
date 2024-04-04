@@ -358,12 +358,15 @@ public class pars {
         //fMicroSlope = (double)(8890.0 / (34000.0 - 1279.0));
         fIdx = 0;
 
-       dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        fMereni.month = 0;
+
+        dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
     }
 
     /*** Konstruktor, nastavim defaultni hodnoty ***/
     @RequiresApi(api = Build.VERSION_CODES.O)
     public pars(){
+        Log.d("|||DEBUG|||", "pars + " + fMereni.month);
         //RandomAccessFile file = new RandomAccessFile("/Users/pankaj/Downloads/myfile.txt", "r");
         InitConstants();
     }
@@ -398,8 +401,17 @@ public class pars {
                         disassembleData(val, fMereni);
                         //System.out.printf("%s %02d.%02d.%02d %02d:%02d t1=%2.1f hum=%d \r\n",val,fMereni.year,fMereni.month,fMereni.day, fMereni.hh,fMereni.mm,fMereni.t1,fMereni.hum);
                         //str = str + String.format("%s %02d.%02d.%02d %02d:%02d t1=%2.1f hum=%d \r\n",val,fMereni.year,fMereni.month,fMereni.day, fMereni.hh,fMereni.mm,fMereni.t1,fMereni.hum);
-                        String off = String.valueOf(fMereni.gtm / 4);
-                        fMereni.dtm = LocalDateTime.of(fMereni.year, fMereni.month, fMereni.day, fMereni.hh, fMereni.mm, fMereni.ss, 0);
+                        // String off = String.valueOf(fMereni.gtm / 4);
+
+                        // need to check if date has been read in yet. If not, skip over D command
+                        // this is so when reading from a bookmark it will read all the D commands until
+                        // it finds the first date (DD command) around the given bookmark period
+                        if (fMereni.month == 0) {
+                            continue;
+                        }
+                        else {
+                            fMereni.dtm = LocalDateTime.of(fMereni.year, fMereni.month, fMereni.day, fMereni.hh, fMereni.mm, fMereni.ss, 0);
+                        }
                         fMereni.idx = fIdx;
 
                         sendMeasure(fMereni);

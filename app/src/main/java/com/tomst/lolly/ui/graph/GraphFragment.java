@@ -1,6 +1,7 @@
 package com.tomst.lolly.ui.graph;
 
 
+import android.content.Context;
 import android.graphics.Color;
 import android.graphics.ColorSpace;
 import android.graphics.DashPathEffect;
@@ -429,13 +430,13 @@ public class GraphFragment extends Fragment
                             );
 
                             loadCSVFile(mergedFileName);
-                            DisplayData();
                         }
                         else
                         {
                             loadCSVFile(fileNames[0]);
-                            DisplayData();
                         }
+
+                        DisplayData();
                     }
 
                     dmd.getMessageContainerGraph()

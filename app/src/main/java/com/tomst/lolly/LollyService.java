@@ -162,10 +162,6 @@ public class LollyService extends Service {
         ftTMS.SetHandler(handler);
         ftTMS.SetDataHandler(this.dataHandler);
 
-        // setup properties before running
-        ftTMS.Writebookmark =  sharedPref.getBoolean("bookmark",false);
-        
-
         ftTMS.SetRunning(true); // povol provoz v mLoop
         //ftTMS.start();
 

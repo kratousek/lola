@@ -1,5 +1,6 @@
 package com.tomst.lolly.ui.options;
 
+import androidx.annotation.RequiresApi;
 import androidx.core.widget.NestedScrollView;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -7,11 +8,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
+import android.os.Build;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +23,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -30,10 +35,16 @@ import com.tomst.lolly.MainActivity;
 import com.tomst.lolly.LoginActivity;
 import com.tomst.lolly.R;
 import com.tomst.lolly.RegisterActivity;
+import com.tomst.lolly.core.TMSReader;
 import com.tomst.lolly.databinding.FragmentOptionsBinding;
 
 import com.tomst.lolly.utils.Tools;
 import com.tomst.lolly.utils.ViewAnimation;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.util.Date;
 
 
 public class OptionsFragment extends Fragment implements AdapterView.OnItemSelectedListener {
@@ -108,6 +119,10 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
         return new OptionsFragment();
     }
 
+    public final int SPI_DOWNLOAD_NONE = 0;
+    public final int SPI_DOWNLOAD_ALL = 1;
+    public final int SPI_DOWNLOAD_BOOKMARK = 2;
+    public final int SPI_DOWNLOAD_DATE = 3;
 
     /*
     private CheckBoxState checkedStatus() {
@@ -184,7 +199,8 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
      */
 
 
-    private void SaveForm(){
+    private void SaveForm()
+    {
         Context context = getContext();
         SharedPreferences sharedPref = context.getSharedPreferences(getString(R.string.save_options), context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
@@ -207,11 +223,7 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
         int spiInterval = (int) binding.spiInterval.getSelectedItemId();
         editor.putInt("mode",spiInterval);
 
-        // nastav zatrzitka
-//        b = binding.bookmark.isChecked();
-//        editor.putBoolean("bookmark",b);
-
-        editor.putBoolean("bookmark",binding.bookmark.isChecked());
+//        editor.putBoolean("bookmark",binding.bookmark.isChecked());
         editor.putBoolean("showgraph",binding.showgraph.isChecked());
         editor.putBoolean("noledlight",binding.noledlight.isChecked());
         editor.putBoolean("showmicro",binding.showmicro.isChecked());
@@ -221,20 +233,41 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
         String s = String.valueOf(binding.Deci.getText());
         editor.putString("decimalseparator",s);
 
+        String bookmarkStr = String.valueOf(binding.bookmarkDeci.getText());
+        String dateStr = String.valueOf(binding.fromDate.getText());
+        // check for bookmarked days before
+        if (!bookmarkStr.isEmpty())
+        {
+            int bookmarkVal = Integer.parseInt(bookmarkStr);
+            editor.putInt("bookmarkVal", bookmarkVal);
+        }
+        // check for a date from the user
+        if (!dateStr.isEmpty())
+        {
+            editor.putString("fromDate", dateStr);
+        }
+
         //editor.putString("decimalseparator",",");
         //editor.putString("decimalseparator",",");
 
         editor.apply();
     }
 
-    private void ReadForm(){
+    private void ReadForm()
+    {
         Context context = getContext();
         SharedPreferences sharedPref = context.getSharedPreferences(getString(R.string.save_options), context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
         // vytahnu si cislo resource ze strings.xml
-        boolean r1 = sharedPref.getBoolean("read_all",false);  // false je default, kdyz neexistuje
-        boolean r2 = sharedPref.getBoolean("read_bookmark",false);  // false je default, kdyz neexistuje
-        boolean r3 = sharedPref.getBoolean("read_date",false);  // false je default, kdyz neexistuje
+        boolean r1 = sharedPref.getBoolean(
+                "read_all", false
+        );  // false je default, kdyz neexistuje
+        boolean r2 = sharedPref.getBoolean(
+                "read_bookmark", false
+        );  // false je default, kdyz neexistuje
+        boolean r3 = sharedPref.getBoolean(
+                "read_date", false
+        );  // false je default, kdyz neexistuje
         //if (r1) binding.readAll.setChecked(true);
         //if (r2) binding.readBookmark.setChecked(true);
         //if (r3) binding.readDate.setChecked(true);
@@ -248,8 +281,8 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
         binding.spiInterval.setSelection(i);
 
         // nastav checkboxy
-        boolean b = sharedPref.getBoolean("bookmark",false);
-        binding.bookmark.setChecked(b);
+//        boolean b = sharedPref.getBoolean("bookmark",false);
+//        binding.bookmark.setChecked(b);
         binding.showgraph.setChecked(sharedPref.getBoolean("showgraph",false));
         binding.noledlight.setChecked(sharedPref.getBoolean("noledlight",false));
         binding.showmicro.setChecked(sharedPref.getBoolean("showmicro",false));
@@ -257,13 +290,23 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
 
         String s = sharedPref.getString("decimalseparator",",");  // desetinny oddelovac
         binding.Deci.setText(s);
+
+        // bookmark and fromDate
+        int bookmarkVal = sharedPref.getInt("bookmarkVal", 0);
+        String bookmarkStr = bookmarkVal == 0 ? "" : String.valueOf(bookmarkVal);
+        String dateStr = sharedPref.getString("fromDate", "");
+        binding.bookmarkDeci.setText(bookmarkStr);
+        binding.fromDate.setText(dateStr);
     }
 
 
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
-
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public View onCreateView(
+            @NonNull LayoutInflater inflater,
+            @Nullable ViewGroup container,
+            @Nullable Bundle savedInstanceState)
+    {
         binding = FragmentOptionsBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
@@ -287,8 +330,8 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
             @Override
             public void onClick(View v)
             {
-                if (user != null) {
-
+                if (user != null)
+                {
                     FirebaseAuth.getInstance().signOut();
                     Intent intent = new Intent(getActivity(), LoginActivity.class);
                     startActivity(intent);
@@ -323,12 +366,45 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
 
         // odkud vycitam
         Spinner spiDownload = (Spinner) root.findViewById(R.id.spiDownload);
-        ArrayAdapter<CharSequence> adaDownload = ArrayAdapter.createFromResource(
-                this.getContext(), R.array.download_array, android.R.layout.simple_spinner_item);
+        ArrayAdapter<CharSequence> adaDownload =
+                ArrayAdapter.createFromResource(
+                        this.getContext(),
+                        R.array.download_array,
+                        android.R.layout.simple_spinner_item
+                );
         adaDownload.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         adaDownload.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spiDownload.setAdapter(adaDownload); // Apply the adapter to the spinner
-        spiDownload.setOnItemSelectedListener(this);
+        spiDownload.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
+                LinearLayout bookmarkLayout = (LinearLayout) root.findViewById(R.id.bookmarkLayout);
+                LinearLayout fromDateLayout = (LinearLayout) root.findViewById(R.id.fromDateLayout);
+
+                switch (position) {
+                    case SPI_DOWNLOAD_BOOKMARK:
+                        bookmarkLayout.setVisibility(View.VISIBLE);
+                        fromDateLayout.setVisibility(View.GONE);
+                        break;
+
+                    case SPI_DOWNLOAD_DATE:
+                        bookmarkLayout.setVisibility(View.GONE);
+                        fromDateLayout.setVisibility(View.VISIBLE);
+                        break;
+
+                    case SPI_DOWNLOAD_NONE:
+                    case SPI_DOWNLOAD_ALL:
+                        bookmarkLayout.setVisibility(View.GONE);
+                        fromDateLayout.setVisibility(View.GONE);
+                        break;
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+                // nothing
+            }
+        });
         down_desc = res.getStringArray(R.array.download_array);
 
         // vzdalenost mezi merenimi
@@ -358,11 +434,13 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
         ReadForm();
 
         ImageButton bt_save_form = root.findViewById(R.id.bt_save_form);
-        bt_save_form.setOnClickListener(new View.OnClickListener() {
-             @Override
-            public void onClick(View view){
-                 SaveForm();
-             }
+        bt_save_form.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                SaveForm();
+            }
         });
         /*
         lyt_sub = root.findViewById(R.id.lyt_sub);
@@ -429,6 +507,4 @@ public class OptionsFragment extends Fragment implements AdapterView.OnItemSelec
         mViewModel = new ViewModelProvider(this).get(OptionsViewModel.class);
         // TODO: Use the ViewModel
     }
-
-
 }
