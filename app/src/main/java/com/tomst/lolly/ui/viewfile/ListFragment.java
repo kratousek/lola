@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.Image;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -163,6 +164,7 @@ public class ListFragment extends Fragment
         db = FirebaseFirestore.getInstance();
 
         Button uploadBtn = binding.btnUploadToDB;
+        Button shareBtn = binding.btnShare;
 
         uploadBtn.setOnClickListener(new View.OnClickListener()
         {
@@ -170,6 +172,14 @@ public class ListFragment extends Fragment
             public void onClick(View view)
             {
                 uploadDataToStorage();
+            }
+        });
+
+        shareBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view)
+            {
+                shareData();
             }
         });
 
@@ -238,7 +248,7 @@ public class ListFragment extends Fragment
     {
         FirebaseAuth auth = FirebaseAuth.getInstance();
         FirebaseUser user = auth.getCurrentUser();
-        String userId = user != null ? user.getUid() : "unknown";
+        String userEmail = user != null ? user.getEmail() : "unknown";
 
         // load files from storage
         StorageReference storageRef = FirebaseStorage.getInstance().getReference().child("Files");
@@ -246,21 +256,13 @@ public class ListFragment extends Fragment
                 .addOnSuccessListener(listResult -> {
                     for (StorageReference fileRef : listResult.getItems()) {
                         fileRef.getMetadata().addOnSuccessListener(storageMetadata -> {
-                            String fileUserId = storageMetadata.getCustomMetadata("userId");
-                            if (fileUserId != null && fileUserId.equals(userId)) {
-                                // file belongs to the current user, add it to the list
-                                String fileName = fileRef.getName();
+                            String fileUser = storageMetadata.getCustomMetadata("user");
+                            if (fileUser != null && fileUser.equals(userEmail)) {
+                                // file belongs to the current user, download it
+                                String fileName = fileRef.getName();  
                                 String filePath = fileRef.getPath();
-                                /*
-                                fFriends.add(new FileDetail(
-                                        fileName,
-                                        filePath,
-                                        2131230889
-                                ));
-                                */
                                 downloadCSVFile(fileName, filePath);
                             }
-                            //loadAllFiles();
                         }).addOnFailureListener(e -> {
                             Log.e(TAG, "Failed to get metadata: " + e.getMessage());
                         });
@@ -309,28 +311,47 @@ public class ListFragment extends Fragment
         for (String fileName : fileNames)
         {
             Uri fileUri = Uri.fromFile(new File(fileName));
-            String userId = user != null ? user.getUid() : "unknown";
+            String userEmail = user != null ? user.getEmail() : "unknown";
 
             StorageReference storageRef = FirebaseStorage.getInstance().getReference();
             StorageReference fileRef = storageRef.child("Files/" + fileUri.getLastPathSegment());
 
             fileRef.putFile(fileUri)
                     .addOnSuccessListener(taskSnapshot -> {
-                        // Update the file's metadata to include the user Id
+                        // update the file's metadata to include the user Id
                         fileRef.updateMetadata(
                                 new StorageMetadata.Builder()
-                                        .setCustomMetadata("userId", userId)
+                                        .setCustomMetadata("user", userEmail)
                                         .build()
                         ).addOnSuccessListener(aVoid -> {
+                            // set cloud icon
+                            for (FileDetail fileDetail : friendsAdapter.getAllFiles()) {
+                                Log.d(TAG, "NAME 1:" + fileDetail.getFull());
+                                Log.d(TAG, "NAME 2:" + fileName);
+                                if (fileDetail.getFull().equals(fileName)) {
+                                    fileDetail.setUploaded(true);
+                                    Log.d(TAG, "STATUS: " + fileDetail.isUploaded());
+                                    break;
+                                }
+                            }
+                            ListView mListView = rootView.findViewById(R.id.listView);
+                            mListView.setAdapter(friendsAdapter);
                             Toast.makeText(rootView.getContext(), "Data Uploaded Successfully", Toast.LENGTH_SHORT).show();
                         }).addOnFailureListener(e -> {
                             Toast.makeText(rootView.getContext(), "Failed to update metadata: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                         });
+
+
                     })
                     .addOnFailureListener(e -> {
                         Toast.makeText(rootView.getContext(), "Data Upload Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                     });
         }
+
+    }
+
+    private void shareData()
+    {
 
     }
 
