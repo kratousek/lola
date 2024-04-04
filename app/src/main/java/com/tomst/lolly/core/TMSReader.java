@@ -931,7 +931,7 @@ public class TMSReader extends Thread
     @RequiresApi(api = Build.VERSION_CODES.O)
     private boolean ReadData()
     {
-        String res = "";
+        String respond = "";
         pars parser = new pars();
         pars.SetHandler(datahandler);
         pars.SetDeviceType(rfir.DeviceType);
@@ -963,23 +963,40 @@ public class TMSReader extends Thread
         // check for a specific date
         else if (!bookmarkDate.isEmpty())
         {
-            res = fHer.doCommand("B=$FFFFFF");
-            Log.d(TAG, res);
+            respond = fHer.doCommand("B=$FFFFFF");
+            Log.d(TAG, respond);
 
-            res = fHer.doCommand("S=$" + res);
-            Log.d("SendMessage", res);
+            respond = fHer.doCommand("S=$" + respond);
+            Log.d("SendMessage", respond);
         }
         // otherwise, get from beginning of time measuring
         else
         {
-            res = fHer.doCommand("S=$000000");
-            Log.d("Sendmessage", res);
+            respond = fHer.doCommand("S=$000000");
+            Log.d("Sendmessage", respond);
         }
 
+        // pointer na bookmark
+//        String respond = fHer.doCommand("B");
+//        Log.d("||| DEBUG B |||", respond);
+//
+//        Log.d("||| DEBUG B |||", String.valueOf(getaddr(respond)));
+        // 047f20
+
+
+        // pointer na nulu
+//        String respond = fHer.doCommand("S=$000000");
+//        String respond = fHer.doCommand("S=$047f20");
+//        Log.d("Sendmessage", respond);
+
+//        Log.d("||| DEBUG S |||", String.valueOf(getaddr(respond)));
+
         // napocitej pocet cyklu z posledni adresy
-        res = fHer.doCommand("P");
-        int lastAddress = getaddr(res);
-        DoProgress(-lastAddress); // celkovy pocet bytu
+        respond = fHer.doCommand("P");
+        Log.d("||| DEBUG P |||", respond);
+        int lastAddress = getaddr(respond);
+        Log.d("||| DEBUG P |||", String.valueOf(lastAddress));
+        DoProgress(-lastAddress);  // celkovy pocet bytu
 
         fAddr = 0;
 
@@ -988,17 +1005,17 @@ public class TMSReader extends Thread
         {
             // performing operation
 
-            res = fHer.doCommand("D");
-            if (res.length()>1) {
-                ss = parser.dpacket(res);
-                Log.i(TAG,res);
+            respond = fHer.doCommand("D");
+            if (respond.length()>1) {
+                ss = parser.dpacket(respond);
+                Log.i(TAG,respond);
             };
 
             // jakou mam aktualne adresu
-            res = fHer.doCommand("S");
+            respond = fHer.doCommand("S");
 
-            if (res.length()>1)
-              fAddr = getaddr(res);
+            if (respond.length()>1)
+              fAddr = getaddr(respond);
 
             // Updating the progress bar
 
