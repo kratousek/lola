@@ -28,6 +28,7 @@ import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -77,6 +78,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -300,6 +302,10 @@ public class ListFragment extends Fragment
 
     private void uploadDataToStorage()
     {
+        // show the loading icon
+        ProgressBar progressBar = rootView.findViewById(R.id.uploadProgressBar);
+        progressBar.setVisibility(View.VISIBLE);
+
         FileViewerAdapter friendsAdapter = new FileViewerAdapter(
                 getContext(), fFriends
         );
@@ -308,8 +314,13 @@ public class ListFragment extends Fragment
         FirebaseAuth auth = FirebaseAuth.getInstance();
         FirebaseUser user = auth.getCurrentUser();
 
+        AtomicInteger filesUploaded = new AtomicInteger(0);
+        int totalFiles = fileNames.size();
+
+        // go through all selected files
         for (String fileName : fileNames)
         {
+            // get info
             Uri fileUri = Uri.fromFile(new File(fileName));
             String userEmail = user != null ? user.getEmail() : "unknown";
 
@@ -326,28 +337,46 @@ public class ListFragment extends Fragment
                         ).addOnSuccessListener(aVoid -> {
                             // set cloud icon
                             for (FileDetail fileDetail : friendsAdapter.getAllFiles()) {
-                                Log.d(TAG, "NAME 1:" + fileDetail.getFull());
-                                Log.d(TAG, "NAME 2:" + fileName);
                                 if (fileDetail.getFull().equals(fileName)) {
                                     fileDetail.setUploaded(true);
-                                    Log.d(TAG, "STATUS: " + fileDetail.isUploaded());
                                     break;
                                 }
                             }
-                            ListView mListView = rootView.findViewById(R.id.listView);
-                            mListView.setAdapter(friendsAdapter);
-                            Toast.makeText(rootView.getContext(), "Data Uploaded Successfully", Toast.LENGTH_SHORT).show();
+                            filesUploaded.incrementAndGet();
+
+                            // check if all files uploaded
+                            if (filesUploaded.get() == totalFiles)
+                            {
+                                // update list view with icons
+                                ListView mListView = rootView.findViewById(R.id.listView);
+                                mListView.setAdapter(friendsAdapter);
+
+                                progressBar.setVisibility(View.GONE);
+                                Toast.makeText(rootView.getContext(), "Data Uploaded Successfully", Toast.LENGTH_SHORT).show();
+                            }
                         }).addOnFailureListener(e -> {
                             Toast.makeText(rootView.getContext(), "Failed to update metadata: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            filesUploaded.incrementAndGet();
+
+                            // check if all files uploaded
+                            if (filesUploaded.get() == totalFiles)
+                            {
+                                progressBar.setVisibility(View.GONE);
+                            }
                         });
-
-
                     })
                     .addOnFailureListener(e -> {
                         Toast.makeText(rootView.getContext(), "Data Upload Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+
+                        filesUploaded.incrementAndGet();
+
+                        // check if all files uploaded
+                        if (filesUploaded.get() == totalFiles)
+                        {
+                            progressBar.setVisibility(View.GONE);
+                        }
                     });
         }
-
     }
 
     private void shareData()

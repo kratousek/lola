@@ -73,7 +73,6 @@ public class FileViewerAdapter extends BaseAdapter
 
             FileDetail currentFile = mAllFiles.get(position);
             ImageView cloudIcon = (ImageView) view.findViewById(R.id.cloudIcon);
-            Log.d("TOMST", "ADAPTER STATUS: " + currentFile.isUploaded());
             if (currentFile.isUploaded())
             {
                cloudIcon.setVisibility(View.VISIBLE);
