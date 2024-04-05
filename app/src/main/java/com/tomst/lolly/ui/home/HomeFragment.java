@@ -406,10 +406,21 @@ public class HomeFragment extends Fragment {
 
                 case tFinishedData:
                     csv.CloseExternalCsv();
-                    // prepni se do Grafu
-                    dmd.sendMessageToGraph("TMD");
-                    switchToGraphFragment();
-                   break;
+
+                    // get option for showing graph
+                    boolean showGraph = getContext()
+                            .getSharedPreferences(
+                                    "save_options",
+                                    Context.MODE_PRIVATE
+                            )
+                            .getBoolean("showgraph", false);
+
+                    if (showGraph) {
+                        // prepni se do Grafu
+                        dmd.sendMessageToGraph("TMD");
+                        switchToGraphFragment();
+                    }
+                    break;
 
                 default:
                    break;

@@ -1,6 +1,7 @@
 package com.tomst.lolly.ui.graph;
 
 
+import android.content.Context;
 import android.graphics.Color;
 import android.graphics.ColorSpace;
 import android.graphics.DashPathEffect;
@@ -204,6 +205,7 @@ public class GraphFragment extends Fragment
 
     private void loadCSVFile(String fileName)
     {
+        Toast.makeText(getContext(), "loading", Toast.LENGTH_SHORT).show();
         float dateNum;
         boolean firstDate = true;
         boolean hasHeader = true;
@@ -250,17 +252,7 @@ public class GraphFragment extends Fragment
             );
             dendroInfos.add(headerIndex, defaultDendroInfo);
         }
-        if (numDataSets == 0)              //handles graphing single CSV without header
-        {
-            String serial = null;
-            Long longitude = null;
-            Long latitude = null;
-            TDendroInfo dendroInfo = new TDendroInfo(
-                    serial, longitude, latitude
-            );
-            dendroInfos.add(0, dendroInfo);
-            numDataSets = 1;
-        }
+
         // read data
         headerIndex = -1;
         while (currentLine != "")
@@ -280,10 +272,6 @@ public class GraphFragment extends Fragment
                 {
                     dendroInfos.get(headerIndex).serial = mer.Serial;
                 }
-            }
-            else if (headerIndex == -1)    //handles graphing single CSV without header
-            {
-                headerIndex = 0;
             }
             else
             {
@@ -434,13 +422,13 @@ public class GraphFragment extends Fragment
                             );
 
                             loadCSVFile(mergedFileName);
-                            DisplayData();
                         }
                         else
                         {
                             loadCSVFile(fileNames[0]);
-                            DisplayData();
                         }
+
+                        DisplayData();
                     }
 
                     dmd.getMessageContainerGraph()
@@ -703,8 +691,10 @@ public class GraphFragment extends Fragment
                 set.setColor(Color.rgb(0, 200, 0));
             }
         }
-        dendroInfos.get(headerIndex).color = set.getColor();
-        Log.d("COLOR SET", "DATASET " + headerIndex +": set color to" + dendroInfos.get(headerIndex).color);
+        if (!dendroInfos.isEmpty()) {
+            dendroInfos.get(headerIndex).color = set.getColor();
+            Log.d("COLOR SET", "DATASET " + headerIndex + ": set color to" + dendroInfos.get(headerIndex).color);
+        }
 
         //differentiating values by different dash patterns
         switch (val)
