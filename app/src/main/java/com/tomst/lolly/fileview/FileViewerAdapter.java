@@ -1,6 +1,7 @@
 package com.tomst.lolly.fileview;
 
 import android.content.Context;
+import android.media.Image;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -70,6 +71,17 @@ public class FileViewerAdapter extends BaseAdapter
                     R.layout.rowitem, parent, false
             );
 
+            FileDetail currentFile = mAllFiles.get(position);
+            ImageView cloudIcon = (ImageView) view.findViewById(R.id.cloudIcon);
+            if (currentFile.isUploaded())
+            {
+               cloudIcon.setVisibility(View.VISIBLE);
+            }
+            else
+            {
+                cloudIcon.setVisibility(View.GONE);
+            }
+
             ImageView imageView = (ImageView) view.findViewById(R.id.iconID);
 //            TextView textView = (TextView) view.findViewById(R.id.president);
             CheckBox checkBox = (CheckBox) view.findViewById(R.id.checkBox);
@@ -92,7 +104,6 @@ public class FileViewerAdapter extends BaseAdapter
         return view;
     }
 
-
     public String getShortName(int position)
     {
         return mAllFiles.get(position).getName();
@@ -108,6 +119,16 @@ public class FileViewerAdapter extends BaseAdapter
     public boolean isSelected(int position)
     {
         return mAllFiles.get(position).isSelected();
+    }
+
+    public boolean isUploaded(int position)
+    {
+        return mAllFiles.get(position).isUploaded();
+    }
+
+    public List<FileDetail> getAllFiles()
+    {
+        return mAllFiles;
     }
 
 

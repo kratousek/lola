@@ -1,6 +1,8 @@
 package com.tomst.lolly.fileview;
 
 
+import java.util.List;
+
 public class FileDetail
 {
     private String name;
@@ -8,6 +10,7 @@ public class FileDetail
     private int FileSize;
     private String fullName;
     private boolean isSelected;
+    private boolean isUploaded;
 
 
     public FileDetail(String filename, int iconID)
@@ -16,6 +19,7 @@ public class FileDetail
         this.iconID = iconID;
         this.fullName =  "";
         this.isSelected = false;
+        this.isUploaded = false;
     }
 
 
@@ -25,8 +29,8 @@ public class FileDetail
         this.iconID = iconID;
         this.fullName = FullName;
         this.isSelected = false;
+        this.isUploaded = false;
     }
-
 
     public String getName() { return name; }
 
@@ -47,4 +51,9 @@ public class FileDetail
 
 
     public boolean isSelected() { return isSelected; }
+
+    public boolean isUploaded() { return isUploaded; }
+
+    public void setUploaded(boolean uploaded) { this.isUploaded = uploaded; }
+
 }

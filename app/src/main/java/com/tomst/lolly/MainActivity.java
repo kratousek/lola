@@ -96,20 +96,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         fopen = new FileOpener(this);
     }
 
-    /*
-    private void loadDataToDB()
-    {
-        ArrayList<Entry> vT1 = new ArrayList<>();
-        ArrayList<Entry> vT2 = new ArrayList<>();
-        ArrayList<Entry> vT3 = new ArrayList<>();
-        ArrayList<Entry> vHA = new ArrayList<>();
-
-        vT1.add(dmdViewModel.getT1());
-        vT2.add(dmdViewModel.getT2());
-        vT3.add(dmdViewModel.getT3());
-        vHA.add(dmdViewModel.getHA());
-    }
-    */
 
     private ServiceConnection connection = new ServiceConnection() {
         private boolean bound;
