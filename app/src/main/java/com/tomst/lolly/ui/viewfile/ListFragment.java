@@ -365,75 +365,91 @@ public class ListFragment extends Fragment
         AtomicInteger filesUploaded = new AtomicInteger(0);
         int totalFiles = fileNames.size();
 
-        // go through all selected files
-        for (String fileName : fileNames)
+        // check if user is logged in
+        if (user != null)
         {
-            // get info
-            Uri fileUri = Uri.fromFile(new File(fileName));
-            String userEmail = user != null ? user.getEmail() : "unknown";
-
-            // check if the file has already been uploaded
-            boolean isAlreadyUploaded = false;
-            for (FileDetail fileDetail : friendsAdapter.getAllFiles())
+            // go through all selected files
+            for (String fileName : fileNames)
             {
-                if (fileDetail.getFull().equals(fileName) && fileDetail.isUploaded())
+                // get info
+                Uri fileUri = Uri.fromFile(new File(fileName));
+                String userEmail = user != null ? user.getEmail() : "unknown";
+
+                // check if the file has already been uploaded
+                boolean isAlreadyUploaded = false;
+                for (FileDetail fileDetail : friendsAdapter.getAllFiles())
                 {
-                    isAlreadyUploaded = true;
-                    break;
-                }
-            }
-
-            // file is already uploaded, skip it
-            if (isAlreadyUploaded)
-            {
-                Toast.makeText(rootView.getContext(), fileUri.getLastPathSegment() + " Already Uploaded", Toast.LENGTH_SHORT).show();
-
-                filesUploaded.incrementAndGet();
-                // check if all files uploaded
-                if (filesUploaded.get() == totalFiles)
-                {
-                    progressBar.setVisibility(View.GONE);
-                }
-                continue;
-            }
-
-            StorageReference storageRef = FirebaseStorage.getInstance().getReference();
-            StorageReference fileRef = storageRef.child("Files/" + fileUri.getLastPathSegment());
-
-            fileRef.putFile(fileUri)
-                    .addOnSuccessListener(taskSnapshot ->
+                    if (fileDetail.getFull().equals(fileName) && fileDetail.isUploaded())
                     {
-                        // update the file's metadata to include the user Id
-                        fileRef.updateMetadata(
-                                new StorageMetadata.Builder()
-                                        .setCustomMetadata("user", userEmail)
-                                        .build()
-                        ).addOnSuccessListener(aVoid ->
+                        isAlreadyUploaded = true;
+                        break;
+                    }
+                }
+
+                // file is already uploaded, skip it
+                if (isAlreadyUploaded)
+                {
+                    Toast.makeText(rootView.getContext(), fileUri.getLastPathSegment() + " Already Uploaded", Toast.LENGTH_SHORT).show();
+
+                    filesUploaded.incrementAndGet();
+                    // check if all files uploaded
+                    if (filesUploaded.get() == totalFiles)
+                    {
+                        progressBar.setVisibility(View.GONE);
+                    }
+                    continue;
+                }
+
+                StorageReference storageRef = FirebaseStorage.getInstance().getReference();
+                StorageReference fileRef = storageRef.child("Files/" + fileUri.getLastPathSegment());
+
+                fileRef.putFile(fileUri)
+                        .addOnSuccessListener(taskSnapshot ->
                         {
-                            // set cloud icon
-                            for (FileDetail fileDetail : friendsAdapter.getAllFiles())
+                            // update the file's metadata to include the user Id
+                            fileRef.updateMetadata(
+                                    new StorageMetadata.Builder()
+                                            .setCustomMetadata("user", userEmail)
+                                            .build()
+                            ).addOnSuccessListener(aVoid ->
                             {
-                                if (fileDetail.getFull().equals(fileName))
+                                // set cloud icon
+                                for (FileDetail fileDetail : friendsAdapter.getAllFiles())
                                 {
-                                    fileDetail.setUploaded(true);
-                                    break;
+                                    if (fileDetail.getFull().equals(fileName))
+                                    {
+                                        fileDetail.setUploaded(true);
+                                        break;
+                                    }
                                 }
-                            }
-                            filesUploaded.incrementAndGet();
+                                filesUploaded.incrementAndGet();
 
-                            // check if all files uploaded
-                            if (filesUploaded.get() == totalFiles)
+                                // check if all files uploaded
+                                if (filesUploaded.get() == totalFiles)
+                                {
+                                    // update list view with icons
+                                    ListView mListView = rootView.findViewById(R.id.listView);
+                                    mListView.setAdapter(friendsAdapter);
+
+                                    progressBar.setVisibility(View.GONE);
+                                    Toast.makeText(rootView.getContext(), fileUri.getLastPathSegment() + " Uploaded Successfully", Toast.LENGTH_SHORT).show();
+                                }
+                            }).addOnFailureListener(e ->
                             {
-                                // update list view with icons
-                                ListView mListView = rootView.findViewById(R.id.listView);
-                                mListView.setAdapter(friendsAdapter);
+                                Toast.makeText(rootView.getContext(), "Failed to update metadata: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                filesUploaded.incrementAndGet();
 
-                                progressBar.setVisibility(View.GONE);
-                                Toast.makeText(rootView.getContext(), fileUri.getLastPathSegment() + " Uploaded Successfully", Toast.LENGTH_SHORT).show();
-                            }
-                        }).addOnFailureListener(e ->
+                                // check if all files uploaded
+                                if (filesUploaded.get() == totalFiles)
+                                {
+                                    progressBar.setVisibility(View.GONE);
+                                }
+                            });
+                        })
+                        .addOnFailureListener(e ->
                         {
-                            Toast.makeText(rootView.getContext(), "Failed to update metadata: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(rootView.getContext(), "Data Upload Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+
                             filesUploaded.incrementAndGet();
 
                             // check if all files uploaded
@@ -442,19 +458,12 @@ public class ListFragment extends Fragment
                                 progressBar.setVisibility(View.GONE);
                             }
                         });
-                    })
-                    .addOnFailureListener(e ->
-                    {
-                        Toast.makeText(rootView.getContext(), "Data Upload Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-
-                        filesUploaded.incrementAndGet();
-
-                        // check if all files uploaded
-                        if (filesUploaded.get() == totalFiles)
-                        {
-                            progressBar.setVisibility(View.GONE);
-                        }
-                    });
+            }
+        }
+        else
+        {
+            progressBar.setVisibility(View.GONE);
+            Toast.makeText(rootView.getContext(), "Must login to upload files", Toast.LENGTH_SHORT).show();
         }
     }
 
