@@ -15,7 +15,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scrollbars="none"
-        android:scrollingCache="true">
+        android:scrollingCache="true"
+        android:background="#14532D">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -46,9 +47,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:paddingLeft="@dimen/spacing_middle"
-
-                android:paddingRight="@dimen/spacing_middle">
+                android:paddingLeft="10dp"
+                android:paddingRight="@dimen/spacing_middle"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="20dp">
 
                 <androidx.cardview.widget.CardView
                     android:layout_width="0dp"
@@ -59,112 +61,120 @@
                     android:layout_marginTop="@dimen/spacing_xsmall"
                     android:layout_weight="1"
                     android:visibility="visible"
-                    app:cardCornerRadius="2dp"
+                    app:cardCornerRadius="10dp"
                     app:cardElevation="2dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
-                        <TextView
-                            android:id="@+id/devser"
-                            android:layout_height="wrap_content"
-                            android:layout_width="match_parent"
-                            android:gravity="right"
-                            android:layout_marginLeft="20dp"
-                            android:textSize="24dp"
-                            android:text="92776122"
-                            android:layout_marginRight="20dp"
-                            android:textAppearance="@style/Base.TextAppearance.AppCompat.Subhead"
-                            android:textStyle="bold"
-                        />
-
-                    </LinearLayout>
-
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:padding="@dimen/spacing_large">
-
-                        <ImageView
-                            android:background="@null"
-                            android:layout_width="40dp"
-                            android:layout_height="wrap_content"
-                            android:layout_centerHorizontal="true"
-                            android:layout_centerVertical="true"
-                            app:srcCompat="@drawable/tms3_small" />
+                        android:orientation="vertical"
+                        android:background="#FDFAF1">
 
                         <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
 
-                            android:padding="20dp">
+                            <TextView
+                                android:id="@+id/devser"
+                                android:layout_height="wrap_content"
+                                android:layout_width="match_parent"
+                                android:gravity="right"
+                                android:layout_marginLeft="20dp"
+                                android:textSize="24dp"
+                                android:text="92776122"
+                                android:layout_marginRight="20dp"
+                                android:textAppearance="@style/Base.TextAppearance.AppCompat.Subhead"
+                                android:textStyle="bold"
+                            />
 
-                            <View
-                                android:layout_width="match_parent"
-                                android:layout_height="@dimen/spacing_medium" />
-
-                            <!--- teplota T1 -->
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:orientation="horizontal">
-                                <!-- popiska k teplote -->
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="20dp"
-                                    android:textStyle="bold"
-                                    android:text="T3/\u2103 "/>
-                                <TextView
-                                    android:id="@+id/devt1"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="20dp"
-                                    android:text="50.2"
-                                    android:textColor="?android:attr/textColorPrimary"
-                                    android:textStyle="bold" />
-                            </LinearLayout>
-                            <!--- teplota T2 -->
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:orientation="horizontal">
-                                <!-- popiska k teplote -->
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="20dp"
-                                    android:textStyle="bold"
-                                    android:text="T2/\u2103 "/>
-                                <TextView
-                                    android:id="@+id/devt2"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="20dp"
-                                    android:textColor="?android:attr/textColorPrimary"
-                                    android:text="13.5"
-                                    android:textStyle="bold" />
-                            </LinearLayout>
-                            <!--- teplota T3 -->
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:orientation="horizontal">
-                                <!-- popiska k teplote -->
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="20dp"
-                                    android:textStyle="bold"
-                                    android:text="T1/\u2103 "/>
-                                <TextView
-                                    android:id="@+id/devt3"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="20dp"
-                                    android:textColor="?android:attr/textColorPrimary"
-                                    android:text="-80.3"
-                                    android:textStyle="bold" />
-                            </LinearLayout>
                         </LinearLayout>
 
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:padding="@dimen/spacing_large">
+
+                            <ImageView
+                                android:background="@null"
+                                android:layout_width="40dp"
+                                android:layout_height="wrap_content"
+                                android:layout_centerHorizontal="true"
+                                android:layout_centerVertical="true"
+                                app:srcCompat="@drawable/tms3_small" />
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+
+                                android:padding="20dp">
+
+                                <View
+                                    android:layout_width="match_parent"
+                                    android:layout_height="@dimen/spacing_medium" />
+
+                                <!--- teplota T1 -->
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal">
+                                    <!-- popiska k teplote -->
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="20dp"
+                                        android:textStyle="bold"
+                                        android:text="T3/\u2103 "/>
+                                    <TextView
+                                        android:id="@+id/devt1"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="20dp"
+                                        android:text="50.2"
+                                        android:textColor="?android:attr/textColorPrimary"
+                                        android:textStyle="bold" />
+                                </LinearLayout>
+                                <!--- teplota T2 -->
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal">
+                                    <!-- popiska k teplote -->
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="20dp"
+                                        android:textStyle="bold"
+                                        android:text="T2/\u2103 "/>
+                                    <TextView
+                                        android:id="@+id/devt2"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="20dp"
+                                        android:textColor="?android:attr/textColorPrimary"
+                                        android:text="13.5"
+                                        android:textStyle="bold" />
+                                </LinearLayout>
+                                <!--- teplota T3 -->
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal">
+                                    <!-- popiska k teplote -->
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="20dp"
+                                        android:textStyle="bold"
+                                        android:text="T1/\u2103 "/>
+                                    <TextView
+                                        android:id="@+id/devt3"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="20dp"
+                                        android:textColor="?android:attr/textColorPrimary"
+                                        android:text="-80.3"
+                                        android:textStyle="bold" />
+                                </LinearLayout>
+                            </LinearLayout>
+
+                        </LinearLayout>
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
 
@@ -183,13 +193,15 @@
                     android:layout_marginTop="@dimen/spacing_xsmall"
                     android:layout_weight="1"
                     android:visibility="visible"
-                    app:cardCornerRadius="2dp"
+                    app:cardCornerRadius="10dp"
                     app:cardElevation="2dp">
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:padding="@dimen/spacing_large">
+                        android:padding="@dimen/spacing_large"
+                        android:background="#FDFAF1">
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -270,7 +282,7 @@
                 android:layout_marginTop="@dimen/spacing_xsmall"
                 android:layout_weight="1"
                 android:visibility="visible"
-                app:cardCornerRadius="2dp"
+                app:cardCornerRadius="10dp"
                 app:cardElevation="2dp">
 
                 <!-- velke radky, skladam je pod sebe -->
@@ -278,7 +290,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="1dp">
+                    android:padding="1dp"
+                    android:background="#FDFAF1">
 
                     <!-- prvni radek v cardview -->
                     <LinearLayout
@@ -409,7 +422,8 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:paddingLeft="@dimen/spacing_middle"
-                android:paddingRight="@dimen/spacing_middle">
+                android:paddingRight="@dimen/spacing_middle"
+                android:layout_marginTop="20dp">
 
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
@@ -419,14 +433,16 @@
                 android:layout_marginRight="@dimen/spacing_xsmall"
                 android:layout_marginTop="@dimen/spacing_xsmall"
                 android:layout_weight="1"
-                android:visibility="visible">
+                android:visibility="visible"
+                app:cardCornerRadius="10dp">
 
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="@dimen/spacing_large">
+                    android:padding="@dimen/spacing_large"
+                    android:background="#FDFAF1">
 
                     <TextView
                         android:id="@+id/proMessage"
@@ -457,7 +473,7 @@
                             android:id="@+id/dev_download"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:background="?attr/selectableItemBackground"
+                            android:background="#F1A833"
                             android:clickable="true">
 
                             <ProgressBar

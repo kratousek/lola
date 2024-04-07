@@ -220,11 +220,12 @@ public class HomeFragment extends Fragment {
         getContext().bindService(intent, connection, Context.BIND_AUTO_CREATE);
      }
 
-
+    /*
      public void LogMsg(String msg)
     {
         binding.mShowCount.append(msg+"\n");
     }
+     */
 
      private void switchToGraphFragment(){
         BottomNavigationView bottomNavigationView;
@@ -446,20 +447,22 @@ public class HomeFragment extends Fragment {
 
         binding.proBar.setProgress(0); // vycisti progress bar
 
-        final TextView textView = binding.mShowCount;
-        homeViewModel.getText().observe(getViewLifecycleOwner(), textView::setText);
+        //final TextView textView = binding.mShowCount;
+        //homeViewModel.getText().observe(getViewLifecycleOwner(), textView::setText);
 
         // Opravneni - jak je spravne navrstvit ...
         permissionManager = new PermissionManager(getActivity());
         Context mContext = getContext();
 
         // testovaci crash button
+        /*
         Button crashButton = binding.btnTestCrash;
         crashButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
                     throw new RuntimeException("Test Crash"); // Force a crash
             }
         });
+         */
 
 
 
@@ -494,16 +497,18 @@ public class HomeFragment extends Fragment {
         */
 
         // initialize UI elements
-        dataTextView = binding.getRoot().findViewById(R.id.dataTextView);
-        viewDataButton = binding.getRoot().findViewById(R.id.btnViewData);
+        //dataTextView = binding.getRoot().findViewById(R.id.dataTextView);
+        //viewDataButton = binding.getRoot().findViewById(R.id.btnViewData);
 
         // set onclick listener for the button
+        /*
         viewDataButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 getData();
             }
         });
+         */
 
         return root;
     }
