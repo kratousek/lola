@@ -36,6 +36,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
+        android:background="#FDFAF1"
         app:elevation="3dp"
         app:menu="@menu/bottom_nav_menu" />
 

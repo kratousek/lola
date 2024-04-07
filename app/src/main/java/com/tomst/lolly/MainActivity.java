@@ -299,6 +299,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         view = binding.getRoot();
 
+        // remove stupid line on bottom of action bar
+        getSupportActionBar().setElevation(0);
+
         // for user authentication
         auth = FirebaseAuth.getInstance();
         user = auth.getCurrentUser();
