@@ -12,8 +12,8 @@
         android:layout_height="50dp"
         android:layout_gravity="center"
         android:padding="8dp"
-        android:src="@mipmap/ic_launcher"
-        app:tint="@color/colorPrimary"/>
+        android:src="@drawable/baseline_insert_drive_file_24"
+        app:tint="#14532D"/>
 
     <ImageView
         android:id="@+id/cloudIcon"
@@ -28,5 +28,5 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true"/>
+        android:layout_alignParentStart="true" />
 </LinearLayout>

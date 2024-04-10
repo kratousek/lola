@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/grey_10"
+    android:background="#14532D"
     tools:context=".ui.options.OptionsFragment">
 
     <androidx.core.widget.NestedScrollView
@@ -22,7 +22,7 @@
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/spacing_medium"
+            android:layout_marginBottom="0dp"
             android:layout_marginTop="@dimen/spacing_medium"
             android:visibility="visible"
             app:cardCornerRadius="0dp"
@@ -39,7 +39,8 @@
                         android:layout_height="wrap_content"
                         android:gravity="center_vertical"
                         android:minHeight="?attr/actionBarSize"
-                        android:orientation="horizontal">
+                        android:orientation="horizontal"
+                        android:background="#fdfaf1">
 
                         <ImageButton
                             android:layout_width="?attr/actionBarSize"
@@ -54,7 +55,8 @@
                             android:layout_weight="1"
                             android:text="Save all settings below "
                             android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
-                            android:textColor="?android:textColorPrimary"/>
+                            android:textColor="?android:textColorPrimary"
+                            />
 
                         <View
                             android:layout_width="@dimen/spacing_large"
@@ -75,8 +77,8 @@
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/spacing_medium"
-                android:layout_marginTop="@dimen/spacing_medium"
+                android:layout_marginBottom="0dp"
+                android:layout_marginTop="0dp"
                 android:visibility="visible"
                 app:cardCornerRadius="0dp"
                 app:cardElevation="2dp">
@@ -92,7 +94,8 @@
                         android:layout_height="wrap_content"
                         android:gravity="center_vertical"
                         android:minHeight="?attr/actionBarSize"
-                        android:orientation="horizontal">
+                        android:orientation="horizontal"
+                        android:background="#fdfaf1">
 
                         <ImageButton
                             android:layout_width="?attr/actionBarSize"
@@ -107,7 +110,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
-                            android:textColor="?android:textColorPrimary"/>
+                            android:textColor="?android:textColorPrimary" />
 
                         <View
                             android:layout_width="@dimen/spacing_large"
@@ -132,7 +135,7 @@
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/spacing_medium"
+                android:layout_marginBottom="0dp"
                 android:layout_marginTop="0dp"
                 android:visibility="visible"
                 app:cardCornerRadius="0dp"
@@ -148,7 +151,7 @@
                         android:visibility="visible"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:background="?attr/selectableItemBackground"
+                        android:background="#fdfaf1"
                         android:clickable="false"
                         android:gravity="center_vertical"
                         android:minHeight="@dimen/spacing_xxlarge"
@@ -196,7 +199,7 @@
                         android:visibility="visible"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:background="?attr/selectableItemBackground"
+                        android:background="#fdfaf1"
                         android:clickable="false"
                         android:gravity="center_vertical"
                         android:minHeight="@dimen/spacing_xxlarge"
@@ -255,12 +258,12 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:paddingBottom="@dimen/spacing_middle"
-                        android:paddingTop="@dimen/spacing_middle">
+                        android:paddingTop="@dimen/spacing_middle"
+                        android:background="#fdfaf1">
 
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:background="?attr/selectableItemBackground"
                             android:clickable="true"
                             android:gravity="center_vertical"
                             android:minHeight="@dimen/spacing_xxlarge"
@@ -284,7 +287,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
-                                android:textColor="?android:textColorPrimary"/>
+                                android:textColor="?android:textColorPrimary" />
                         </LinearLayout>
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
@@ -294,7 +297,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="@dimen/spacing_medium"
-                    android:layout_marginTop="@dimen/spacing_medium"
+                    android:layout_marginTop="0dp"
                     android:visibility="visible"
                     app:cardCornerRadius="0dp"
                     app:cardElevation="2dp">
@@ -302,7 +305,8 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical">
+                        android:orientation="vertical"
+                        android:background="#fdfaf1">
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -602,7 +606,8 @@
                                 android:id="@+id/userDetails"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Not Logged In"/>
+                                android:text="Not Logged In"
+                                android:textColor="@color/black"/>
                         </LinearLayout>
 
                         <LinearLayout
@@ -623,7 +628,8 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginLeft="40px"
                                 android:layout_marginBottom="10px"
-                                android:text="Log In"/>
+                                android:text="Log In"
+                                android:backgroundTint="#f1a833"/>
 
                             <Button
                                 android:id="@+id/btnLogout"
@@ -631,7 +637,8 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginLeft="40px"
                                 android:layout_marginBottom="10px"
-                                android:text="Log Out"/>
+                                android:text="Log Out"
+                                android:backgroundTint="#f1a833"/>
                         </LinearLayout>
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
