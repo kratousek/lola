@@ -170,12 +170,15 @@ public class TMSReader extends Thread
 
     private void SendMex(TDevState stat, TMereni mer){
         Message message = handler.obtainMessage();
+
         TInfo info = new TInfo();
         info.stat  = stat;
         info.msg   = "measure";
         info.t1 = mer.t1;
         info.t2 = mer.t2;
         info.t3 = mer.t3;
+        info.humAd = mer.hum;
+
         message.obj = info;
         handler.sendMessage(message);
 
@@ -299,6 +302,7 @@ public class TMSReader extends Thread
 
     public boolean convertMereni(String line)
     {
+        Log.d("|||DEBUG|||", "line: " + line);
         String[] str = line.split(";");
         // 00F;ADC;FF3;183;2
         if (str[1].equals("ADC")) {
@@ -339,8 +343,10 @@ public class TMSReader extends Thread
         String s = str[4].replaceAll("(\\r|\\n)", "");
         int mvs = Integer.parseInt(s,16);
 
+        Log.d("|||DEBUG|||", "hum: " + mer.hum);
+
         if ((mer.dev == TDeviceType.dAD) || (mer.dev == TDeviceType.dAdMicro)) {
-            mer.hum = 0;
+//            mer.hum = 0;
             mer.t1  = convertTemp(tt3);
             mer.t2  = TmpNan;
             mer.t3  = TmpNan;
@@ -752,7 +758,16 @@ public class TMSReader extends Thread
                         SendMex(TDevState.tInfo,mer);
                     }
                     //devState = TDevState.tGetTime;
-                    devState = TDevState.tCapacity;
+
+                    // get option for showing graph
+                    boolean showMicro = context.getSharedPreferences(
+                                    "save_options", Context.MODE_PRIVATE
+                            ).getBoolean("showmicro", false);
+
+                    // if setting for setupAD is no, move on to capacity
+                    if (!showMicro) {
+                        devState = TDevState.tCapacity;
+                    }
                     break;
 
                 case tCapacity:
@@ -853,6 +868,7 @@ public class TMSReader extends Thread
                 case tWaitInLimbo:
                     try {
                         Thread.sleep(1000); // 1 second
+                        devState = TDevState.tStart;
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }

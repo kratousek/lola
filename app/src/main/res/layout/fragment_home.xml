@@ -106,6 +106,26 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="@dimen/spacing_medium" />
 
+                            <!--- hum / AD -->
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal">
+                                <!-- popiska k teplote -->
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="20dp"
+                                    android:textStyle="bold"
+                                    android:text="AD      "/>
+                                <TextView
+                                    android:id="@+id/devhumAD"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="20dp"
+                                    android:text="0"
+                                    android:textColor="?android:attr/textColorPrimary"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
+
                             <!--- teplota T1 -->
                             <LinearLayout
                                 android:layout_width="match_parent"

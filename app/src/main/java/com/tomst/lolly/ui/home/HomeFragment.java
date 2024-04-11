@@ -342,6 +342,7 @@ public class HomeFragment extends Fragment {
 
                 case tInfo:
 
+                    binding.devhumAD.setText(String.valueOf(info.humAd));
                     binding.devt1.setText(String.valueOf(info.t1));
                     binding.devt2.setText(String.valueOf(info.t2));
                     binding.devt3.setText(String.valueOf(info.t3));
