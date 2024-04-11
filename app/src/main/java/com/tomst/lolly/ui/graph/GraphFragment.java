@@ -165,11 +165,11 @@ public class GraphFragment extends Fragment
             // line graph
             d = SetLine(dendroInfos.get(headerIndex).vT1, TPhysValue.vT1);
             dataSets.add(d);
-            //d = SetLine(dendroInfos.get(headerIndex).vT2, TPhysValue.vT2);
-            //dataSets.add(d);
-            //d = SetLine(dendroInfos.get(headerIndex).vT3, TPhysValue.vT3);
-            //dataSets.add(d);
-            // humidity
+            d = SetLine(dendroInfos.get(headerIndex).vT2, TPhysValue.vT2);
+            dataSets.add(d);
+            d = SetLine(dendroInfos.get(headerIndex).vT3, TPhysValue.vT3);
+            dataSets.add(d);
+            // growth
             d = SetLine(dendroInfos.get(headerIndex).vHA, TPhysValue.vHum);
             dataSets.add(d);
             lines = new LineData(dataSets);
@@ -368,7 +368,7 @@ public class GraphFragment extends Fragment
         do {
             dataSets.get(tag - 1).setVisible(checked);
             chart.invalidate();
-            tag+=2;            //temporary 2: this is how many lines are added to the graph per dataset
+            tag+=4;
         } while ( tag <= dataSets.size());
 
     }
@@ -441,7 +441,6 @@ public class GraphFragment extends Fragment
         {
             DoBtnClick(view);
         });
-        /*
         CheckBox cbT2 = binding.vT2;
         cbT2.setChecked(true);
         cbT2.setOnClickListener(view ->
@@ -454,8 +453,6 @@ public class GraphFragment extends Fragment
         {
             DoBtnClick(view);
         });
-
-         */
         CheckBox cbHum = binding.vGrowth;
         cbHum.setChecked(true);
         cbHum.setOnClickListener(view ->
@@ -652,12 +649,11 @@ public class GraphFragment extends Fragment
     private LineDataSet SetLine(ArrayList<Entry> vT, TPhysValue val)
     {
         int colorStep=127;   // 255/2=127  3 colors (0,127,254) in each rgb value
+        int lineColor;
 
         //LineData d = new LineData();
         LineDataSet set =
                 new LineDataSet(vT, "DataSet " + (val.ordinal() + 1));
-        float[] intervals = new float[] { 10f, 10f };
-        set.setLineWidth(2f);
         set.setDrawValues(false);
         set.setDrawCircles(false);
         set.setMode(LineDataSet.Mode.LINEAR);
@@ -669,55 +665,61 @@ public class GraphFragment extends Fragment
         if (numDataSets > 3)
         {
             if (headerIndex < 3) {
-                set.setColor(Color.rgb(headerIndex * colorStep, 0, 127));
+                //set.setColor(Color.rgb(headerIndex * colorStep, 0, 127));
+                lineColor = Color.rgb(headerIndex * colorStep, 0, 127);
             } else if (headerIndex < 6) {
-                set.setColor(Color.rgb(127, (headerIndex - 3) * colorStep, 0));
+                //set.setColor(Color.rgb(127, (headerIndex - 3) * colorStep, 0));
+                lineColor = Color.rgb(127, (headerIndex - 3) * colorStep, 0);
             } else {
-                set.setColor(Color.rgb(0, 127, (headerIndex - 6) * colorStep));
+                lineColor = Color.rgb(0, 127, (headerIndex - 6) * colorStep);
             }
         }
         else     //maximum color differential for 1 to 3 datasets
         {
             if (headerIndex == 0)
             {
-                set.setColor(Color.rgb(200, 0, 0));
+                //set.setColor(Color.rgb(200, 0, 0));
+                lineColor = Color.rgb(200,0,0);
             }
             else if (headerIndex == 1)
             {
-                set.setColor(Color.rgb(0, 0, 200));
+                //set.setColor(Color.rgb(0, 0, 200));
+                lineColor = Color.rgb(0,0,200);
             }
             else
             {
-                set.setColor(Color.rgb(0, 200, 0));
+                //set.setColor(Color.rgb(0, 200, 0));
+                lineColor = Color.rgb(0,200,0);
             }
         }
         if (!dendroInfos.isEmpty()) {
-            dendroInfos.get(headerIndex).color = set.getColor();
+            dendroInfos.get(headerIndex).color = lineColor;
             Log.d("COLOR SET", "DATASET " + headerIndex + ": set color to" + dendroInfos.get(headerIndex).color);
         }
-
+Log.d("COLOR", lineColor +"");
         //differentiating values by different dash patterns
         switch (val)
         {
             case vT1:
-                set.enableDashedLine(10f, 10f, 0);
-                set.setFormLineDashEffect(new DashPathEffect(intervals, 0));
+                set.enableDashedLine(10f, 10f, 0f);
+                set.setLineWidth(2f);
+                set.setColor(lineColor);
                 break;
 
             case vT2:
-                set.enableDashedLine(25f, 25f, 0);
-                intervals[0]=25f;
-                intervals[1]=25f;
-                set.setFormLineDashEffect(new DashPathEffect(intervals, 0));
+                set.enableDashedLine(25f, 25f, 0f);
+                set.setLineWidth(2f);
+                set.setColor(lineColor+100);
                 break;
 
             case vT3:
-                set.enableDashedLine(50f, 10f, 0);
-                intervals[0]=50f;
-                set.setFormLineDashEffect(new DashPathEffect(intervals, 0));
+                set.enableDashedLine(25f, 25f, 0f);
+                set.setLineWidth(2f);
+                set.setColor(lineColor+200);
                 break;
 
             case vHum:
+                set.setColor(lineColor);
                 set.setLineWidth(3f);
             case vAD:
 
@@ -809,7 +811,7 @@ public class GraphFragment extends Fragment
         dataSets.add(d);
         d = SetLine(dmd.getT3(),TPhysValue.vT3);
         dataSets.add(d);
-        // humidita
+        // humidity
         d = SetLine(dmd.getHA(),TPhysValue.vHum);
         dataSets.add(d);
         LineData lines = new LineData(dataSets);
