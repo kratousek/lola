@@ -1,6 +1,8 @@
 package com.tomst.lolly.ui.graph;
 
 
+import static android.graphics.Color.BLACK;
+
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.ColorSpace;
@@ -191,6 +193,7 @@ public class GraphFragment extends Fragment
             headerIndex++;
         }
         while (headerIndex < numDataSets);
+
         Legend l = chart.getLegend();
         l.setCustom(LegendEntrys);
         // sets view to start of graph and zooms into x axis by 7x
@@ -201,6 +204,10 @@ public class GraphFragment extends Fragment
         );
 
         headerIndex = ogHeaderIndex;
+
+        //Default: Do Not Display T2 and T3
+        DoBtnClick(binding.vT2);
+        DoBtnClick(binding.vT3);
     }
 
     private void loadCSVFile(String fileName)
@@ -436,29 +443,29 @@ public class GraphFragment extends Fragment
                 });
 
         CheckBox cbT1 = binding.vT1;
-        cbT1.setChecked(true);
         cbT1.setOnClickListener(view ->
         {
             DoBtnClick(view);
         });
+        cbT1.setChecked(true);
         CheckBox cbT2 = binding.vT2;
-        cbT2.setChecked(true);
         cbT2.setOnClickListener(view ->
         {
             DoBtnClick(view);
         });
+        cbT2.setChecked(false);
         CheckBox cbT3 = binding.vT3;
-        cbT3.setChecked(true);
         cbT3.setOnClickListener(view ->
         {
             DoBtnClick(view);
         });
+        cbT3.setChecked(false);
         CheckBox cbHum = binding.vGrowth;
-        cbHum.setChecked(true);
         cbHum.setOnClickListener(view ->
         {
             DoBtnClick(view);
         });
+        cbHum.setChecked(true);
 
         getActivity().setTitle("Lolly 4");
         chart = binding.chart1;
@@ -520,7 +527,7 @@ public class GraphFragment extends Fragment
         xAxis.setTextSize(10f);
         xAxis.setDrawAxisLine(true);
         xAxis.setDrawGridLines(true);
-        xAxis.setTextColor(Color.BLACK);
+        xAxis.setTextColor(BLACK);
         xAxis.setTextSize(10f);
         xAxis.setCenterAxisLabels(true);
         xAxis.setGranularity(1f); // one hour
@@ -648,8 +655,13 @@ public class GraphFragment extends Fragment
 
     private LineDataSet SetLine(ArrayList<Entry> vT, TPhysValue val)
     {
-        int colorStep=127;   // 255/2=127  3 colors (0,127,254) in each rgb value
         int lineColor;
+        int colorStep=0;
+        if (numDataSets > 1)
+        {
+            colorStep = 255 / (numDataSets-1);
+        }
+
 
         //LineData d = new LineData();
         LineDataSet set =
@@ -692,36 +704,29 @@ public class GraphFragment extends Fragment
                 lineColor = Color.rgb(0,200,0);
             }
         }
-        if (!dendroInfos.isEmpty()) {
-            dendroInfos.get(headerIndex).color = lineColor;
-            Log.d("COLOR SET", "DATASET " + headerIndex + ": set color to" + dendroInfos.get(headerIndex).color);
-        }
-Log.d("COLOR", lineColor +"");
+        set.setColor(lineColor);
+
         //differentiating values by different dash patterns
         switch (val)
         {
             case vT1:
-                set.enableDashedLine(10f, 10f, 0f);
                 set.setLineWidth(2f);
-                set.setColor(lineColor);
                 break;
 
             case vT2:
-                set.enableDashedLine(25f, 25f, 0f);
                 set.setLineWidth(2f);
-                set.setColor(lineColor+100);
                 break;
 
             case vT3:
-                set.enableDashedLine(25f, 25f, 0f);
                 set.setLineWidth(2f);
-                set.setColor(lineColor+200);
                 break;
 
             case vHum:
-                set.setColor(lineColor);
                 set.setLineWidth(3f);
+                dendroInfos.get(headerIndex).color = lineColor;
+
             case vAD:
+                set.setLineWidth(3f);
 
             case vMicro:
                 //set.setColor(Color.BLACK);
@@ -732,7 +737,6 @@ Log.d("COLOR", lineColor +"");
             default:
                 throw new UnsupportedOperationException("Not yet implemented");
         }
-
 
         return set;
     }
