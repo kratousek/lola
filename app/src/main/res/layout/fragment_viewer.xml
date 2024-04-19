@@ -32,9 +32,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
-                android:text="select datasets"
-                android:textAlignment="center"
-                android:backgroundTint="#f1a833"/>
+                android:backgroundTint="#f1a833"
+                android:text="graph"
+                android:textAlignment="center" />
 
         </LinearLayout>
 

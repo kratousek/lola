@@ -106,7 +106,6 @@ public class GraphFragment extends Fragment
     public int headerIndex = 0;
     public int numDataSets = 0;
     public float[] intervals = {10f, 10f};
-    DashPathEffect dashEffect = new DashPathEffect(intervals, 0);
 
     public class LongAxisValueFormatter extends ValueFormatter {
         @Override
@@ -307,15 +306,6 @@ public class GraphFragment extends Fragment
             }
             else
             {
-                /*
-                //get origin date (first date of file)
-                if ( firstDate && lineOfFile[0].equals("0"))
-                {
-                    originDate = mer.dtm.toEpochSecond(ZoneOffset.MAX);
-                    firstDate = false;
-                }
-*/
-
                 //number of minutes from the first date plotted
                 //dateNum = (mer.dtm.toEpochSecond(ZoneOffset.MAX) - originDate) / 60;
                 dateNum = mer.dtm.toEpochSecond(ZoneOffset.MAX);
@@ -517,29 +507,6 @@ public class GraphFragment extends Fragment
         // if disabled, scaling can be done on x- and y-axis separately
         chart.setPinchZoom(false);
 
-/*
-        // get the legend (only possible after setting data)
-        Legend l = chart.getLegend();
-
-        l.setWordWrapEnabled(true);
-
-        l.setVerticalAlignment(Legend.LegendVerticalAlignment.BOTTOM);
-        l.setHorizontalAlignment(Legend.LegendHorizontalAlignment.CENTER);
-        l.setOrientation(Legend.LegendOrientation.HORIZONTAL);
-        l.setDrawInside(false);
-        l.setEnabled(false);
-
-        l.setForm(Legend.LegendForm.SQUARE);
-        //l.setTypeface(tfLight);
-        l.setTextSize(11f);
-        l.setTextColor(Color.BLACK);
-        l.setXEntrySpace(200f);  //makes legend a column
-        l.setYEntrySpace(1f);
-        l.setVerticalAlignment(Legend.LegendVerticalAlignment.BOTTOM);
-        l.setHorizontalAlignment(Legend.LegendHorizontalAlignment.LEFT);
-        l.setOrientation(Legend.LegendOrientation.HORIZONTAL);
-        l.setDrawInside(true);
-*/
         // osa humidit
         YAxis rightAxis = chart.getAxisRight();
         rightAxis.setDrawGridLines(false);
@@ -563,22 +530,6 @@ public class GraphFragment extends Fragment
         xAxis.setTextSize(10f);
         xAxis.setCenterAxisLabels(true);
         xAxis.setGranularity(1f); // one hour
-/*
-        xAxis.setValueFormatter(new IndexAxisValueFormatter() {
-            @Override
-            public String getFormattedValue(float value, AxisBase axis) {
-                // Convert float value to long
-                long timestamp = (long) value;
-
-                // Convert timestamp to LocalDateTime
-                LocalDateTime dateTime = LocalDateTime.ofInstant(Instant.ofEpochSecond(timestamp),
-                        TimeZone.getDefault().toZoneId());
-
-                // Format LocalDateTime to string
-                return dateTime.format(formatter);
-            }
-        });
-*/
         xAxis.setValueFormatter(new LongAxisValueFormatter());
         xAxis.setLabelRotationAngle(60f);
 
@@ -708,7 +659,6 @@ public class GraphFragment extends Fragment
         int lineColor=0;
         int colorStep=255/3;
 
-        //LineData d = new LineData();
         LineDataSet set =
                 new LineDataSet(vT, "DataSet " + (val.ordinal() + 1));
         set.setDrawValues(false);
@@ -772,17 +722,14 @@ public class GraphFragment extends Fragment
                 break;
 
             case vHum:
-                //lineColor = Color.rgb( Color.red(lineColor), Color.green(lineColor) + 50, Color.blue(lineColor) );
                 set.setLineWidth(5f);
-                set.enableDashedLine(10f, 30f, 0f);
+                set.enableDashedLine(20f, 20f, 0f);
                 dendroInfos.get(headerIndex).color = lineColor;
 
             case vAD:
                 set.setLineWidth(5f);
 
             case vMicro:
-                //set.setColor(Color.BLACK);
-                //set.setColor(Color.rgb(128, 0, 0));
                 set.setAxisDependency(YAxis.AxisDependency.RIGHT);
                 break;
 
