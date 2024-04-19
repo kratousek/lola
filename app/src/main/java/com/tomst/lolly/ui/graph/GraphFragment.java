@@ -1,6 +1,8 @@
 package com.tomst.lolly.ui.graph;
 
 
+import static android.graphics.Color.BLACK;
+
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.ColorSpace;
@@ -25,6 +27,7 @@ import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -34,6 +37,8 @@ import java.util.ArrayList;
 
 import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.CombinedChart;
+import com.github.mikephil.charting.components.AxisBase;
+import com.github.mikephil.charting.components.Description;
 import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.components.LegendEntry;
 import com.github.mikephil.charting.components.XAxis;
@@ -44,6 +49,10 @@ import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.data.CombinedData;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.formatter.DefaultAxisValueFormatter;
+import com.github.mikephil.charting.formatter.IAxisValueFormatter;
+import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
+import com.github.mikephil.charting.formatter.ValueFormatter;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.github.mikephil.charting.data.LineDataSet;
 
@@ -59,7 +68,10 @@ import com.tomst.lolly.databinding.FragmentGraphBinding;
 import com.tomst.lolly.core.DmdViewModel;
 
 
+import org.apache.commons.lang3.ObjectUtils;
+
 import java.io.File;
+import java.util.TimeZone;
 
 
 @RequiresApi(api = Build.VERSION_CODES.O)
@@ -68,6 +80,8 @@ public class GraphFragment extends Fragment
     // constants for loading CSV files
     private static final String DATE_PATTERN = "yyyy.MM.dd HH:mm";
     private DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_PATTERN);
+    private static final String SHORT_DATE_PATTERN = "M.d.yy";
+    private DateTimeFormatter display_formatter = DateTimeFormatter.ofPattern(SHORT_DATE_PATTERN);
     private static final byte SERIAL_INDEX = 0;
     private static final byte LONGITUDE_INDEX = 1;
     private static final byte LATITUDE_INDEX = 2;
@@ -91,11 +105,24 @@ public class GraphFragment extends Fragment
     // CSV loading
     public int headerIndex = 0;
     public int numDataSets = 0;
-    private long originDate;
+    public float[] intervals = {10f, 10f};
+    DashPathEffect dashEffect = new DashPathEffect(intervals, 0);
 
+    public class LongAxisValueFormatter extends ValueFormatter {
+        @Override
+        public String getAxisLabel(float value, AxisBase axis) {
+
+            // Convert float value (epoch seconds) to LocalDateTime
+            LocalDateTime dateTime = LocalDateTime.ofInstant(Instant.ofEpochSecond((long) value),
+                   ZoneOffset.MAX);
+
+            // Format LocalDateTime to string
+            return dateTime.format(display_formatter);
+        }
+    }
 
     // visualization data holders
-    private final int barCount = 12;
+    //private final int barCount = 12;
     private ArrayList<ILineDataSet> dataSets = new ArrayList<>();
     private ArrayList<TDendroInfo> dendroInfos = new ArrayList<>();
     private ArrayList<LegendEntry> LegendEntrys = new ArrayList<>();
@@ -104,7 +131,6 @@ public class GraphFragment extends Fragment
     // graphing
     private CombinedChart chart;
     private CombinedData combinedData;
-    private int colorStep = 0;
 
     private SeekBar seekBarX;
     private TextView tvX;
@@ -161,17 +187,16 @@ public class GraphFragment extends Fragment
         LineData lines;
 
         headerIndex = 0;
-        colorStep=0;
         do
         {
             // line graph
             d = SetLine(dendroInfos.get(headerIndex).vT1, TPhysValue.vT1);
             dataSets.add(d);
-            //d = SetLine(dendroInfos.get(headerIndex).vT2, TPhysValue.vT2);
-            //dataSets.add(d);
-            //d = SetLine(dendroInfos.get(headerIndex).vT3, TPhysValue.vT3);
-            //dataSets.add(d);
-            // humidity
+            d = SetLine(dendroInfos.get(headerIndex).vT2, TPhysValue.vT2);
+            dataSets.add(d);
+            d = SetLine(dendroInfos.get(headerIndex).vT3, TPhysValue.vT3);
+            dataSets.add(d);
+            // growth
             d = SetLine(dendroInfos.get(headerIndex).vHA, TPhysValue.vHum);
             dataSets.add(d);
             lines = new LineData(dataSets);
@@ -185,17 +210,15 @@ public class GraphFragment extends Fragment
             // startup animation
             chart.animateX(2000, Easing.EaseInCubic);
 
-            Legend l = chart.getLegend();
-
             LegendEntry legendEntry = new LegendEntry();
             legendEntry.label = dendroInfos.get(headerIndex).serial;
             legendEntry.formColor = dendroInfos.get(headerIndex).color;
             LegendEntrys.add(legendEntry);
 
             headerIndex++;
-            colorStep += 255 / numDataSets;
         }
         while (headerIndex < numDataSets);
+
         Legend l = chart.getLegend();
         l.setCustom(LegendEntrys);
         // sets view to start of graph and zooms into x axis by 7x
@@ -206,14 +229,17 @@ public class GraphFragment extends Fragment
         );
 
         headerIndex = ogHeaderIndex;
+
+        //Default: Do Not Display T2 and T3
+        DoBtnClick(binding.vT2);
+        DoBtnClick(binding.vT3);
     }
 
     private void loadCSVFile(String fileName)
     {
         Toast.makeText(getContext(), "loading", Toast.LENGTH_SHORT).show();
-        long valueIndex = 0;
         float dateNum;
-        boolean firstDate = true;
+        //boolean firstDate = true;
         boolean hasHeader = true;
         String currentLine = "";
         CSVFile csv = CSVFile.open(fileName, CSVFile.READ_MODE);
@@ -273,7 +299,7 @@ public class GraphFragment extends Fragment
             if (hasHeader && mer.Serial != null)
             {
                 headerIndex++;
-                valueIndex=0;
+
                 if (headerIndex < numDataSets)
                 {
                     dendroInfos.get(headerIndex).serial = mer.Serial;
@@ -281,31 +307,32 @@ public class GraphFragment extends Fragment
             }
             else
             {
+                /*
                 //get origin date (first date of file)
                 if ( firstDate && lineOfFile[0].equals("0"))
                 {
                     originDate = mer.dtm.toEpochSecond(ZoneOffset.MAX);
                     firstDate = false;
                 }
+*/
 
                 //number of minutes from the first date plotted
-                dateNum = (mer.dtm.toEpochSecond(ZoneOffset.MAX) - originDate) / 60;
+                //dateNum = (mer.dtm.toEpochSecond(ZoneOffset.MAX) - originDate) / 60;
+                dateNum = mer.dtm.toEpochSecond(ZoneOffset.MAX);
 
                 dendroInfos.get(headerIndex).mers.add(mer);
                 dendroInfos.get(headerIndex).vT1.add(
                         new Entry(dateNum, (float) mer.t1)
                 );
                 dendroInfos.get(headerIndex).vT2.add(
-                        new Entry(valueIndex, (float) mer.t2)
+                        new Entry(dateNum, (float) mer.t2)
                 );
                 dendroInfos.get(headerIndex).vT3.add(
-                        new Entry(valueIndex, (float) mer.t3)
+                        new Entry(dateNum, (float) mer.t3)
                 );
                 dendroInfos.get(headerIndex).vHA.add(
                         new Entry(dateNum, (float) mer.hum)
                 );
-
-                valueIndex++;
             }
 
             // move to next line
@@ -376,7 +403,7 @@ public class GraphFragment extends Fragment
         do {
             dataSets.get(tag - 1).setVisible(checked);
             chart.invalidate();
-            tag+=2;            //temporary 2: this is how many lines are added to the graph per dataset
+            tag+=4;
         } while ( tag <= dataSets.size());
 
     }
@@ -444,32 +471,29 @@ public class GraphFragment extends Fragment
                 });
 
         CheckBox cbT1 = binding.vT1;
-        cbT1.setChecked(true);
         cbT1.setOnClickListener(view ->
         {
             DoBtnClick(view);
         });
-        /*
+        cbT1.setChecked(true);
         CheckBox cbT2 = binding.vT2;
-        cbT2.setChecked(true);
         cbT2.setOnClickListener(view ->
         {
             DoBtnClick(view);
         });
+        cbT2.setChecked(false);
         CheckBox cbT3 = binding.vT3;
-        cbT3.setChecked(true);
         cbT3.setOnClickListener(view ->
         {
             DoBtnClick(view);
         });
-
-         */
+        cbT3.setChecked(false);
         CheckBox cbHum = binding.vGrowth;
-        cbHum.setChecked(true);
         cbHum.setOnClickListener(view ->
         {
             DoBtnClick(view);
         });
+        cbHum.setChecked(true);
 
         getActivity().setTitle("Lolly 4");
         chart = binding.chart1;
@@ -482,6 +506,10 @@ public class GraphFragment extends Fragment
         chart.setScaleEnabled(true);
         chart.setDrawGridBackground(false);
         chart.setHighlightPerDragEnabled(true);
+
+        Description description = new Description();
+        description.setText("");
+        chart.setDescription(description);
 
         // set an alternative background color
         // chart.setBackgroundColor(Color.WHITE);
@@ -528,13 +556,31 @@ public class GraphFragment extends Fragment
 
         XAxis xAxis = chart.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.TOP_INSIDE);
-        xAxis.setTextSize(10f);
+        xAxis.setTextSize(15f);
         xAxis.setDrawAxisLine(true);
         xAxis.setDrawGridLines(true);
-        xAxis.setTextColor(Color.BLACK);
+        xAxis.setTextColor(BLACK);
         xAxis.setTextSize(10f);
         xAxis.setCenterAxisLabels(true);
         xAxis.setGranularity(1f); // one hour
+/*
+        xAxis.setValueFormatter(new IndexAxisValueFormatter() {
+            @Override
+            public String getFormattedValue(float value, AxisBase axis) {
+                // Convert float value to long
+                long timestamp = (long) value;
+
+                // Convert timestamp to LocalDateTime
+                LocalDateTime dateTime = LocalDateTime.ofInstant(Instant.ofEpochSecond(timestamp),
+                        TimeZone.getDefault().toZoneId());
+
+                // Format LocalDateTime to string
+                return dateTime.format(formatter);
+            }
+        });
+*/
+        xAxis.setValueFormatter(new LongAxisValueFormatter());
+        xAxis.setLabelRotationAngle(60f);
 
         combinedData = new CombinedData();
 
@@ -634,17 +680,6 @@ public class GraphFragment extends Fragment
 
             while((currentLine = csvFile.readLine()).contains(";"))
             {
-/*
-                strArr = currentLine.split(";");
-                if (strArr[0].equals("0"))
-                {
-                    dateTime = LocalDateTime.parse(strArr[DATETIME_INDEX], formatter);
-                    currTime = dateTime.toEpochSecond(ZoneOffset.MAX);
-                    Log.d("MERGETIME", "currtime:"+currTime+" earliest: "+earliestTime );
-                    //set earliest time
-                    setEarliestTime(currTime);
-                }
-*/
                 tempFile.write(currentLine + "\n");
             }
             csvFile.close();
@@ -670,75 +705,80 @@ public class GraphFragment extends Fragment
 
     private LineDataSet SetLine(ArrayList<Entry> vT, TPhysValue val)
     {
-        int colorStep=127;   // 255/2=127  3 colors (0,127,254) in each rgb value
+        int lineColor=0;
+        int colorStep=255/3;
 
         //LineData d = new LineData();
         LineDataSet set =
                 new LineDataSet(vT, "DataSet " + (val.ordinal() + 1));
-        float[] intervals = new float[] { 10f, 10f };
-        set.setLineWidth(2f);
         set.setDrawValues(false);
         set.setDrawCircles(false);
         set.setMode(LineDataSet.Mode.LINEAR);
         set.setDrawFilled(false);
         set.setLabel(val.valToString(val));
         set.setAxisDependency(YAxis.AxisDependency.LEFT);
+        set.setLineWidth(1f);
 
         //differentiating datasets by color (supports max 9 datasets)
-        if (numDataSets > 3)
+        if (numDataSets > 4)
         {
             if (headerIndex < 3) {
-                set.setColor(Color.rgb(headerIndex * colorStep, 0, 127));
+                //set.setColor(Color.rgb(headerIndex * colorStep, 0, 127));
+                lineColor = Color.rgb(headerIndex * colorStep, 0, 127);
             } else if (headerIndex < 6) {
-                set.setColor(Color.rgb(127, (headerIndex - 3) * colorStep, 0));
+                //set.setColor(Color.rgb(127, (headerIndex - 3) * colorStep, 0));
+                lineColor = Color.rgb(127, (headerIndex - 3) * colorStep, 0);
             } else {
-                set.setColor(Color.rgb(0, 127, (headerIndex - 6) * colorStep));
+                lineColor = Color.rgb(0, 127, (headerIndex - 6) * colorStep);
             }
         }
-        else     //maximum color differential for 1 to 3 datasets
+        else     //maximum color differential for 1 to 4 datasets
         {
             if (headerIndex == 0)
             {
-                set.setColor(Color.rgb(200, 0, 0));
+                //GREEN
+                lineColor = Color.rgb(20,83,45);
             }
             else if (headerIndex == 1)
             {
-                set.setColor(Color.rgb(0, 0, 200));
+                //ORANGE
+                lineColor = Color.rgb(241,168,51);
             }
-            else
+            else if (headerIndex == 2)
             {
-                set.setColor(Color.rgb(0, 200, 0));
+                //DARK BROWN
+                lineColor = Color.rgb(52,21,0);
             }
-        }
-        if (!dendroInfos.isEmpty()) {
-            dendroInfos.get(headerIndex).color = set.getColor();
-            Log.d("COLOR SET", "DATASET " + headerIndex + ": set color to" + dendroInfos.get(headerIndex).color);
+            else if (headerIndex == 3)
+            {
+                //LIGHT BLUE
+                lineColor = Color.rgb(0,197,255);
+            }
         }
 
         //differentiating values by different dash patterns
         switch (val)
         {
             case vT1:
-                set.enableDashedLine(10f, 10f, 0);
-                set.setFormLineDashEffect(new DashPathEffect(intervals, 0));
+                set.setLineWidth(5f);
                 break;
 
             case vT2:
-                set.enableDashedLine(25f, 25f, 0);
-                intervals[0]=25f;
-                intervals[1]=25f;
-                set.setFormLineDashEffect(new DashPathEffect(intervals, 0));
+                set.setLineWidth(2f);
                 break;
 
             case vT3:
-                set.enableDashedLine(50f, 10f, 0);
-                intervals[0]=50f;
-                set.setFormLineDashEffect(new DashPathEffect(intervals, 0));
+                set.setLineWidth(1f);
                 break;
 
             case vHum:
-                set.setLineWidth(3f);
+                //lineColor = Color.rgb( Color.red(lineColor), Color.green(lineColor) + 50, Color.blue(lineColor) );
+                set.setLineWidth(5f);
+                set.enableDashedLine(10f, 30f, 0f);
+                dendroInfos.get(headerIndex).color = lineColor;
+
             case vAD:
+                set.setLineWidth(5f);
 
             case vMicro:
                 //set.setColor(Color.BLACK);
@@ -749,7 +789,7 @@ public class GraphFragment extends Fragment
             default:
                 throw new UnsupportedOperationException("Not yet implemented");
         }
-
+        set.setColor(lineColor);
 
         return set;
     }
@@ -828,7 +868,7 @@ public class GraphFragment extends Fragment
         dataSets.add(d);
         d = SetLine(dmd.getT3(),TPhysValue.vT3);
         dataSets.add(d);
-        // humidita
+        // humidity
         d = SetLine(dmd.getHA(),TPhysValue.vHum);
         dataSets.add(d);
         LineData lines = new LineData(dataSets);
