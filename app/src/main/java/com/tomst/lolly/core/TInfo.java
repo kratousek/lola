@@ -8,6 +8,7 @@ public class TInfo {
     public TDevState stat;
     public TMeteo meteo;
     //public TMereni mer;
+    public double humAd;
     public double t1;
 
     public double t2;

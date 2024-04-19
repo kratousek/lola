@@ -26,9 +26,6 @@
             android:name=".LoginActivity"
             android:exported="false">
         </activity>
-        <activity
-            android:name=".SecondActivity"
-            android:exported="false" />
 
         <service
             android:name=".LollyService"

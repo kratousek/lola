@@ -1,39 +1,98 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingRight="16dp"
     android:paddingLeft="16dp"
-    android:background="#fff"
+    android:background="#14532D"
     tools:context=".ui.viewfile.ListFragment">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="horizontal">
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
 
-        <Button
-            android:id="@+id/buttonZipall"
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/buttonZipall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Button"
+                android:backgroundTint="#f1a833"/>
+
+            <Button
+                android:id="@+id/select_sets"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="select datasets"
+                android:textAlignment="center"
+                android:backgroundTint="#f1a833"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnUploadToDB"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="0dp"
+                android:text="Upload To Cloud"
+                android:textAlignment="center"
+                android:backgroundTint="#f1a833"/>
+
+            <Button
+                android:id="@+id/btnShare"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="Share"
+                android:textAlignment="center"
+                android:backgroundTint="#f1a833"/>
+
+        </LinearLayout>
+
+        <androidx.cardview.widget.CardView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Button"/>
 
-        <Button
-            android:id="@+id/select_sets"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:text="graph"
-            android:textAlignment="center" />
+            android:layout_marginBottom="60dp"
+            android:layout_marginLeft="@dimen/spacing_xsmall"
+            android:layout_marginRight="@dimen/spacing_xsmall"
+            android:layout_marginTop="50dp"
+            android:background="#fdfaf1"
+            app:cardCornerRadius="10dp"
+            app:cardElevation="2dp">
+
+            <ListView
+                android:id="@+id/listView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_margin="16dp">
+
+            </ListView>
+
+        </androidx.cardview.widget.CardView>
+
     </LinearLayout>
 
-    <ListView
-        android:id="@+id/listView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="16dp"
-        android:layout_marginTop="50dp"/>
-</FrameLayout>
+    <ProgressBar
+        android:id="@+id/uploadProgressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:visibility="gone" />
+
+
+</RelativeLayout>

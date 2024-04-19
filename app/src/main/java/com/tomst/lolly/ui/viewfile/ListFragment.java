@@ -5,14 +5,19 @@ import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 import static android.app.Activity.RESULT_CANCELED;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.Image;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.StatFs;
+import android.text.InputType;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
@@ -23,17 +28,34 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.FileProvider;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageMetadata;
+import com.google.firebase.storage.StorageReference;
 import com.tomst.lolly.R;
 import com.tomst.lolly.core.CSVReader;
 import com.tomst.lolly.core.Constants;
@@ -55,9 +77,15 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 public class ListFragment extends Fragment
@@ -74,6 +102,8 @@ public class ListFragment extends Fragment
     private final String TAG = "TOMST";
     public FileOpener fopen;
     private  DmdViewModel dmd;
+
+    FirebaseFirestore db;
 
     List<FileDetail> fFriends = null;
 
@@ -137,6 +167,29 @@ public class ListFragment extends Fragment
             }
         });
 
+        // database stuff
+        db = FirebaseFirestore.getInstance();
+
+        Button uploadBtn = binding.btnUploadToDB;
+        Button shareBtn = binding.btnShare;
+
+        uploadBtn.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                uploadDataToStorage();
+            }
+        });
+
+        shareBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view)
+            {
+                shareData();
+            }
+        });
+
         dmd = new ViewModelProvider(getActivity()).get(DmdViewModel.class);
         dmd.sendMessageToGraph("");
 
@@ -145,22 +198,25 @@ public class ListFragment extends Fragment
 
         fFriends = new ArrayList<>();
 
-        Intent intent = getActivity().getIntent();
-        switch (intent.getAction())
+        Intent intent = getActivity() != null ? getActivity().getIntent() : null;
+        if (intent != null)
         {
-            case Intent.ACTION_GET_CONTENT:
-                fopen.isRequestDocument = true;
-                getActivity().setResult(RESULT_CANCELED);
-                break;
+            switch (intent.getAction())
+            {
+                case Intent.ACTION_GET_CONTENT:
+                    fopen.isRequestDocument = true;
+                    getActivity().setResult(RESULT_CANCELED);
+                    break;
 
-            case Intent.ACTION_OPEN_DOCUMENT : {
-                fopen.isRequestDocument = true;
-                getActivity().setResult(RESULT_CANCELED);
-                break;
+                case Intent.ACTION_OPEN_DOCUMENT : {
+                    fopen.isRequestDocument = true;
+                    getActivity().setResult(RESULT_CANCELED);
+                    break;
+                }
+
+                default :
+                    fopen.isRequestDocument = false;
             }
-
-            default :
-                 fopen.isRequestDocument = false;
         }
         setupBitmaps();
 
@@ -195,6 +251,94 @@ public class ListFragment extends Fragment
                 switchToGraphFragment();
             }
         });
+
+    }
+
+    private void loadFromStorage()
+    {
+        // show the loading icon
+        ProgressBar progressBar = rootView.findViewById(R.id.uploadProgressBar);
+        progressBar.setVisibility(View.VISIBLE);
+
+        // set adapter
+        FileViewerAdapter friendsAdapter = new FileViewerAdapter(getContext(), fFriends);
+
+        // get current user
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        FirebaseUser user = auth.getCurrentUser();
+        String userEmail = user != null ? user.getEmail() : "unknown";
+
+        // load files from storage
+        StorageReference storageRef = FirebaseStorage.getInstance().getReference().child("Files");
+        storageRef.listAll()
+                .addOnSuccessListener(listResult ->
+                {
+                    for (StorageReference fileRef : listResult.getItems())
+                    {
+                        fileRef.getMetadata().addOnSuccessListener(storageMetadata ->
+                        {
+                            String fileUsers = storageMetadata.getCustomMetadata("user");
+                            if (fileUsers != null)
+                            {
+                                String[] users = fileUsers.split(",");
+                                for (String currentUser : users)
+                                {
+                                    if (currentUser.equals(userEmail))
+                                    {
+                                        // file belongs to the current user, download it
+                                        String fileName = fileRef.getName();
+                                        String filePath = fileRef.getPath();
+                                        downloadCSVFile(fileName, filePath);
+
+                                        // set the icon
+                                        for (FileDetail fileDetail : fFriends)
+                                        {
+                                            if (fileDetail.getName().equals(fileName))
+                                            {
+                                                fileDetail.setUploaded(true);
+                                                break;
+                                            }
+                                        }
+
+                                        // update list view with icons
+                                        ListView mListView = rootView.findViewById(R.id.listView);
+                                        mListView.setAdapter(friendsAdapter);
+                                    }
+                                }
+
+                            }
+                        }).addOnFailureListener(e ->
+                        {
+                            Log.e(TAG, "Failed to get metadata: " + e.getMessage());
+                        });
+                    }
+                    // hide loading icon
+                    progressBar.setVisibility(View.GONE);
+                })
+                .addOnFailureListener(e ->
+                {
+                    // hide loading icon
+                    progressBar.setVisibility(View.GONE);
+                    Log.e(TAG, "Failed to list files: " + e.getMessage());
+                });
+    }
+
+    private void downloadCSVFile(String fileName, String filePath)
+    {
+        File localFile = new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DOCUMENTS), fileName);
+
+        StorageReference storageRef = FirebaseStorage.getInstance().getReference().child(filePath);
+
+        storageRef.getFile(localFile)
+                .addOnSuccessListener(taskSnapshot ->
+                {
+                    Log.d(TAG, "File downloaded to " + localFile.getAbsolutePath());
+                })
+                .addOnFailureListener(exception ->
+                {
+                    Log.e(TAG, "Failed to download file: " + exception.getMessage());
+                });
     }
 
     private void switchToGraphFragment()
@@ -204,6 +348,237 @@ public class ListFragment extends Fragment
                 .findViewById(R.id.nav_view);
         View view = bottomNavigationView.findViewById(R.id.navigation_graph);
         view.performClick();
+    }
+
+    private void uploadDataToStorage()
+    {
+        // show the loading icon
+        ProgressBar progressBar = rootView.findViewById(R.id.uploadProgressBar);
+        progressBar.setVisibility(View.VISIBLE);
+
+        FileViewerAdapter friendsAdapter = new FileViewerAdapter(getContext(), fFriends);
+
+        ArrayList<String> fileNames = friendsAdapter.collectSelected();
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        FirebaseUser user = auth.getCurrentUser();
+
+        AtomicInteger filesUploaded = new AtomicInteger(0);
+        int totalFiles = fileNames.size();
+
+        // check if user is logged in
+        if (user != null)
+        {
+            // go through all selected files
+            for (String fileName : fileNames)
+            {
+                // get info
+                Uri fileUri = Uri.fromFile(new File(fileName));
+                String userEmail = user != null ? user.getEmail() : "unknown";
+
+                // check if the file has already been uploaded
+                boolean isAlreadyUploaded = false;
+                for (FileDetail fileDetail : friendsAdapter.getAllFiles())
+                {
+                    if (fileDetail.getFull().equals(fileName) && fileDetail.isUploaded())
+                    {
+                        isAlreadyUploaded = true;
+                        break;
+                    }
+                }
+
+                // file is already uploaded, skip it
+                if (isAlreadyUploaded)
+                {
+                    Toast.makeText(rootView.getContext(), fileUri.getLastPathSegment() + " Already Uploaded", Toast.LENGTH_SHORT).show();
+
+                    filesUploaded.incrementAndGet();
+                    // check if all files uploaded
+                    if (filesUploaded.get() == totalFiles)
+                    {
+                        progressBar.setVisibility(View.GONE);
+                    }
+                    continue;
+                }
+
+                StorageReference storageRef = FirebaseStorage.getInstance().getReference();
+                StorageReference fileRef = storageRef.child("Files/" + fileUri.getLastPathSegment());
+
+                fileRef.putFile(fileUri)
+                        .addOnSuccessListener(taskSnapshot ->
+                        {
+                            // update the file's metadata to include the user Id
+                            fileRef.updateMetadata(
+                                    new StorageMetadata.Builder()
+                                            .setCustomMetadata("user", userEmail)
+                                            .build()
+                            ).addOnSuccessListener(aVoid ->
+                            {
+                                // set cloud icon
+                                for (FileDetail fileDetail : friendsAdapter.getAllFiles())
+                                {
+                                    if (fileDetail.getFull().equals(fileName))
+                                    {
+                                        fileDetail.setUploaded(true);
+                                        break;
+                                    }
+                                }
+                                filesUploaded.incrementAndGet();
+
+                                // check if all files uploaded
+                                if (filesUploaded.get() == totalFiles)
+                                {
+                                    // update list view with icons
+                                    ListView mListView = rootView.findViewById(R.id.listView);
+                                    mListView.setAdapter(friendsAdapter);
+
+                                    progressBar.setVisibility(View.GONE);
+                                    Toast.makeText(rootView.getContext(), fileUri.getLastPathSegment() + " Uploaded Successfully", Toast.LENGTH_SHORT).show();
+                                }
+                            }).addOnFailureListener(e ->
+                            {
+                                Toast.makeText(rootView.getContext(), "Failed to update metadata: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                filesUploaded.incrementAndGet();
+
+                                // check if all files uploaded
+                                if (filesUploaded.get() == totalFiles)
+                                {
+                                    progressBar.setVisibility(View.GONE);
+                                }
+                            });
+                        })
+                        .addOnFailureListener(e ->
+                        {
+                            Toast.makeText(rootView.getContext(), "Data Upload Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+
+                            filesUploaded.incrementAndGet();
+
+                            // check if all files uploaded
+                            if (filesUploaded.get() == totalFiles)
+                            {
+                                progressBar.setVisibility(View.GONE);
+                            }
+                        });
+            }
+        }
+        else
+        {
+            progressBar.setVisibility(View.GONE);
+            Toast.makeText(rootView.getContext(), "Must login to upload files", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void shareData()
+    {
+        FileViewerAdapter friendsAdapter = new FileViewerAdapter(getContext(), fFriends);
+        ArrayList<String> selectedFiles = friendsAdapter.collectSelected();
+
+        boolean allUploaded = true;
+        for (String selectedFile : selectedFiles)
+        {
+            for (FileDetail fileDetail : fFriends)
+            {
+                if (fileDetail.getFull().equals(selectedFile) && !fileDetail.isUploaded())
+                {
+                    allUploaded = false;
+                    break;
+                }
+            }
+        }
+
+        if (!allUploaded)
+        {
+            Toast.makeText(getContext(), "Please upload all files before sharing", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // create an alert dialog with an edit text field
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle("Enter Email Addresse(s)");
+        builder.setMessage("User a comma(,) to seperate emails");
+
+        final EditText input = new EditText(getContext());
+        input.setInputType(InputType.TYPE_CLASS_TEXT);
+        builder.setView(input);
+
+        // set up the buttons
+        builder.setPositiveButton("Share", new DialogInterface.OnClickListener()
+        {
+            @Override
+            public void onClick(DialogInterface dialog, int which)
+            {
+                String emails = input.getText().toString();
+                if (!TextUtils.isEmpty(emails))
+                {
+                    String[] emailArray = emails.split(",");
+                    updateMetadata(emailArray);
+                }
+                else
+                {
+                    Toast.makeText(getContext(), "Please enter at least one email", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener()
+        {
+            @Override
+            public void onClick(DialogInterface dialog, int which)
+            {
+                dialog.cancel();
+            }
+        });
+
+        builder.show();
+    }
+
+    private void updateMetadata(String[] emails) {
+        FileViewerAdapter friendsAdapter = new FileViewerAdapter(getContext(), fFriends);
+        ArrayList<String> selectedFiles = friendsAdapter.collectSelected();
+
+        for (String selectedFile : selectedFiles)
+        {
+            Uri fileUri = Uri.fromFile(new File(selectedFile));
+            StorageReference storageRef = FirebaseStorage.getInstance().getReference();
+            StorageReference fileRef = storageRef.child("Files/" + fileUri.getLastPathSegment());
+
+            // get current metadata
+            fileRef.getMetadata().addOnSuccessListener(metadata ->
+            {
+                String currentUser = metadata.getCustomMetadata("user");
+                if (currentUser != null)
+                {
+                    // append new emails to the existing user metadata
+                    StringBuilder newUserMetadata = new StringBuilder(currentUser);
+                    for (String email : emails)
+                    {
+                        if (!newUserMetadata.toString().contains(email))
+                        {
+                            newUserMetadata.append(",").append(email);
+                            Toast.makeText(getContext(), "Shared with " + email, Toast.LENGTH_SHORT).show();
+                        }
+                        else
+                        {
+                            Toast.makeText(getContext(), "Already shared with " + email, Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    // update metadata
+                    fileRef.updateMetadata(new StorageMetadata.Builder()
+                                    .setCustomMetadata("user", newUserMetadata.toString())
+                                    .build())
+                            .addOnSuccessListener(aVoid ->
+                            {
+                                Toast.makeText(getContext(), "Updated metadata successfully", Toast.LENGTH_SHORT).show();
+                            })
+                            .addOnFailureListener(e ->
+                            {
+                                Toast.makeText(getContext(), "Failed to update metadata: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            });
+                }
+            }).addOnFailureListener(e ->
+            {
+                Toast.makeText(getContext(), "Failed to get metadata: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            });
+        }
     }
 
 
@@ -325,6 +700,7 @@ public class ListFragment extends Fragment
             file.getAbsolutePath(),
             iconID
         ));
+
         Log.d(TAG, file.getName());
     }
 
@@ -556,6 +932,7 @@ public class ListFragment extends Fragment
             }
         };
 
+        loadFromStorage();
         loadAllFiles();
 
         /*
