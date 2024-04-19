@@ -724,7 +724,10 @@ public class GraphFragment extends Fragment
             case vHum:
                 set.setLineWidth(5f);
                 set.enableDashedLine(20f, 20f, 0f);
-                dendroInfos.get(headerIndex).color = lineColor;
+                if (!dendroInfos.isEmpty())
+                {
+                    dendroInfos.get(headerIndex).color = lineColor;
+                }
 
             case vAD:
                 set.setLineWidth(5f);
