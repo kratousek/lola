@@ -626,99 +626,99 @@ public class TMSReader extends Thread
 
     // ====================================================
 
-    private static final String ACTION_USB_PERMISSION = "com.tomst.lolly.core.USB_PERMISSION";
-    private static BroadcastReceiver usbDevicePermissions = new BroadcastReceiver() {
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            if (ACTION_USB_PERMISSION.equals(action)) {
-                synchronized(this) {
-                    UsbDevice device = (UsbDevice)intent.getParcelableExtra("device");
-
-                    if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-                        if (device != null) {
-                            // call method to set up device communication
-                        }
-                    } else {
-                        Log.d("D2xx::", "permission denied for device " + device);
-                    }
-                }
-            }
-        }
-    };
-
-    // gets file descriptor from usb device list so native libusb can have access
-    private int getUSBPermissionForLibUSB() {
-        DeviceUARTContext = this.context;
-
-        // set up broadcast and intent filter
-        IntentFilter permissionFilter = new IntentFilter(ACTION_USB_PERMISSION);
-        DeviceUARTContext.registerReceiver(usbDevicePermissions, permissionFilter);
-
-        Intent intent = new Intent(ACTION_USB_PERMISSION);
-        PendingIntent permissionIntent = PendingIntent.getBroadcast(DeviceUARTContext, 0, intent, PendingIntent.FLAG_IMMUTABLE);
-
-        // obtain USB permissions
-        UsbManager usbManager = (UsbManager) DeviceUARTContext.getApplicationContext().getSystemService(Context.USB_SERVICE);
-        HashMap<String, UsbDevice> deviceList = usbManager.getDeviceList();
-
-        Iterator<UsbDevice> deviceIterator = deviceList.values().iterator();
-
-        // get first device
-        if (!deviceIterator.hasNext()) {
-            return -1;
-        }
-        UsbDevice usbDevice = deviceIterator.next();
-
-        // get permission
-        if (!usbManager.hasPermission(usbDevice)) {
-            usbManager.requestPermission(usbDevice, permissionIntent);
-        }
-
-        UsbInterface intf = usbDevice.getInterface(0);
-        UsbEndpoint endpoint = intf.getEndpoint(0);
-        Log.i("||| DEBUG |||", intf.getName());
-        Log.i("||| DEBUG |||", endpoint.toString());
-        UsbDeviceConnection connection = usbManager.openDevice(usbDevice);
-        connection.claimInterface(intf, true);
-        int fileDescriptor = connection.getFileDescriptor();
-        Log.i("||| DEBUG |||", "claimed");
-
-//        setNativeDescriptor(fileDescriptor);
-
-        int ftdiCheck = getDeviceCountC(fileDescriptor);
-        Toast.makeText(DeviceUARTContext, String.format("C Check value: %d", ftdiCheck), Toast.LENGTH_SHORT).show();
-
-        connection.close();
-
-        Toast.makeText(DeviceUARTContext, String.format("file desc: %d", fileDescriptor), Toast.LENGTH_SHORT).show();
-        Log.i("||| DEBUG |||", String.valueOf(fileDescriptor));
-
-        return fileDescriptor;
-    };
-
-    private native int getDeviceCountC(int fileDescriptor);
-    private native int setNativeDescriptor(int fileDescriptor);
-
-    private int getDeviceCount() {
-        // obtain USB permissions
-        UsbManager usbManager = (UsbManager) DeviceUARTContext.getSystemService(Context.USB_SERVICE);
-        HashMap<String, UsbDevice> deviceList = usbManager.getDeviceList();
-
-        return deviceList.size();
-    };
+//    private static final String ACTION_USB_PERMISSION = "com.tomst.lolly.core.USB_PERMISSION";
+//    private static BroadcastReceiver usbDevicePermissions = new BroadcastReceiver() {
+//        public void onReceive(Context context, Intent intent) {
+//            String action = intent.getAction();
+//            if (ACTION_USB_PERMISSION.equals(action)) {
+//                synchronized(this) {
+//                    UsbDevice device = (UsbDevice)intent.getParcelableExtra("device");
+//
+//                    if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
+//                        if (device != null) {
+//                            // call method to set up device communication
+//                        }
+//                    } else {
+//                        Log.d("D2xx::", "permission denied for device " + device);
+//                    }
+//                }
+//            }
+//        }
+//    };
+//
+//    // gets file descriptor from usb device list so native libusb can have access
+//    private int getUSBPermissionForLibUSB() {
+//        DeviceUARTContext = this.context;
+//
+//        // set up broadcast and intent filter
+//        IntentFilter permissionFilter = new IntentFilter(ACTION_USB_PERMISSION);
+//        DeviceUARTContext.registerReceiver(usbDevicePermissions, permissionFilter);
+//
+//        Intent intent = new Intent(ACTION_USB_PERMISSION);
+//        PendingIntent permissionIntent = PendingIntent.getBroadcast(DeviceUARTContext, 0, intent, PendingIntent.FLAG_IMMUTABLE);
+//
+//        // obtain USB permissions
+//        UsbManager usbManager = (UsbManager) DeviceUARTContext.getApplicationContext().getSystemService(Context.USB_SERVICE);
+//        HashMap<String, UsbDevice> deviceList = usbManager.getDeviceList();
+//
+//        Iterator<UsbDevice> deviceIterator = deviceList.values().iterator();
+//
+//        // get first device
+//        if (!deviceIterator.hasNext()) {
+//            return -1;
+//        }
+//        UsbDevice usbDevice = deviceIterator.next();
+//
+//        // get permission
+//        if (!usbManager.hasPermission(usbDevice)) {
+//            usbManager.requestPermission(usbDevice, permissionIntent);
+//        }
+//
+//        UsbInterface intf = usbDevice.getInterface(0);
+//        UsbEndpoint endpoint = intf.getEndpoint(0);
+//        Log.i("||| DEBUG |||", intf.getName());
+//        Log.i("||| DEBUG |||", endpoint.toString());
+//        UsbDeviceConnection connection = usbManager.openDevice(usbDevice);
+//        connection.claimInterface(intf, true);
+//        int fileDescriptor = connection.getFileDescriptor();
+//        Log.i("||| DEBUG |||", "claimed");
+//
+////        setNativeDescriptor(fileDescriptor);
+//
+//        int ftdiCheck = getDeviceCountC(fileDescriptor);
+//        Toast.makeText(DeviceUARTContext, String.format("C Check value: %d", ftdiCheck), Toast.LENGTH_SHORT).show();
+//
+//        Toast.makeText(DeviceUARTContext, String.format("file desc: %d", fileDescriptor), Toast.LENGTH_SHORT).show();
+//        Log.i("||| DEBUG |||", String.valueOf(fileDescriptor));
+//
+//        return fileDescriptor;
+//    };
+//
+//    private native int getDeviceCountC(int fileDescriptor);
+//    private native int setNativeDescriptor(int fileDescriptor);
+//
+//    private int getDeviceCount() {
+//        // obtain USB permissions
+//        UsbManager usbManager = (UsbManager) DeviceUARTContext.getSystemService(Context.USB_SERVICE);
+//        HashMap<String, UsbDevice> deviceList = usbManager.getDeviceList();
+//
+//        return deviceList.size();
+//    };
 
     // =======================================================
 
     public void ConnectDevice(){
-        int ftdiDevCount;
+//        int ftdiDevCount;
+        DevCount = 0;
 
         DoInitFTDI(context);
 
-        int fileDesc = getUSBPermissionForLibUSB();
-        ftdiDevCount = getDeviceCount();
-        Toast.makeText(DeviceUARTContext, String.format("Device Count retrieved: %d", ftdiDevCount), Toast.LENGTH_SHORT).show();
+//        int fileDesc = getUSBPermissionForLibUSB();
+//        ftdiDevCount = getDeviceCount();
+        createDeviceList();
 
-        if(ftdiDevCount > 0)
+//        if(ftdiDevCount > 0)
+        if(DevCount > 0)
         {
             connectFunction();
             int baudRate = 500000;
