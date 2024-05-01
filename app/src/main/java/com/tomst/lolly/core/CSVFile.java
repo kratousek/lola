@@ -312,7 +312,14 @@ public class CSVFile
 
             for (int j = 0; j < serials.get(i).length; j += 1)
             {
-                line += serials.get(i)[j] + DELIM;
+                line += serials.get(i)[j] + DELIM
+                    + "2" + DELIM
+                    + "temp1" + DELIM
+                    + "temp2" + DELIM
+                    + "temp3" + DELIM
+                    + "humidity" + DELIM
+                    + "mvs" + DELIM
+                    + "8" + DELIM;
             }
 
             dest.write(line + "\n");
@@ -333,10 +340,9 @@ public class CSVFile
 
             for (int j = 0; j < data.get(i).size(); j += 1)
             {
-                line += data.get(i).get(j) + DELIM;
+                line += data.get(i).get(j);
+                dest.write(line + "\n");
             }
-
-            dest.write(line + "\n");
         }
         dest.close();
 
