@@ -336,8 +336,7 @@ public class CSVFile
                 line += data.get(i).get(j) + DELIM;
             }
 
-            line += "\n";
-            dest.write(line);
+            dest.write(line + "\n");
         }
         dest.close();
 
