@@ -285,14 +285,17 @@ public class CSVFile
             split = src.readLine().split(DELIM);
         }
 
-        for (int i = 0; (currentLine = src.readLine()) != ""; i += 1)
+        int datasetIdx = 0;
+        while ((currentLine = src.readLine()) != "")
         {
             if (currentLine.split(DELIM).length == 1)
             {
-                i = 0;
+                datasetIdx += 1;
             }
-
-            data.get(i).add(currentLine);
+            else
+            {
+                data.get(datasetIdx).add(currentLine);
+            }
         }
         src.close();
 
