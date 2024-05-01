@@ -213,7 +213,9 @@ public class ListFragment extends Fragment
 
                 for (String fileName : fileNames)
                 {
+                    CSVFile.toParallel(fileName);
                 }
+                Log.d(TAG, "Conversion complete!");
             }
         });
 

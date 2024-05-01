@@ -264,6 +264,7 @@ public class CSVFile
     {
         if (!CSVFile.exists(path))
         {
+            Log.d(TAG, path + " already exists!");
             return 1;
         }
 
@@ -274,12 +275,8 @@ public class CSVFile
         ArrayList<ArrayList<String>> data =
                 new ArrayList<ArrayList<String>>();
 
+        currentLine = src.readLine();  // consume number of files
         currentLine = src.readLine();
-        if (currentLine.split(DELIM)[0] == "1")
-        {
-            return 2;
-        }
-
         split = currentLine.split(DELIM);
         while (split.length > 1)
         {
@@ -299,7 +296,10 @@ public class CSVFile
         }
         src.close();
 
-        CSVFile dest = CSVFile.open(path, CSVFile.WRITE_MODE);
+        String split_path[] = path.split("\\.");
+        Log.d(TAG, "Split path = " + split_path[0] + split_path[1]);
+        String dest_path = split_path[0] + "_parallel.csv";
+        CSVFile dest = CSVFile.create(dest_path);
         // write header
         dest.write(serials.size() + ";\n");
         String line;
@@ -400,13 +400,13 @@ public class CSVFile
                                 + split[i * POINT_LEN + 8] + DELIM
                 );
                 // magic numbers are place holders until I figure out what data
-                // is at those indicies
+                // is at those indices
             }
         }
         src.close();
 
-        CSVFile dest = CSVFile.open(path, CSVFile.READ_MODE);
         String line;
+        CSVFile dest = CSVFile.open(path, CSVFile.READ_MODE);
         for (int i = 0; i < serials.size(); i += 1)
         {
             line = "";
