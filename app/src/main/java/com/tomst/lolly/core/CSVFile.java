@@ -271,6 +271,7 @@ public class CSVFile
         String dest_path = split_path[0] + "_parallel.csv";
         if (CSVFile.exists(dest_path))
         {
+            Log.d(TAG, dest_path + " already exists!");
             return 2;
         }
 
@@ -384,6 +385,7 @@ public class CSVFile
         String dest_path = split_path[0] + ".csv";
         if (CSVFile.exists(dest_path))
         {
+            Log.d(TAG, dest_path + " already exists!");
             return 2;
         }
 

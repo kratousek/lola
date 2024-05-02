@@ -234,8 +234,18 @@ public class GraphFragment extends Fragment
         DoBtnClick(binding.vT3);
     }
 
-    private void loadCSVFile(String fileName)
+    private int loadCSVFile(String fileName)
     {
+        if (fileName.contains("_parallel"))
+        {
+            Log.d(
+            "GRAPH",
+                    fileName + " cannot be visualized because it is"
+                    + " in parallel format!"
+            );
+            return 1;
+        }
+
         Toast.makeText(getContext(), "loading", Toast.LENGTH_SHORT).show();
         float dateNum;
         //boolean firstDate = true;
@@ -328,6 +338,8 @@ public class GraphFragment extends Fragment
             // move to next line
             currentLine = csv.readLine();
         }
+
+        return 0;
     }
 
     private TMereni processLine(String line)
@@ -426,6 +438,7 @@ public class GraphFragment extends Fragment
         dmd.getMessageContainerGraph()
                 .observe(getViewLifecycleOwner(), msg ->
                 {
+                    int loadCSVCode = 0;
                     Log.d("GRAPH", "Received: " + msg);
                     if (msg.equals("TMD"))
                     {
@@ -446,14 +459,17 @@ public class GraphFragment extends Fragment
                                             + mergedFileName
                             );
 
-                            loadCSVFile(mergedFileName);
+                            loadCSVCode = loadCSVFile(mergedFileName);
                         }
                         else
                         {
-                            loadCSVFile(fileNames[0]);
+                            loadCSVCode = loadCSVFile(fileNames[0]);
                         }
 
-                        DisplayData();
+                        if (loadCSVCode == 0)
+                        {
+                            DisplayData();
+                        }
                     }
 
                     dmd.getMessageContainerGraph()
