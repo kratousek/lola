@@ -211,11 +211,26 @@ public class ListFragment extends Fragment
                 );
                 ArrayList<String> fileNames = friendsAdapter.collectSelected();
 
+                int convert_res = 0;
+                final String LAST_OCCURENCE = ".*/";
                 for (String fileName : fileNames)
                 {
-                    CSVFile.toSerial(fileName);
+                    convert_res = CSVFile.toSerial(fileName);
+                    if (convert_res == 2)
+                    {
+                        Toast.makeText(
+                                getContext(),
+                                fileName.split(LAST_OCCURENCE)[1]
+                                        + " already exists!",
+                                Toast.LENGTH_SHORT
+                        ).show();
+                    }
                 }
-                Log.d(TAG, "Conversion complete!");
+                Toast.makeText(
+                        getContext(),
+                        "Conversion complete!",
+                        Toast.LENGTH_SHORT
+                ).show();
             }
         });
         toParallelBtn.setOnClickListener(new View.OnClickListener()
@@ -229,11 +244,26 @@ public class ListFragment extends Fragment
                 );
                 ArrayList<String> fileNames = friendsAdapter.collectSelected();
 
+                int convert_res = 0;
+                final String LAST_OCCURENCE = ".*/";
                 for (String fileName : fileNames)
                 {
-                    CSVFile.toParallel(fileName);
+                    convert_res = CSVFile.toParallel(fileName);
+                    if (convert_res == 2)
+                    {
+                        Toast.makeText(
+                                getContext(),
+                                fileName.split(LAST_OCCURENCE)[1]
+                                        + " already exists!",
+                                Toast.LENGTH_SHORT
+                        ).show();
+                    }
                 }
-                Log.d(TAG, "Conversion complete!");
+                Toast.makeText(
+                        getContext(),
+                        "Conversion complete!",
+                        Toast.LENGTH_SHORT
+                ).show();
             }
         });
 
@@ -301,11 +331,12 @@ public class ListFragment extends Fragment
                 }
                 else
                 {
-                    Log.d(
-                        TAG,
-                        "Parallel formated files are unable to be"
-                            + " visualized!"
-                    );
+                    Toast.makeText(
+                        getContext(),
+                        "Parallel formatted files are unable to be"
+                            + " visualized!",
+                            Toast.LENGTH_SHORT
+                    ).show();
                 }
             }
         });
