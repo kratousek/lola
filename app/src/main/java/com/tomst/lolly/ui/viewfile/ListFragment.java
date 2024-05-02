@@ -294,8 +294,19 @@ public class ListFragment extends Fragment
                     fileNameMsg += fileName + ";";
                 }
 
-                dmd.sendMessageToGraph(fileNameMsg);
-                switchToGraphFragment();
+                if (!fileNameMsg.contains("_parallel"))
+                {
+                    dmd.sendMessageToGraph(fileNameMsg);
+                    switchToGraphFragment();
+                }
+                else
+                {
+                    Log.d(
+                        TAG,
+                        "Parallel formated files are unable to be"
+                            + " visualized!"
+                    );
+                }
             }
         });
 
