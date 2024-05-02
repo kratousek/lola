@@ -281,26 +281,31 @@ public class CSVFile
         while (split.length > 1)
         {
             serials.add(split);
-            data.add(new ArrayList<String>());
             split = src.readLine().split(DELIM);
         }
+        data.ensureCapacity(25000);
 
-        int datasetIdx = 0;
+        int lineIdx = 0;
         while ((currentLine = src.readLine()) != "")
         {
             if (currentLine.split(DELIM).length == 1)
             {
-                datasetIdx += 1;
+                lineIdx = 0;
             }
             else
             {
-                data.get(datasetIdx).add(currentLine);
+                if (data.size() == lineIdx)
+                {
+                    data.add(new ArrayList<String>());
+                }
+
+                data.get(lineIdx).add(currentLine);
+                lineIdx += 1;
             }
         }
         src.close();
 
         String split_path[] = path.split("\\.");
-        Log.d(TAG, "Split path = " + split_path[0] + split_path[1]);
         String dest_path = split_path[0] + "_parallel.csv";
         CSVFile dest = CSVFile.create(dest_path);
         // write header
@@ -323,7 +328,7 @@ public class CSVFile
         for (int i = 0; i < serials.size(); i += 1)
         {
             line += serials.get(i)[0] + DELIM
-                + "2" + DELIM
+                + "data" + DELIM
                 + "temp1" + DELIM
                 + "temp2" + DELIM
                 + "temp3" + DELIM
@@ -334,6 +339,15 @@ public class CSVFile
         dest.write(line + "\n");
 
         // write data
+        for (int l = 0; l < data.size(); l += 1)
+        {
+            line = "";
+            for (int d = 0; d < data.get(l).size(); d += 1)
+            {
+                line += data.get(l).get(d);
+            }
+            dest.write(line + "\n");
+        }
         dest.close();
 
         return 0;
