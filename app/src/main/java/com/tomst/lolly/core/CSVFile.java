@@ -326,14 +326,14 @@ public class CSVFile
         line = "";
         for (int i = 0; i < serials.size(); i += 1)
         {
-            line += serials.get(i)[0] + DELIM
-                + "data" + DELIM
-                + "temp1" + DELIM
-                + "temp2" + DELIM
-                + "temp3" + DELIM
-                + "humidity" + DELIM
-                + "mvs" + DELIM
-                + "8" + DELIM;
+            line += serials.get(i)[0] + "!"
+                + "date" + "!"
+                + "temp1" + "!"
+                + "temp2" + "!"
+                + "temp3" + "!"
+                + "humidity" + "!"
+                + "mvs" + "!"
+                + "8" + "!";
         }
         dest.write(line + "\n");
 
