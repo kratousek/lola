@@ -31,7 +31,7 @@ public class CSVFile
     private static final String DELIM = ";";
 
     // positional consts for indexing
-    private static final byte POINT_LEN = 8;
+    private static final byte POINT_LEN = 9;
     private static final byte DATETIME_INDEX = 1;
     private static final byte TEMP1_INDEX = 3;
     private static final byte TEMP2_INDEX = 4;
@@ -380,7 +380,7 @@ public class CSVFile
         ArrayList<ArrayList<String>> data = new ArrayList<ArrayList<String>>();
 
         currentLine = src.readLine();
-        int numDataSets = Integer.parseInt(currentLine);
+        int numDataSets = Integer.parseInt(currentLine.split(DELIM)[0]);
         for (int i = 0; i < numDataSets; i += 1)
         {
             currentLine = src.readLine();
@@ -389,28 +389,23 @@ public class CSVFile
         }
         src.readLine();  // consume column names - already have in `serials`
 
-        while ((split = src.readLine().split(DELIM)).length > 0)
+        while ((currentLine = src.readLine()) != "")
         {
+            split = currentLine.split(DELIM);
             for (int i = 0; i < numDataSets; i += 1)
             {
-                data.get(i).add(
-                        split[i * POINT_LEN + 0] + DELIM
-                                + split[i * POINT_LEN + DATETIME_INDEX] + DELIM
-                                + split[i * POINT_LEN + 2] + DELIM
-                                + split[i * POINT_LEN + TEMP1_INDEX] + DELIM
-                                + split[i * POINT_LEN + TEMP2_INDEX] + DELIM
-                                + split[i * POINT_LEN + TEMP3_INDEX] + DELIM
-                                + split[i * POINT_LEN + HUMIDITY_INDEX] + DELIM
-                                + split[i * POINT_LEN + MVS_INDEX] + DELIM
-                                + split[i * POINT_LEN + 8] + DELIM
-                );
+                if ((i * POINT_LEN) < split.length)
+                {
+                    data.get(i).add(
+                            split[i * POINT_LEN + 0] + DELIM + split[i * POINT_LEN + DATETIME_INDEX] + DELIM + split[i * POINT_LEN + 2] + DELIM + split[i * POINT_LEN + TEMP1_INDEX] + DELIM + split[i * POINT_LEN + TEMP2_INDEX] + DELIM + split[i * POINT_LEN + TEMP3_INDEX] + DELIM + split[i * POINT_LEN + HUMIDITY_INDEX] + DELIM + split[i * POINT_LEN + MVS_INDEX] + DELIM + split[i * POINT_LEN + 8] + DELIM);
+                }
                 // magic numbers are place holders until I figure out what data
                 // is at those indices
             }
         }
         src.close();
 
-        String line;
+        String line = "";
         String split_path[] = path.split("\\.");
         String dest_path = split_path[0] + "_serial.csv";
         CSVFile dest = CSVFile.create(dest_path);
@@ -422,15 +417,15 @@ public class CSVFile
         }
 
         // write data
-//        for (int i = 0; i < numDataSets; i += 1)
-//        {
-//            dest.write(serials.get(i)[0]);
-//
-//            for (int j = 0; j < data.get(i).size(); i += 1)
-//            {
-//                dest.write(data.get(i).get(j) + "\n");
-//            }
-//        }
+        for (int s = 0; s < serials.size(); s += 1)
+        {
+            dest.write(serials.get(s).split(DELIM)[0] + DELIM + "\n");
+
+            for (int d = 0; d < data.get(s).size(); d += 1)
+            {
+                dest.write(data.get(s).get(d) + "\n");
+            }
+        }
         dest.close();
 
         return 0;
