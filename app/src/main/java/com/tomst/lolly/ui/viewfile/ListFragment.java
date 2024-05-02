@@ -57,6 +57,7 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
 import com.tomst.lolly.R;
+import com.tomst.lolly.core.CSVFile;
 import com.tomst.lolly.core.CSVReader;
 import com.tomst.lolly.core.Constants;
 import com.tomst.lolly.core.DmdViewModel;
@@ -93,8 +94,13 @@ public class ListFragment extends Fragment
     private FragmentViewerBinding binding;
     private View rootView = null;
     private int mywidth;
-    private Bitmap fileImage, pictureImage, audioImage,
-            videoImage, unknownImage, archiveImage,
+    private Bitmap
+            fileImage,
+            pictureImage,
+            audioImage,
+            videoImage,
+            unknownImage,
+            archiveImage,
             folderImage;
     private PermissionManager permissionManager;
     private String filePath;
@@ -115,7 +121,8 @@ public class ListFragment extends Fragment
 
 
     public View onCreateView(
-            @NonNull LayoutInflater inflater, ViewGroup container,
+            @NonNull LayoutInflater inflater,
+            ViewGroup container,
             Bundle savedInstanceState
     ) {
         ListViewModel listViewModel =
@@ -187,6 +194,46 @@ public class ListFragment extends Fragment
             public void onClick(View view)
             {
                 shareData();
+            }
+        });
+
+        Button toSerialBtn = binding.toSerial;
+        Button toParallelBtn = binding.toParellel;
+
+        toSerialBtn.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                String convertFiles = "";
+                FileViewerAdapter friendsAdapter = new FileViewerAdapter(
+                        getContext(), fFriends
+                );
+                ArrayList<String> fileNames = friendsAdapter.collectSelected();
+
+                for (String fileName : fileNames)
+                {
+                    CSVFile.toSerial(fileName);
+                }
+                Log.d(TAG, "Conversion complete!");
+            }
+        });
+        toParallelBtn.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                String convertFiles = "";
+                FileViewerAdapter friendsAdapter = new FileViewerAdapter(
+                        getContext(), fFriends
+                );
+                ArrayList<String> fileNames = friendsAdapter.collectSelected();
+
+                for (String fileName : fileNames)
+                {
+                    CSVFile.toParallel(fileName);
+                }
+                Log.d(TAG, "Conversion complete!");
             }
         });
 

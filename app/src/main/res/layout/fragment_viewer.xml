@@ -35,7 +35,6 @@
                 android:backgroundTint="#f1a833"
                 android:text="graph"
                 android:textAlignment="center" />
-
         </LinearLayout>
 
         <LinearLayout
@@ -60,7 +59,29 @@
                 android:text="Share"
                 android:textAlignment="center"
                 android:backgroundTint="#f1a833"/>
+        </LinearLayout>
+        
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
 
+            <Button
+                android:id="@+id/toSerial"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Convert to Serial"
+                android:textAlignment="center"
+                android:backgroundTint="#f1a833"/>
+
+            <Button
+                android:id="@+id/toParellel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="Convert to Parallel"
+                android:textAlignment="center"
+                android:backgroundTint="#f1a833"/>
         </LinearLayout>
 
         <androidx.cardview.widget.CardView
@@ -80,11 +101,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_margin="16dp">
-
             </ListView>
-
         </androidx.cardview.widget.CardView>
-
     </LinearLayout>
 
     <ProgressBar
@@ -92,7 +110,5 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:visibility="gone" />
-
-
+        android:visibility="gone"/>
 </RelativeLayout>
