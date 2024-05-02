@@ -200,6 +200,24 @@ public class ListFragment extends Fragment
         Button toSerialBtn = binding.toSerial;
         Button toParallelBtn = binding.toParellel;
 
+        toSerialBtn.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                String convertFiles = "";
+                FileViewerAdapter friendsAdapter = new FileViewerAdapter(
+                        getContext(), fFriends
+                );
+                ArrayList<String> fileNames = friendsAdapter.collectSelected();
+
+                for (String fileName : fileNames)
+                {
+                    CSVFile.toSerial(fileName);
+                }
+                Log.d(TAG, "Conversion complete!");
+            }
+        });
         toParallelBtn.setOnClickListener(new View.OnClickListener()
         {
             @Override

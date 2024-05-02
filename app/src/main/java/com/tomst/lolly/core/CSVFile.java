@@ -258,7 +258,6 @@ public class CSVFile
      * you wish to preserve the source file.
      * @apiNote Failure codes and their descriptions:
      * 1 = File specified does not exist
-     * 2 = File is not a merged file
      */
     public static int toParallel(String path)
     {
@@ -366,7 +365,6 @@ public class CSVFile
      * you wish to preserve the source file.
      * @apiNote Failure codes and their descriptions:
      * 1 = File specified does not exist
-     * 2 = File is not a merged file
      */
     public static int toSerial(String path)
     {
@@ -378,20 +376,15 @@ public class CSVFile
         CSVFile src = CSVFile.open(path, READ_MODE);
         String currentLine = "";
         String[] split;
-        ArrayList<String[]> serials = new ArrayList<String[]>();
+        ArrayList<String> serials = new ArrayList<String>();
         ArrayList<ArrayList<String>> data = new ArrayList<ArrayList<String>>();
 
-        int numDataSets = 0;
         currentLine = src.readLine();
-        if ((numDataSets = Integer.parseInt(currentLine.split(DELIM)[0])) == 1)
-        {
-            return 2;
-        }
-
+        int numDataSets = Integer.parseInt(currentLine);
         for (int i = 0; i < numDataSets; i += 1)
         {
-            split = src.readLine().split(DELIM);
-            serials.add(split);
+            currentLine = src.readLine();
+            serials.add(currentLine);
             data.add(new ArrayList<String>());
         }
         src.readLine();  // consume column names - already have in `serials`
@@ -418,28 +411,26 @@ public class CSVFile
         src.close();
 
         String line;
-        CSVFile dest = CSVFile.open(path, CSVFile.READ_MODE);
+        String split_path[] = path.split("\\.");
+        String dest_path = split_path[0] + "_serial.csv";
+        CSVFile dest = CSVFile.create(dest_path);
+        // write header
+        dest.write(serials.size() + DELIM + "\n");
         for (int i = 0; i < serials.size(); i += 1)
         {
-            line = "";
-
-            for (int j = 0; j < serials.get(i).length; j += 1)
-            {
-                line += serials.get(i)[j] + DELIM;
-            }
-
-            dest.write(line + "\n");
+            dest.write(serials.get(i) + "\n");
         }
 
-        for (int i = 0; i < numDataSets; i += 1)
-        {
-            dest.write(serials.get(i)[0]);
-
-            for (int j = 0; j < data.get(i).size(); i += 1)
-            {
-                dest.write(data.get(i).get(j) + "\n");
-            }
-        }
+        // write data
+//        for (int i = 0; i < numDataSets; i += 1)
+//        {
+//            dest.write(serials.get(i)[0]);
+//
+//            for (int j = 0; j < data.get(i).size(); i += 1)
+//            {
+//                dest.write(data.get(i).get(j) + "\n");
+//            }
+//        }
         dest.close();
 
         return 0;
