@@ -4,15 +4,36 @@
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
         android:orientation="vertical"
         tools:context=".ui.graph.GraphFragment">
 
         <com.github.mikephil.charting.charts.CombinedChart
             android:id="@+id/chart1"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="6500dp"
             android:layout_weight="9"
-            android:textAlignment="center" />
+            android:textAlignment="center"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingLeft="75dp"
+            >
+
+                <CheckBox
+                    android:id="@+id/vGrowth"
+                    android:tag = "4"
+                    android:checked="true"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_weight="9"
+
+                    android:text="Growth: ▬ ▬ ▬ ▬ ▬ ▬"/>
+
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -26,8 +47,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:layout_weight="9"
-                    android:buttonTint="@color/vT1"
-                    android:text="T1"/>
+                    android:text="Temp 1:          ▬▬▬▬▬"/>
 
                 <CheckBox
                     android:id="@+id/vT2"
@@ -36,8 +56,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:layout_weight="9"
-                    android:buttonTint="@color/vT2"
-                    android:text="T2" />
+                    android:text="Temp 2:          ━━━━━━━━"/>
 
                 <CheckBox
                     android:id="@+id/vT3"
@@ -46,19 +65,31 @@
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:layout_weight="9"
-                    android:buttonTint="@color/vT3"
-                    android:text="T3" />
+                    android:text="Temp 3:          ⎯⎯⎯⎯⎯"/>
 
-                <CheckBox
-                    android:id="@+id/vHum"
-                    android:tag = "4"
-                    android:checked="true"
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/add_layer"
                     android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_weight="9"
-                    android:buttonTint="@color/vHum"
-                    android:text="Hum/AD"/>
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Add Layer"
+                    android:textAlignment="center"/>
 
+                <Button
+                    android:id="@+id/export"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="150dp"
+                    android:layout_weight="1"
+                    android:text="Export"
+                    android:textAlignment="center"/>
         </LinearLayout>
 
         <ProgressBar
@@ -68,9 +99,5 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_gravity="bottom"
-            android:layout_marginBottom="60dp"
-            />
-
-
-
+            android:layout_marginBottom="60dp"/>
 </LinearLayout>

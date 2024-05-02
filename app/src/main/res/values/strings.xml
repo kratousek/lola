@@ -9,13 +9,13 @@
 
 
     <string-array name="download_array">
-        <item>None</item>
-        <item>All</item>
-        <item>From bookmark</item>
-        <item>From date</item>
+        <item>Read From:</item>
+        <item>Read All</item>
+        <item>Read From Bookmark</item>
+        <item>Read From Date</item>
     </string-array>
 
-   <string name="measurement_mode">Choose a measurement mode</string>
+    <string name="measurement_mode">Choose a measurement mode</string>
     <string-array name="modes_array">
         <item>None</item>
         <item>Basic</item>
@@ -77,6 +77,9 @@
     <string name="versionName">Version</string>
     <string name="version_unknown">Unknown</string>
     <string name="dash_text">,</string>
+    <string name="login">login</string>
+    <string name="email" />
+    <string name="Login" />
 
 
     <string-array name="friends">

@@ -3,12 +3,15 @@ package com.tomst.lolly;
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 
+import static java.sql.DriverManager.println;
+
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -22,29 +25,55 @@ import android.os.IBinder;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.github.mikephil.charting.data.Entry;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
+import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
 import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.Firebase;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.database.FirebaseDatabase;
 import com.tomst.lolly.core.Constants;
 import com.tomst.lolly.core.FileOpener;
 import com.tomst.lolly.core.PermissionManager;
 import com.tomst.lolly.databinding.ActivityMainBinding;
 import com.tomst.lolly.core.DmdViewModel;
+import com.tomst.lolly.ui.options.OptionsFragment;
+
+import org.w3c.dom.Text;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+
 
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
@@ -67,6 +96,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public MainActivity(){
         fopen = new FileOpener(this);
     }
+
 
     private ServiceConnection connection = new ServiceConnection() {
         private boolean bound;
@@ -257,6 +287,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 .show();
     }
 
+    // for user authentication
+    FirebaseAuth auth;
+    FirebaseUser user;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -266,28 +299,49 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(binding.getRoot());
 
         view = binding.getRoot();
-        
-       // permissionManager = new PermissionManager(this);
+
+        // remove stupid line on bottom of action bar
+        getSupportActionBar().setElevation(0);
+
+        // for user authentication
+        auth = FirebaseAuth.getInstance();
+        user = auth.getCurrentUser();
+
+        /*
+        if (user == null)
+        {
+            Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+            startActivity(intent);
+            finish();
+        }
+        */
+
+        // permissionManager = new PermissionManager(this);
 
         Intent intent = getIntent();
-        switch (intent.getAction()) {
-            case Intent.ACTION_GET_CONTENT :
-                fopen.isRequestDocument = true;
-                setResult(RESULT_CANCELED);
-                break;
-            case Intent.ACTION_OPEN_DOCUMENT : {
-                fopen.isRequestDocument = true;
-                setResult(RESULT_CANCELED);
-                break;
+        String action = intent.getAction();
+
+        if (action != null)
+        {
+            switch (intent.getAction()) {
+                case Intent.ACTION_GET_CONTENT:
+                    fopen.isRequestDocument = true;
+                    setResult(RESULT_CANCELED);
+                    break;
+                case Intent.ACTION_OPEN_DOCUMENT: {
+                    fopen.isRequestDocument = true;
+                    setResult(RESULT_CANCELED);
+                    break;
+                }
+                default:
+                    fopen.isRequestDocument = false;
             }
-            default :
-                fopen.isRequestDocument = false;
         }
 
         //checkPermission();
-         if (!checkPermission()) {
+        if (!checkPermission()) {
             requestPermission();
-         }
+        }
 
         // sdileny datovy modul
         dmdViewModel = new ViewModelProvider(this).get(DmdViewModel.class);
@@ -296,11 +350,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
         AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.navigation_home, R.id.navigation_graph, R.id.navigation_notifications,R.id.navigation_options)
+                R.id.navigation_home, R.id.navigation_graph, R.id.navigation_notifications, R.id.navigation_options)
                 .build();
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_main);
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(binding.navView, navController);
+
     }
 
 }
