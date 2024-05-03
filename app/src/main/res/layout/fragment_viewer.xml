@@ -66,13 +66,13 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
-<!--            <Button-->
-<!--                android:id="@+id/toSerial"-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:text="Convert to Serial"-->
-<!--                android:textAlignment="center"-->
-<!--                android:backgroundTint="#f1a833"/>-->
+            <Button
+                android:id="@+id/toSerial"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Convert to Serial"
+                android:textAlignment="center"
+                android:backgroundTint="#f1a833"/>
 
             <Button
                 android:id="@+id/toParellel"

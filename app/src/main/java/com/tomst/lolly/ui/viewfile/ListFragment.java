@@ -197,7 +197,7 @@ public class ListFragment extends Fragment
             }
         });
 
-//        Button toSerialBtn = binding.toSerial;
+        Button toSerialBtn = binding.toSerial;
         Button toParallelBtn = binding.toParellel;
 
         toSerialBtn.setOnClickListener(new View.OnClickListener()
