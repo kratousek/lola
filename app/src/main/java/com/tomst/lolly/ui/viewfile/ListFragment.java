@@ -197,7 +197,7 @@ public class ListFragment extends Fragment
             }
         });
 
-        Button toSerialBtn = binding.toSerial;
+//        Button toSerialBtn = binding.toSerial;
         Button toParallelBtn = binding.toParellel;
 
         toSerialBtn.setOnClickListener(new View.OnClickListener()
@@ -238,6 +238,7 @@ public class ListFragment extends Fragment
             @Override
             public void onClick(View view)
             {
+                Toast.makeText(getContext(), "Converting to Parallel", Toast.LENGTH_LONG).show();
                 String convertFiles = "";
                 FileViewerAdapter friendsAdapter = new FileViewerAdapter(
                         getContext(), fFriends
