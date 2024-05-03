@@ -20,7 +20,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:paddingLeft="75dp"
+            android:paddingLeft="57dp"
             >
 
                 <CheckBox
@@ -31,7 +31,7 @@
                     android:layout_height="match_parent"
                     android:layout_weight="9"
 
-                    android:text="Growth: ▬ ▬ ▬ ▬ ▬ ▬"/>
+                    android:text="Growth/Humidity: ▬ ▬ ▬ ▬ ▬ ▬"/>
 
         </LinearLayout>
 
