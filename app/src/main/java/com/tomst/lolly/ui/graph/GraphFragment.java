@@ -227,11 +227,11 @@ public class GraphFragment extends Fragment
                 chart.getAxisLeft().getAxisDependency(), 3000
         );
 
-        headerIndex = ogHeaderIndex;
-
         //Default: Do Not Display T2 and T3
         DoBtnClick(binding.vT2);
         DoBtnClick(binding.vT3);
+
+        headerIndex = ogHeaderIndex;
     }
 
     private void loadCSVFile(String fileName)
@@ -433,6 +433,10 @@ public class GraphFragment extends Fragment
                         // vytahne data z dmd, ktere sem poslal TMD adapter
                         // pulls data from dendrometer
                         LoadDmdData();
+
+                        //Default: Do Not Display T2 and T3
+                        DoBtnClick(binding.vT2);
+                        DoBtnClick(binding.vT3);
                     }
                     else
                     {
@@ -536,8 +540,6 @@ public class GraphFragment extends Fragment
 
         combinedData = new CombinedData();
 
-        //chart.invalidate();
-        //setRandomData(400,100);
         return root;
     }
 
