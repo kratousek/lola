@@ -57,6 +57,7 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
 import com.tomst.lolly.R;
+import com.tomst.lolly.core.CSVFile;
 import com.tomst.lolly.core.CSVReader;
 import com.tomst.lolly.core.Constants;
 import com.tomst.lolly.core.DmdViewModel;
@@ -93,8 +94,13 @@ public class ListFragment extends Fragment
     private FragmentViewerBinding binding;
     private View rootView = null;
     private int mywidth;
-    private Bitmap fileImage, pictureImage, audioImage,
-            videoImage, unknownImage, archiveImage,
+    private Bitmap
+            fileImage,
+            pictureImage,
+            audioImage,
+            videoImage,
+            unknownImage,
+            archiveImage,
             folderImage;
     private PermissionManager permissionManager;
     private String filePath;
@@ -115,7 +121,8 @@ public class ListFragment extends Fragment
 
 
     public View onCreateView(
-            @NonNull LayoutInflater inflater, ViewGroup container,
+            @NonNull LayoutInflater inflater,
+            ViewGroup container,
             Bundle savedInstanceState
     ) {
         ListViewModel listViewModel =
@@ -190,6 +197,76 @@ public class ListFragment extends Fragment
             }
         });
 
+        Button toSerialBtn = binding.toSerial;
+        Button toParallelBtn = binding.toParellel;
+
+        toSerialBtn.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                String convertFiles = "";
+                FileViewerAdapter friendsAdapter = new FileViewerAdapter(
+                        getContext(), fFriends
+                );
+                ArrayList<String> fileNames = friendsAdapter.collectSelected();
+
+                int convert_res = 0;
+                final String LAST_OCCURENCE = ".*/";
+                for (String fileName : fileNames)
+                {
+                    convert_res = CSVFile.toSerial(fileName);
+                    if (convert_res == 2)
+                    {
+                        Toast.makeText(
+                                getContext(),
+                                fileName.split(LAST_OCCURENCE)[1]
+                                        + " already exists!",
+                                Toast.LENGTH_SHORT
+                        ).show();
+                    }
+                }
+                Toast.makeText(
+                        getContext(),
+                        "Conversion complete!",
+                        Toast.LENGTH_SHORT
+                ).show();
+            }
+        });
+        toParallelBtn.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                String convertFiles = "";
+                FileViewerAdapter friendsAdapter = new FileViewerAdapter(
+                        getContext(), fFriends
+                );
+                ArrayList<String> fileNames = friendsAdapter.collectSelected();
+
+                int convert_res = 0;
+                final String LAST_OCCURENCE = ".*/";
+                for (String fileName : fileNames)
+                {
+                    convert_res = CSVFile.toParallel(fileName);
+                    if (convert_res == 2)
+                    {
+                        Toast.makeText(
+                                getContext(),
+                                fileName.split(LAST_OCCURENCE)[1]
+                                        + " already exists!",
+                                Toast.LENGTH_SHORT
+                        ).show();
+                    }
+                }
+                Toast.makeText(
+                        getContext(),
+                        "Conversion complete!",
+                        Toast.LENGTH_SHORT
+                ).show();
+            }
+        });
+
         dmd = new ViewModelProvider(getActivity()).get(DmdViewModel.class);
         dmd.sendMessageToGraph("");
 
@@ -247,8 +324,20 @@ public class ListFragment extends Fragment
                     fileNameMsg += fileName + ";";
                 }
 
-                dmd.sendMessageToGraph(fileNameMsg);
-                switchToGraphFragment();
+                if (!fileNameMsg.contains("_parallel"))
+                {
+                    dmd.sendMessageToGraph(fileNameMsg);
+                    switchToGraphFragment();
+                }
+                else
+                {
+                    Toast.makeText(
+                        getContext(),
+                        "Parallel formatted files are unable to be"
+                            + " visualized!",
+                            Toast.LENGTH_SHORT
+                    ).show();
+                }
             }
         });
 
