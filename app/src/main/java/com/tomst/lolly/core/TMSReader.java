@@ -5,6 +5,9 @@ import android.content.Context;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.hardware.usb.UsbManager;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -863,12 +866,17 @@ public class TMSReader extends Thread
                     SendMeasure(TDevState.tFinishedData,"FINISHED!");
                     devState = TDevState.tWaitInLimbo;
 
-                    Toast.makeText(this.context, "Finished!", Toast.LENGTH_SHORT).show();
+                    // tell the user it has downloaded, and play a sound
+                    Toast.makeText(this.context, "Finished! Remove the device!", Toast.LENGTH_SHORT).show();
+                    Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+                    Ringtone ringtone = RingtoneManager.getRingtone(context, notification);
+                    ringtone.play();
+
                     break;
 
                 case tWaitInLimbo:
                     try {
-                        Thread.sleep(1000); // 1 second
+                        Thread.sleep(5000); // 5 seconds
                         devState = TDevState.tStart;
                     } catch (InterruptedException e) {
                         e.printStackTrace();
