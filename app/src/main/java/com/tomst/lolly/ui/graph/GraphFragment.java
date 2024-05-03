@@ -234,9 +234,8 @@ public class GraphFragment extends Fragment
         DoBtnClick(binding.vT3);
     }
 
-    private void loadCSVFile(String fileName)
+    private int loadCSVFile(String fileName)
     {
-        Toast.makeText(getContext(), "loading", Toast.LENGTH_SHORT).show();
         float dateNum;
         //boolean firstDate = true;
         boolean hasHeader = true;
@@ -245,6 +244,18 @@ public class GraphFragment extends Fragment
 
         currentLine = csv.readLine();
 
+        Log.d("GRAPH", "Current line = " + currentLine);
+        if (currentLine == "")
+        {
+            Toast.makeText(
+                getContext(),
+                fileName.split(".*/")[1] + " is empty!",
+                Toast.LENGTH_SHORT
+            ).show();
+            return 1;
+        }
+
+        Toast.makeText(getContext(), "loading", Toast.LENGTH_SHORT).show();
         // length 1 if dataset count is first line
         if (currentLine.split(";").length == 1) {
             // file has a header
@@ -328,6 +339,8 @@ public class GraphFragment extends Fragment
             // move to next line
             currentLine = csv.readLine();
         }
+
+        return 0;
     }
 
     private TMereni processLine(String line)
@@ -427,6 +440,7 @@ public class GraphFragment extends Fragment
                 .observe(getViewLifecycleOwner(), msg ->
                 {
                     Log.d("GRAPH", "Received: " + msg);
+                    int load_res = 0;
                     if (msg.equals("TMD"))
                     {
                         // vytahne data z dmd, ktere sem poslal TMD adapter
@@ -446,14 +460,17 @@ public class GraphFragment extends Fragment
                                             + mergedFileName
                             );
 
-                            loadCSVFile(mergedFileName);
+                            load_res = loadCSVFile(mergedFileName);
                         }
                         else
                         {
-                            loadCSVFile(fileNames[0]);
+                            load_res = loadCSVFile(fileNames[0]);
                         }
 
-                        DisplayData();
+                        if (load_res == 0)
+                        {
+                            DisplayData();
+                        }
                     }
 
                     dmd.getMessageContainerGraph()
