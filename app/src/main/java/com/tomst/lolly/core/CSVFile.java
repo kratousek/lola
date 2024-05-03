@@ -258,13 +258,21 @@ public class CSVFile
      * you wish to preserve the source file.
      * @apiNote Failure codes and their descriptions:
      * 1 = File specified does not exist
+     * 2 = Destination file already exists
      */
     public static int toParallel(String path)
     {
         if (!CSVFile.exists(path))
         {
-            Log.d(TAG, path + " already exists!");
             return 1;
+        }
+
+        String split_path[] = path.split("\\.");
+        String dest_path = split_path[0] + "_parallel.csv";
+        if (CSVFile.exists(dest_path))
+        {
+            Log.d(TAG, dest_path + " already exists!");
+            return 2;
         }
 
         CSVFile src = CSVFile.open(path, READ_MODE);
@@ -304,8 +312,6 @@ public class CSVFile
         }
         src.close();
 
-        String split_path[] = path.split("\\.");
-        String dest_path = split_path[0] + "_parallel.csv";
         CSVFile dest = CSVFile.create(dest_path);
         // write header
         dest.write(serials.size() + ";\n");
@@ -326,14 +332,15 @@ public class CSVFile
         line = "";
         for (int i = 0; i < serials.size(); i += 1)
         {
-            line += serials.get(i)[0] + DELIM
-                + "data" + DELIM
-                + "temp1" + DELIM
-                + "temp2" + DELIM
-                + "temp3" + DELIM
-                + "humidity" + DELIM
-                + "mvs" + DELIM
-                + "8" + DELIM;
+            line += "line number" + "!"
+                + serials.get(i)[0] + "!"
+                + "date" + "!"
+                + "temp1" + "!"
+                + "temp2" + "!"
+                + "temp3" + "!"
+                + "humidity" + "!"
+                + "mvs" + "!"
+                + "8" + "!";
         }
         dest.write(line + "\n");
 
@@ -365,12 +372,21 @@ public class CSVFile
      * you wish to preserve the source file.
      * @apiNote Failure codes and their descriptions:
      * 1 = File specified does not exist
+     * 2 = Destination file already exists
      */
     public static int toSerial(String path)
     {
         if (!CSVFile.exists(path))
         {
             return 1;
+        }
+
+        String split_path[] = path.split("_parallel");
+        String dest_path = split_path[0] + ".csv";
+        if (CSVFile.exists(dest_path))
+        {
+            Log.d(TAG, dest_path + " already exists!");
+            return 2;
         }
 
         CSVFile src = CSVFile.open(path, READ_MODE);
@@ -397,7 +413,16 @@ public class CSVFile
                 if ((i * POINT_LEN) < split.length)
                 {
                     data.get(i).add(
-                            split[i * POINT_LEN + 0] + DELIM + split[i * POINT_LEN + DATETIME_INDEX] + DELIM + split[i * POINT_LEN + 2] + DELIM + split[i * POINT_LEN + TEMP1_INDEX] + DELIM + split[i * POINT_LEN + TEMP2_INDEX] + DELIM + split[i * POINT_LEN + TEMP3_INDEX] + DELIM + split[i * POINT_LEN + HUMIDITY_INDEX] + DELIM + split[i * POINT_LEN + MVS_INDEX] + DELIM + split[i * POINT_LEN + 8] + DELIM);
+                            split[i * POINT_LEN + 0] + DELIM
+                                + split[i * POINT_LEN + DATETIME_INDEX] + DELIM
+                                + split[i * POINT_LEN + 2] + DELIM
+                                + split[i * POINT_LEN + TEMP1_INDEX] + DELIM
+                                + split[i * POINT_LEN + TEMP2_INDEX] + DELIM
+                                + split[i * POINT_LEN + TEMP3_INDEX] + DELIM
+                                + split[i * POINT_LEN + HUMIDITY_INDEX] + DELIM
+                                + split[i * POINT_LEN + MVS_INDEX] + DELIM
+                                + split[i * POINT_LEN + 8] + DELIM
+                    );
                 }
                 // magic numbers are place holders until I figure out what data
                 // is at those indices
@@ -406,8 +431,6 @@ public class CSVFile
         src.close();
 
         String line = "";
-        String split_path[] = path.split("\\.");
-        String dest_path = split_path[0] + "_serial.csv";
         CSVFile dest = CSVFile.create(dest_path);
         // write header
         dest.write(serials.size() + DELIM + "\n");

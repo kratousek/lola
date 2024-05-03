@@ -200,24 +200,39 @@ public class ListFragment extends Fragment
 //        Button toSerialBtn = binding.toSerial;
         Button toParallelBtn = binding.toParellel;
 
-//        toSerialBtn.setOnClickListener(new View.OnClickListener()
-//        {
-//            @Override
-//            public void onClick(View view)
-//            {
-//                String convertFiles = "";
-//                FileViewerAdapter friendsAdapter = new FileViewerAdapter(
-//                        getContext(), fFriends
-//                );
-//                ArrayList<String> fileNames = friendsAdapter.collectSelected();
-//
-//                for (String fileName : fileNames)
-//                {
-//                    CSVFile.toSerial(fileName);
-//                }
-//                Log.d(TAG, "Conversion complete!");
-//            }
-//        });
+        toSerialBtn.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                String convertFiles = "";
+                FileViewerAdapter friendsAdapter = new FileViewerAdapter(
+                        getContext(), fFriends
+                );
+                ArrayList<String> fileNames = friendsAdapter.collectSelected();
+
+                int convert_res = 0;
+                final String LAST_OCCURENCE = ".*/";
+                for (String fileName : fileNames)
+                {
+                    convert_res = CSVFile.toSerial(fileName);
+                    if (convert_res == 2)
+                    {
+                        Toast.makeText(
+                                getContext(),
+                                fileName.split(LAST_OCCURENCE)[1]
+                                        + " already exists!",
+                                Toast.LENGTH_SHORT
+                        ).show();
+                    }
+                }
+                Toast.makeText(
+                        getContext(),
+                        "Conversion complete!",
+                        Toast.LENGTH_SHORT
+                ).show();
+            }
+        });
         toParallelBtn.setOnClickListener(new View.OnClickListener()
         {
             @Override
@@ -230,11 +245,26 @@ public class ListFragment extends Fragment
                 );
                 ArrayList<String> fileNames = friendsAdapter.collectSelected();
 
+                int convert_res = 0;
+                final String LAST_OCCURENCE = ".*/";
                 for (String fileName : fileNames)
                 {
-                    CSVFile.toParallel(fileName);
+                    convert_res = CSVFile.toParallel(fileName);
+                    if (convert_res == 2)
+                    {
+                        Toast.makeText(
+                                getContext(),
+                                fileName.split(LAST_OCCURENCE)[1]
+                                        + " already exists!",
+                                Toast.LENGTH_SHORT
+                        ).show();
+                    }
                 }
-                Log.d(TAG, "Conversion complete!");
+                Toast.makeText(
+                        getContext(),
+                        "Conversion complete!",
+                        Toast.LENGTH_SHORT
+                ).show();
             }
         });
 
@@ -295,8 +325,20 @@ public class ListFragment extends Fragment
                     fileNameMsg += fileName + ";";
                 }
 
-                dmd.sendMessageToGraph(fileNameMsg);
-                switchToGraphFragment();
+                if (!fileNameMsg.contains("_parallel"))
+                {
+                    dmd.sendMessageToGraph(fileNameMsg);
+                    switchToGraphFragment();
+                }
+                else
+                {
+                    Toast.makeText(
+                        getContext(),
+                        "Parallel formatted files are unable to be"
+                            + " visualized!",
+                            Toast.LENGTH_SHORT
+                    ).show();
+                }
             }
         });
 

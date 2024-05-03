@@ -426,6 +426,7 @@ public class GraphFragment extends Fragment
         dmd.getMessageContainerGraph()
                 .observe(getViewLifecycleOwner(), msg ->
                 {
+                    int loadCSVCode = 0;
                     Log.d("GRAPH", "Received: " + msg);
                     if (msg.equals("TMD"))
                     {
