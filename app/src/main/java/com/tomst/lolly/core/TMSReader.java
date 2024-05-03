@@ -892,29 +892,6 @@ public class TMSReader extends Thread
         Log.e("TOMST", devState.toString());
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    private boolean FileExists(String Serial, LocalDateTime localDateTime, int idx){
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy_MM_dd").withZone(ZoneId.of("UTC"));
-        String locFile = fileDir+ "\\data_"+Serial+"_"+localDateTime.format(formatter)+"_"+ Integer.valueOf(idx)+".csv";
-        File file = new File(context.getFilesDir(),locFile);
-        return (file.exists());
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    private String CompileFileName(String Serial){
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy_MM_dd").withZone(ZoneId.of("UTC"));
-        LocalDateTime localDateTime = LocalDateTime.now();
-        int idx=0;
-        boolean bex = false;
-        while ( (bex = FileExists(Serial,localDateTime,idx)) == true){
-            idx++;
-        }
-
-        String result = "data_"+Serial+"_"+localDateTime.format(formatter)+"_"+ Integer.valueOf(idx)+".csv";
-        return result;
-    }
-
-
     private boolean startFTDI(){
         if (ftDev == null)
         {
