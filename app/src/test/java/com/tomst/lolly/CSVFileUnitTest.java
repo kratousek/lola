@@ -19,8 +19,8 @@ public class CSVFileUnitTest
 
     public CSVFile csvFile;
 
-    private final String parallelTestFileName = "./parallel_test.csv";
-    private final String serialTestFileName = "./serial_test.csv";
+    private final String parallelTestFileName = "./test_parallel.csv";
+    private final String serialTestFileName = "./test.csv";
     private final String serialMockData =
         "3;\n"
         + "7832;1;2;\n"
