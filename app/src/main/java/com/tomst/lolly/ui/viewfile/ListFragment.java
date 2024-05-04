@@ -205,6 +205,11 @@ public class ListFragment extends Fragment
             @Override
             public void onClick(View view)
             {
+                Toast.makeText(
+                        getContext(),
+                        "Converting to Serial",
+                        Toast.LENGTH_LONG
+                ).show();
                 String convertFiles = "";
                 FileViewerAdapter friendsAdapter = new FileViewerAdapter(
                         getContext(), fFriends
@@ -238,7 +243,11 @@ public class ListFragment extends Fragment
             @Override
             public void onClick(View view)
             {
-                Toast.makeText(getContext(), "Converting to Parallel", Toast.LENGTH_LONG).show();
+                Toast.makeText(
+                        getContext(),
+                        "Converting to Parallel",
+                        Toast.LENGTH_LONG
+                ).show();
                 String convertFiles = "";
                 FileViewerAdapter friendsAdapter = new FileViewerAdapter(
                         getContext(), fFriends
