@@ -12,6 +12,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+@RunWith(MockitoJUnitRunner.class)
 public class CSVFileUnitTest
 {
     @Mock
@@ -42,7 +43,7 @@ public class CSVFileUnitTest
         + "1;2023.05.01 00:30;0;1,234;-200;-200;563;234;0;"
         + "1;2023.05.01 00:30;0;34,028;-200;-200;120;789;0;\n";
 
-    @Test
+    @Before
     public void setup()
     {
         // write serial file
