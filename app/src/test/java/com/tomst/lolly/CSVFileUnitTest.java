@@ -21,7 +21,7 @@ public class CSVFileUnitTest
     public CSVFile csvFile;
 
     private final String parallelTestFileName = "./test_parallel.csv";
-    private final String serialTestFileName = "./test.csv";
+    private final String serialTestFileName = "./test_serial.csv";
     private final String serialMockData =
         "3;\n"
         + "7832;1;2;\n"
@@ -84,8 +84,8 @@ public class CSVFileUnitTest
 
         String actualLines = "";
         CSVFile actualFile =
-                CSVFile.open(parallelTestFileName, CSVFile.READ_MODE);
-        String expectedLines = serialTestFileName;
+                CSVFile.open(serialTestFileName, CSVFile.READ_MODE);
+        String expectedLines = serialMockData;
 
         String line = "";
         while ((line = actualFile.readLine()) != "")

@@ -94,8 +94,6 @@ public class CSVFile
 
             if (file.createNewFile())
             {
-                Log.d(TAG, "Created file named: " + path);
-
                 csvFile = open(path, WRITE_MODE);
             }
             else
