@@ -304,7 +304,6 @@ public class GraphFragment extends Fragment
 
         // read data
         headerIndex = -1;
-        int lineIndex = 0;
         while (currentLine != "")
         {
             TMereni mer = processLine(currentLine);
@@ -328,7 +327,6 @@ public class GraphFragment extends Fragment
                 //number of minutes from the first date plotted
                 //dateNum = (mer.dtm.toEpochSecond(ZoneOffset.MAX) - originDate) / 60;
                 dateNum = mer.dtm.toEpochSecond(ZoneOffset.MAX);
-//                dateNum = lineIndex;
 
                 dendroInfos.get(headerIndex).mers.add(mer);
                 dendroInfos.get(headerIndex).vT1.add(
@@ -343,8 +341,6 @@ public class GraphFragment extends Fragment
                 dendroInfos.get(headerIndex).vHA.add(
                         new Entry(dateNum, (float) mer.hum)
                 );
-
-                lineIndex++;
             }
 
             // move to next line
