@@ -79,6 +79,8 @@ public class HomeFragment extends Fragment {
 
     private int currentIndex = -1;
 
+    private String serialNumber = "Unknown";
+
     private final int openIndex = 0;
 
     private boolean bReadThreadGoing=false;
@@ -345,6 +347,7 @@ public class HomeFragment extends Fragment {
 
                 case tSerial:
                     //String AFileName  = CompileFileName(ftTMS.SerialNumber);
+                    serialNumber = info.msg;
                     binding.devser.setText(info.msg);  // cislo lizatka
                     String AFileName  = CompileFileName(info.msg);  // cislo lizatka
                     AFileName = FullName(AFileName);
@@ -433,7 +436,7 @@ public class HomeFragment extends Fragment {
 
                     if (showGraph) {
                         // prepni se do Grafu
-                        dmd.sendMessageToGraph("TMD");
+                        dmd.sendMessageToGraph("TMD " + serialNumber);
                         switchToGraphFragment();
                     }
                     break;

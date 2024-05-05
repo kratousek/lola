@@ -100,6 +100,8 @@ public class GraphFragment extends Fragment
     private static final byte TEMP3_INDEX = 5;
     private static final byte HUMIDITY_INDEX = 6;
     private static final byte MVS_INDEX = 7;
+    private final String TMD_DELIM = " ";
+    private final String TAG = "GraphFragment";
 
 
     // CSV loading
@@ -180,6 +182,7 @@ public class GraphFragment extends Fragment
 
     private void DisplayData()
     {
+        Log.d(TAG, "DisplayData");
         boolean firstOfItsKind = true;
         int ogHeaderIndex = headerIndex;
         LineDataSet d = null;
@@ -188,6 +191,7 @@ public class GraphFragment extends Fragment
         headerIndex = 0;
         do
         {
+            Log.d(TAG, "loading dataset: " + headerIndex);
             // line graph
             d = SetLine(dendroInfos.get(headerIndex).vT1, TPhysValue.vT1);
             dataSets.add(d);
@@ -232,6 +236,20 @@ public class GraphFragment extends Fragment
         DoBtnClick(binding.vT3);
 
         headerIndex = ogHeaderIndex;
+    }
+
+    private void setupDMDGraph(String serialNumber) {
+        numDataSets = 1;
+
+        TDendroInfo defaultDendroInfo = new TDendroInfo(
+                serialNumber, null, null
+        );
+        dendroInfos.add(0, defaultDendroInfo);
+
+        dendroInfos.get(0).vT1 = dmd.getT1();
+        dendroInfos.get(0).vT2 = dmd.getT2();
+        dendroInfos.get(0).vT3 = dmd.getT3();
+        dendroInfos.get(0).vHA = dmd.getHA();
     }
 
     private void loadCSVFile(String fileName)
@@ -286,6 +304,7 @@ public class GraphFragment extends Fragment
 
         // read data
         headerIndex = -1;
+        int lineIndex = 0;
         while (currentLine != "")
         {
             TMereni mer = processLine(currentLine);
@@ -309,6 +328,7 @@ public class GraphFragment extends Fragment
                 //number of minutes from the first date plotted
                 //dateNum = (mer.dtm.toEpochSecond(ZoneOffset.MAX) - originDate) / 60;
                 dateNum = mer.dtm.toEpochSecond(ZoneOffset.MAX);
+//                dateNum = lineIndex;
 
                 dendroInfos.get(headerIndex).mers.add(mer);
                 dendroInfos.get(headerIndex).vT1.add(
@@ -323,6 +343,8 @@ public class GraphFragment extends Fragment
                 dendroInfos.get(headerIndex).vHA.add(
                         new Entry(dateNum, (float) mer.hum)
                 );
+
+                lineIndex++;
             }
 
             // move to next line
@@ -428,8 +450,9 @@ public class GraphFragment extends Fragment
                 {
                     int loadCSVCode = 0;
                     Log.d("GRAPH", "Received: " + msg);
-                    if (msg.equals("TMD"))
+                    if (msg.split(TMD_DELIM)[0].equals("TMD"))
                     {
+                        /*
                         // vytahne data z dmd, ktere sem poslal TMD adapter
                         // pulls data from dendrometer
                         LoadDmdData();
@@ -437,6 +460,10 @@ public class GraphFragment extends Fragment
                         //Default: Do Not Display T2 and T3
                         DoBtnClick(binding.vT2);
                         DoBtnClick(binding.vT3);
+                        */
+
+                        setupDMDGraph(msg.split(TMD_DELIM)[1]);
+                        DisplayData();
                     }
                     else
                     {
@@ -659,6 +686,7 @@ public class GraphFragment extends Fragment
 
     private LineDataSet SetLine(ArrayList<Entry> vT, TPhysValue val)
     {
+        Log.d(TAG, "SetLine");
         int lineColor=0;
         int colorStep=255/3;
 
@@ -810,29 +838,29 @@ public class GraphFragment extends Fragment
         2) Shrink definition
      */
 
-    private void LoadDmdData()
-    {
-        LineDataSet d = null;
-
-        // **** linearni graf
-        d = SetLine(dmd.getT1(),TPhysValue.vT1);
-        dataSets.add(d);
-        d = SetLine(dmd.getT2(),TPhysValue.vT2);
-        dataSets.add(d);
-        d = SetLine(dmd.getT3(),TPhysValue.vT3);
-        dataSets.add(d);
-        // humidity
-        d = SetLine(dmd.getHA(),TPhysValue.vHum);
-        dataSets.add(d);
-        LineData lines = new LineData(dataSets);
-        combinedData.setData(lines);
-        // combinedData.setData(generateBarData());
-        chart.setData(combinedData);
-        chart.getAxisLeft().setEnabled(true);
-        chart.getAxisRight().setEnabled(true);
-
-        chart.invalidate();
-    }
+//    private void LoadDmdData()
+//    {
+//        LineDataSet d = null;
+//
+//        // **** linearni graf
+//        d = SetLine(dmd.getT1(),TPhysValue.vT1);
+//        dataSets.add(d);
+//        d = SetLine(dmd.getT2(),TPhysValue.vT2);
+//        dataSets.add(d);
+//        d = SetLine(dmd.getT3(),TPhysValue.vT3);
+//        dataSets.add(d);
+//        // humidity
+//        d = SetLine(dmd.getHA(),TPhysValue.vHum);
+//        dataSets.add(d);
+//        LineData lines = new LineData(dataSets);
+//        combinedData.setData(lines);
+//        // combinedData.setData(generateBarData());
+//        chart.setData(combinedData);
+//        chart.getAxisLeft().setEnabled(true);
+//        chart.getAxisRight().setEnabled(true);
+//
+//        chart.invalidate();
+//    }
 
 
     @Override
