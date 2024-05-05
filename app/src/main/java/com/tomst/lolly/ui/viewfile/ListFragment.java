@@ -840,6 +840,7 @@ public class ListFragment extends Fragment
 
     private void listItem(final File folder)
     {
+        Log.d(TAG, "ListItem");
         String info = "Name: " + folder.getName() + "\n";
         if (Build.VERSION.SDK_INT >= 9)
         {
@@ -982,12 +983,13 @@ public class ListFragment extends Fragment
         }
     }
 
-
     @Override
     public void onStart()
     {
         Log.d("LIST", "Started...");
         super.onStart();
+
+        fFriends.clear();
 
         File[] rootDirectories = FileOperation.getAllStorages(getContext());
         filePath = Constants.FILEDIR; //"/storage/emulated/0/Documents/";

@@ -366,7 +366,6 @@ public class pars {
     /*** Konstruktor, nastavim defaultni hodnoty ***/
     @RequiresApi(api = Build.VERSION_CODES.O)
     public pars(){
-        Log.d("|||DEBUG|||", "pars + " + fMereni.month);
         //RandomAccessFile file = new RandomAccessFile("/Users/pankaj/Downloads/myfile.txt", "r");
         InitConstants();
     }

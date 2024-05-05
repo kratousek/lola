@@ -305,7 +305,6 @@ public class TMSReader extends Thread
 
     public boolean convertMereni(String line)
     {
-        Log.d("|||DEBUG|||", "line: " + line);
         String[] str = line.split(";");
         // 00F;ADC;FF3;183;2
         if (str[1].equals("ADC")) {
@@ -345,8 +344,6 @@ public class TMSReader extends Thread
 
         String s = str[4].replaceAll("(\\r|\\n)", "");
         int mvs = Integer.parseInt(s,16);
-
-        Log.d("|||DEBUG|||", "hum: " + mer.hum);
 
         if ((mer.dev == TDeviceType.dAD) || (mer.dev == TDeviceType.dAdMicro)) {
 //            mer.hum = 0;
