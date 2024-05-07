@@ -9,10 +9,10 @@
 
 
     <string-array name="download_array">
-        <item>None</item>
-        <item>All</item>
-        <item>From bookmark</item>
-        <item>From date</item>
+        <item>Read From:</item>
+        <item>Read All</item>
+        <item>Read From Bookmark</item>
+        <item>Read From Date</item>
     </string-array>
 
     <string name="measurement_mode">Choose a measurement mode</string>

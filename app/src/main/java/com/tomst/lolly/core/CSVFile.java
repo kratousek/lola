@@ -6,6 +6,7 @@ import android.util.Log;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 
@@ -27,6 +28,16 @@ public class CSVFile
     // private constants
     private static final String TAG = "CSV";
     private static final int LINE_LENGTH = 0;
+    private static final String DELIM = ";";
+
+    // positional consts for indexing
+    private static final byte POINT_LEN = 9;
+    private static final byte DATETIME_INDEX = 1;
+    private static final byte TEMP1_INDEX = 3;
+    private static final byte TEMP2_INDEX = 4;
+    private static final byte TEMP3_INDEX = 5;
+    private static final byte HUMIDITY_INDEX = 6;
+    private static final byte MVS_INDEX = 7;
 
     // operational members
     private final char mode;
@@ -234,5 +245,189 @@ public class CSVFile
         }
 
         return contents;
+    }
+
+    /**
+     * Reformats the CSV file into a parallel format (i.e. data is listed in
+     * columns: meter1;meter2;meter3;...).
+     *
+     * @param path Path of file to convert
+     * @return Code which communicates if the operation was successful (0) or
+     * if the operation failed
+     * @apiNote This function write in-place! Please copy and then convert if
+     * you wish to preserve the source file.
+     * @apiNote Failure codes and their descriptions:
+     * 1 = File specified does not exist
+     */
+    public static int toParallel(String path)
+    {
+        if (!CSVFile.exists(path))
+        {
+            Log.d(TAG, path + " already exists!");
+            return 1;
+        }
+
+        CSVFile src = CSVFile.open(path, READ_MODE);
+        String currentLine;
+        String[] split;
+        ArrayList<String[]> serials = new ArrayList<String[]>();
+        ArrayList<ArrayList<String>> data =
+                new ArrayList<ArrayList<String>>();
+
+        currentLine = src.readLine();  // consume number of files
+        currentLine = src.readLine();
+        split = currentLine.split(DELIM);
+        while (split.length > 1)
+        {
+            serials.add(split);
+            split = src.readLine().split(DELIM);
+        }
+        data.ensureCapacity(25000);
+
+        int lineIdx = 0;
+        while ((currentLine = src.readLine()) != "")
+        {
+            if (currentLine.split(DELIM).length == 1)
+            {
+                lineIdx = 0;
+            }
+            else
+            {
+                if (data.size() == lineIdx)
+                {
+                    data.add(new ArrayList<String>());
+                }
+
+                data.get(lineIdx).add(currentLine);
+                lineIdx += 1;
+            }
+        }
+        src.close();
+
+        String split_path[] = path.split("\\.");
+        String dest_path = split_path[0] + "_parallel.csv";
+        CSVFile dest = CSVFile.create(dest_path);
+        // write header
+        dest.write(serials.size() + ";\n");
+        String line;
+        for (int i = 0; i < serials.size(); i += 1)
+        {
+            line = "";
+
+            for (int j = 0; j < serials.get(i).length; j += 1)
+            {
+                line += serials.get(i)[j] + DELIM;
+            }
+
+            dest.write(line + "\n");
+        }
+
+        // write column names
+        line = "";
+        for (int i = 0; i < serials.size(); i += 1)
+        {
+            line += serials.get(i)[0] + DELIM
+                + "data" + DELIM
+                + "temp1" + DELIM
+                + "temp2" + DELIM
+                + "temp3" + DELIM
+                + "humidity" + DELIM
+                + "mvs" + DELIM
+                + "8" + DELIM;
+        }
+        dest.write(line + "\n");
+
+        // write data
+        for (int l = 0; l < data.size(); l += 1)
+        {
+            line = "";
+            for (int d = 0; d < data.get(l).size(); d += 1)
+            {
+                line += data.get(l).get(d);
+            }
+            dest.write(line + "\n");
+        }
+        dest.close();
+
+        return 0;
+    }
+
+
+    /**
+     * Reformats the CSV file into a serial structure (i.e. data from each
+     * dendrometer is listed one after the other). This is the default
+     * structure of merged files.
+     *
+     * @path Path of file to convert
+     * @return Code which communicates if the operation was successful (0) or
+     * if the operation failed
+     * @apiNote This function write in-place! Please copy and then convert if
+     * you wish to preserve the source file.
+     * @apiNote Failure codes and their descriptions:
+     * 1 = File specified does not exist
+     */
+    public static int toSerial(String path)
+    {
+        if (!CSVFile.exists(path))
+        {
+            return 1;
+        }
+
+        CSVFile src = CSVFile.open(path, READ_MODE);
+        String currentLine = "";
+        String[] split;
+        ArrayList<String> serials = new ArrayList<String>();
+        ArrayList<ArrayList<String>> data = new ArrayList<ArrayList<String>>();
+
+        currentLine = src.readLine();
+        int numDataSets = Integer.parseInt(currentLine.split(DELIM)[0]);
+        for (int i = 0; i < numDataSets; i += 1)
+        {
+            currentLine = src.readLine();
+            serials.add(currentLine);
+            data.add(new ArrayList<String>());
+        }
+        src.readLine();  // consume column names - already have in `serials`
+
+        while ((currentLine = src.readLine()) != "")
+        {
+            split = currentLine.split(DELIM);
+            for (int i = 0; i < numDataSets; i += 1)
+            {
+                if ((i * POINT_LEN) < split.length)
+                {
+                    data.get(i).add(
+                            split[i * POINT_LEN + 0] + DELIM + split[i * POINT_LEN + DATETIME_INDEX] + DELIM + split[i * POINT_LEN + 2] + DELIM + split[i * POINT_LEN + TEMP1_INDEX] + DELIM + split[i * POINT_LEN + TEMP2_INDEX] + DELIM + split[i * POINT_LEN + TEMP3_INDEX] + DELIM + split[i * POINT_LEN + HUMIDITY_INDEX] + DELIM + split[i * POINT_LEN + MVS_INDEX] + DELIM + split[i * POINT_LEN + 8] + DELIM);
+                }
+                // magic numbers are place holders until I figure out what data
+                // is at those indices
+            }
+        }
+        src.close();
+
+        String line = "";
+        String split_path[] = path.split("\\.");
+        String dest_path = split_path[0] + "_serial.csv";
+        CSVFile dest = CSVFile.create(dest_path);
+        // write header
+        dest.write(serials.size() + DELIM + "\n");
+        for (int i = 0; i < serials.size(); i += 1)
+        {
+            dest.write(serials.get(i) + "\n");
+        }
+
+        // write data
+        for (int s = 0; s < serials.size(); s += 1)
+        {
+            dest.write(serials.get(s).split(DELIM)[0] + DELIM + "\n");
+
+            for (int d = 0; d < data.get(s).size(); d += 1)
+            {
+                dest.write(data.get(s).get(d) + "\n");
+            }
+        }
+        dest.close();
+
+        return 0;
     }
 }

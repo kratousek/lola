@@ -19,6 +19,25 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingLeft="75dp"
+            >
+
+                <CheckBox
+                    android:id="@+id/vGrowth"
+                    android:tag = "4"
+                    android:checked="true"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_weight="9"
+
+                    android:text="Growth: ▬ ▬ ▬ ▬ ▬ ▬"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:orientation="horizontal">
 
                 <CheckBox
@@ -28,8 +47,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:layout_weight="9"
-                    android:buttonTint="@color/vT1"
-                    android:text="T1"/>
+                    android:text="Temp 1:          ▬▬▬▬▬"/>
 
                 <CheckBox
                     android:id="@+id/vT2"
@@ -38,8 +56,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:layout_weight="9"
-                    android:buttonTint="@color/vT2"
-                    android:text="T2"/>
+                    android:text="Temp 2:          ━━━━━━━━"/>
 
                 <CheckBox
                     android:id="@+id/vT3"
@@ -48,18 +65,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:layout_weight="9"
-                    android:buttonTint="@color/vT3"
-                    android:text="T3"/>
+                    android:text="Temp 3:          ⎯⎯⎯⎯⎯"/>
 
-                <CheckBox
-                    android:id="@+id/vHum"
-                    android:tag = "4"
-                    android:checked="true"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_weight="9"
-                    android:buttonTint="@color/vHum"
-                    android:text="Hum/AD"/>
         </LinearLayout>
 
         <LinearLayout
