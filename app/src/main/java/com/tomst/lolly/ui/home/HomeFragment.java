@@ -32,7 +32,12 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.ftdi.j2xx.D2xxManager;
 import com.ftdi.j2xx.FT_Device;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.tomst.lolly.LollyService;
 import com.tomst.lolly.R;
 import com.tomst.lolly.core.BoundServiceListener;
@@ -104,6 +109,58 @@ public class HomeFragment extends Fragment {
 
     private boolean bound = false;
     private LollyService odometer;
+
+    private FirebaseFirestore db;
+    private TextView dataTextView;
+    private Button viewDataButton;
+    private void getData()
+    {
+        // initialize instance of cloud firestore
+        db = FirebaseFirestore.getInstance();
+
+        // get user data
+        db.collection("users").get()
+                .addOnCompleteListener(getActivity(), new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        // check if getting data was successful
+                        if (task.isSuccessful())
+                        {
+                            // create a string builder
+                            StringBuilder userData = new StringBuilder();
+
+                            // loop through all the data
+                            for (QueryDocumentSnapshot document: task.getResult())
+                            {
+                                // get user data
+                                String userName = document.getString("name");
+                                Long userSalary = document.getLong("salary");
+
+                                // create user data list
+                                if (userName != null && userSalary != null)
+                                {
+                                    userData.append("Name: ").append(userName)
+                                            .append(", Salary: ").append(userSalary)
+                                            .append("\n");
+                                }
+
+                                Log.d("dbUsers", "onComplete: " + document.getData());
+                            }
+
+                            // display the name for each user
+                            dataTextView.setText(userData.toString());
+                        }
+                        else
+                        {
+                            // display error
+                            dataTextView.setText("Error getting data: " + task.getException().getMessage( ));
+
+                            Log.d("dbUsers", "onComplete: " + task.getException().getMessage());
+                        }
+                    }
+                });
+    }
+
 
 
     @Override
@@ -425,7 +482,23 @@ public class HomeFragment extends Fragment {
         dmd.sendMessageToGraph("TMD"); // observer v GraphFragment vi, ze data byla vyctena pomoci TMD
         */
 
+        // initialize UI elements
+        dataTextView = binding.getRoot().findViewById(R.id.dataTextView);
+        viewDataButton = binding.getRoot().findViewById(R.id.btnViewData);
+
+        // set onclick listener for the button
+        viewDataButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getData();
+            }
+        });
+
         return root;
+    }
+
+    public void onViewDataButtonClick(View view) {
+        getData();
     }
 
     // otoc vrtuli
