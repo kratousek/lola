@@ -250,17 +250,20 @@ public class HomeFragment extends Fragment {
         return FILEPATH+AFileName;
      }
 
+     // 2024-04-24_92225141_0.csv
     @RequiresApi(api = Build.VERSION_CODES.O)
     private boolean FileExists(String Serial, LocalDateTime localDateTime, int idx){
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy_MM_dd").withZone(ZoneId.of("UTC"));
-        String locFile = FILEPATH+ "\\data_"+Serial+"_"+localDateTime.format(formatter)+"_"+ Integer.valueOf(idx)+".csv";
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneId.of("UTC"));
+//        String locFile = FILEPATH+ "\\data_"+Serial+"_"+localDateTime.format(formatter)+"_"+ Integer.valueOf(idx)+".csv";
+        String locFile = FILEPATH+ "\\"+localDateTime.format(formatter)+"_"+Serial+"_"+ Integer.valueOf(idx)+".csv";
         File file = new File(getContext().getFilesDir(),locFile);
         return (file.exists());
     }
 
+    // 2024-04-24_92225141_0.csv
     @RequiresApi(api = Build.VERSION_CODES.O)
     private String CompileFileName(String Serial){
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy_MM_dd").withZone(ZoneId.of("UTC"));
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneId.of("UTC"));
         LocalDateTime localDateTime = LocalDateTime.now();
         int idx=0;
         boolean bex = false;
@@ -268,7 +271,8 @@ public class HomeFragment extends Fragment {
             idx++;
         }
 
-        String result = "data_"+Serial+"_"+localDateTime.format(formatter)+"_"+ Integer.valueOf(idx)+".csv";
+//        String result = "data_"+Serial+"_"+localDateTime.format(formatter)+"_"+ Integer.valueOf(idx)+".csv";
+        String result = localDateTime.format(formatter)+"_"+Serial+"_"+ Integer.valueOf(idx)+".csv";
         return result;
     }
 
