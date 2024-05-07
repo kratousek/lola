@@ -334,11 +334,11 @@ public class CSVFile
         {
             line += "line number" + "!"
                 + serials.get(i)[0] + "!"
-                + "date" + "!"
-                + "temp1" + "!"
-                + "temp2" + "!"
-                + "temp3" + "!"
-                + "humidity" + "!"
+                + "date_MMDDYY_HHMM" + "!"
+                + "Temperature1" + "!"
+                + "Temperature1" + "!"
+                + "Temperature1" + "!"
+                + "Diam_or_Moisture" + "!"
                 + "mvs" + "!"
                 + "8" + "!";
         }
